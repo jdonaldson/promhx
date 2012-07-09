@@ -1,9 +1,4 @@
 package promhx;
-using promhx.Promise;
-import haxe.macro.Context;
-import haxe.macro.Expr;
-
-
 class Promise<T> {
     public var val(_checkval,null):T;
     private var _val:T;
@@ -13,29 +8,19 @@ class Promise<T> {
     private var _error:Array<Dynamic->Dynamic>;
     private var _errorf:Dynamic->Dynamic;
     private var _repeating:Bool;
-    private var _once:Bool;
     public function new(){
         set = false;
         _trigger = new Array<T->Dynamic>();
         _update = new Array<T->Dynamic>();
         _error = new Array<Dynamic->Dynamic>();
         _repeating = false;
-        _once = false;
     }
 
     /**
       Specify an error handling function
      **/
     public function error(f:Dynamic->Dynamic) {
-        _error.push(f);
-        return this;
-    }
-
-    /**
-        Specify that this promise should only resolve once 
-     **/
-    public function once(bool=true) {
-        _once = bool;
+        _errorf = f;
         return this;
     }
 
@@ -61,13 +46,8 @@ class Promise<T> {
                         var vals = [];
                         for (pv in parr) vals.push(pv.val);
                         if (arg_arr) vals = cast [vals];
-                        if (p._error.length == 0){
-                            p.resolve(Reflect.callMethod({},f,vals));
-                        }else{
-                            try{
-                                p.resolve(Reflect.callMethod({},f,vals));
-                            } catch (e:Dynamic) p.handleError(e);
-                        }
+                        try p.resolve(Reflect.callMethod({},f,vals))
+                        catch (e:Dynamic) p.handleError(e);
                     }
                 }
                 cthen(null);
@@ -108,7 +88,7 @@ class Promise<T> {
                 else for (ef in _error) ef(e);
             }
         }
-        if (_once) clearThen();
+        _update = new Array<T->Dynamic>();
         return this;
     }
 
@@ -137,19 +117,11 @@ class Promise<T> {
     }
 
     /**
-      Removes the async function callback.  This can be a single argument 
-      function given by [then()].
+      Rejects the promise, throwing an error.
      **/
-    public function removeThen(f:Dynamic): Bool{
-        //TODO also remove error handlers
-        return this._update.remove(f);
-    }
-
-    /**
-      Clears the queue of waited functions
-     **/
-    public function clearThen(){
+    public function reject(e:Dynamic){
         _update = new Array<T->Dynamic>();
+        handleError(e);
     }
     /**
       Converts any value to a Promise
