@@ -1,19 +1,14 @@
 package promhx;
 class Promise<T> {
-    public var val(_checkval,null):T;
     private var _val:T;
-    public var set(default,null):Bool;
-    private var _trigger:Array<T->Dynamic>;
+    private var _set:Bool;
     private var _update:Array<T->Dynamic>;
     private var _error:Array<Dynamic->Dynamic>;
     private var _errorf:Dynamic->Dynamic;
-    private var _repeating:Bool;
     public function new(){
-        set = false;
-        _trigger = new Array<T->Dynamic>();
+        _set = false;
         _update = new Array<T->Dynamic>();
         _error = new Array<Dynamic->Dynamic>();
-        _repeating = false;
     }
 
     /**
@@ -44,7 +39,7 @@ class Promise<T> {
                 var cthen = function(v:Dynamic){
                     if (Promise.allSet(parr)){
                         var vals = [];
-                        for (pv in parr) vals.push(pv.val);
+                        for (pv in parr) vals.push(pv._val);
                         if (arg_arr) vals = cast [vals];
                         try p.resolve(Reflect.callMethod({},f,vals))
                         catch (e:Dynamic) p.handleError(e);
@@ -63,7 +58,7 @@ class Promise<T> {
       Utility function to determine if all Promise values are set.
      **/
     private static function allSet(as:Array<Promise<Dynamic>>): Bool{
-        for (a in as) if (!a.set) return false;
+        for (a in as) if (!a._set) return false;
         return true;
     }
 
@@ -78,8 +73,8 @@ class Promise<T> {
       Resolves the given value for processing on any waiting functions.
      **/
     public function resolve(val:T){
-        if (set) throw("Promise has already been resolved");
-        set = true;
+        if (_set) throw("Promise has already been resolved");
+        _set = true;
         _val = val;
         for (f in _update){
             try f(_val)
@@ -108,10 +103,6 @@ class Promise<T> {
         return ret;
     }
 
-    private function _checkval(){
-        if (!set) throw('Error: Value access on an unset Promise variable.');
-        else return _val;
-    }
 
     /**
       Rejects the promise, throwing an error.
