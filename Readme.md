@@ -3,7 +3,7 @@ Promhx
 
 Promhx is a [promise](http://en.wikipedia.org/wiki/Futures_and_promises)
 library for [Haxe](http://www.haxe.org).  Promises contain values that are not
-immediately available. However, you can specify callback functions that will 
+immediately available. However, you can specify callback functions that will
 trigger when the values do become available.
 
 A typical case is to specify a callback for a given promise once the value
@@ -13,7 +13,7 @@ becomes available:
 promise.then(function(p1) trace("do something with promise1's value"));
 ```
 
-Alternatively, you can specify a callback on multiple promise instances using 
+Alternatively, you can specify a callback on multiple promise instances using
 the static method "when":
 
 ```js
@@ -22,9 +22,17 @@ Promise.when(promise1, promise2).then(function(p1,p2) trace("do something with t
 ```
 Promhx has a number of powerful features:
 
-* Specify a promise on one or more values.
-* Callback functions are typed according to the values that the promises contain.
+* You can specify a "then" callback on one or more promise values.
+* Callback functions are typed according to the values that the promises
+  contain.
 * Errors are propogated through the promise chain.
+
+Promhx has the following behavior:
+* Promises can only be resolved once.
+* Promises will remember their resolved value, and any functions specified
+  afterwards by "then()" will get ther result synchronously.
+* It is only possible to cancel a promise by rejecting it, which triggers an
+  error.
 
 ```js
 // Declare a promised value
@@ -33,10 +41,10 @@ var p1 = new Promise<Int>();
 // Simple: deliver promise when value is available.
 p1.then(function(x) trace("delivered " + x));
 
-// Deliver multiple promises when they are all available. 
+// Deliver multiple promises when they are all available.
 // the "then" function must match the arity of the contained values
 // from the arguments to "when".
-var p2 = new Promise<Int>(); 
+var p2 = new Promise<Int>();
 Promise.when(p1,p2).then(function(x,y) trace(x+y));
 
 // You can also call it on an array of values, but you lose typing.
@@ -58,7 +66,7 @@ Promise.when(p1,p2).then(function(x,y) throw('an error'))
 // If no error callback is specified, the error is thrown.
 //Promise.when(p1,p2).then(function(x,y) throw('an error'));
 
-// finally, resolve the two promise values, which will start the 
+// Finally, resolve the two promise values, which will start the
 // evaluation of all promises.
 p1.resolve(1);
 p2.resolve(2);
