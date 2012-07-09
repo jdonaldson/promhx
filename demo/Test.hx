@@ -33,13 +33,13 @@ class Test {
         // If no error callback is specified, the error is thrown.
         //Promise.when(p1,p2).then(function(x,y) throw('an error'));
         
-        // finally, yield the two promise values, which will start the 
+        // finally, resolve the two promise values, which will start the 
         // evaluation of all promises.
-        p1.yield(1);
-        p2.yield(2);
+        p1.resolve(1);
+        p2.resolve(2);
 
-        // if you want, you can limit the number of times a value can yield.
-        // p1.yield(1).once();
+        // if you want, you can limit the number of times a value can resolve.
+        // p1.resolve(1).once();
     }
 
 }

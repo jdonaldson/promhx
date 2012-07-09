@@ -32,7 +32,7 @@ class Promise<T> {
     }
 
     /**
-        Specify that this promise should only yield once 
+        Specify that this promise should only resolve once 
      **/
     public function once(bool=true) {
         _once = bool;
@@ -62,10 +62,10 @@ class Promise<T> {
                         for (pv in parr) vals.push(pv.val);
                         if (arg_arr) vals = cast [vals];
                         if (p._error.length == 0){
-                            p.yield(Reflect.callMethod({},f,vals));
+                            p.resolve(Reflect.callMethod({},f,vals));
                         }else{
                             try{
-                                p.yield(Reflect.callMethod({},f,vals));
+                                p.resolve(Reflect.callMethod({},f,vals));
                             } catch (e:Dynamic) p.handleError(e);
                         }
                     }
@@ -95,9 +95,9 @@ class Promise<T> {
     public dynamic static function when<A,B,C,D,E,F,G>(f:Array<Promise<Dynamic>>):{then:(Array<Dynamic>->B)->Promise<B>} {return null;}
 
     /**
-      Yields the given value for processing on any waiting functions.
+      Resolves the given value for processing on any waiting functions.
      **/
-    public function yield(val:T){
+    public function resolve(val:T){
         set = true;
         _val = val;
         for (f in _update){
@@ -141,6 +141,7 @@ class Promise<T> {
       function given by [then()].
      **/
     public function removeThen(f:Dynamic): Bool{
+        //TODO also remove error handlers
         return this._update.remove(f);
     }
 
@@ -155,7 +156,7 @@ class Promise<T> {
      **/
     public static function promise<T>(_val:T) : Promise<T>{
         var ret = new Promise<T>();
-        ret.yield(_val);
+        ret.resolve(_val);
         return ret;
     }
 }
