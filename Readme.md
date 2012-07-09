@@ -9,14 +9,14 @@ trigger when the values do become available.
 A typical case is to specify a callback for a given promise once the value
 becomes available:
 
-```haxe
+```hx
 promise.then(function(p1) trace("do something with promise1's value"));
 ```
 
 Alternatively, you can specify a callback on multiple promise instances using 
 the static method "when":
 
-```haxe
+```hx
 var promise1,promise2 = new Promise<Int>();
 Promise.when(promise1, promise2).then(function(p1,p2) trace("do something with the promise values"));
 ```
@@ -26,7 +26,7 @@ Promhx has a number of powerful features:
 * Callback functions are typed according to the values that the promises contain.
 * Errors are propogated through the promise chain.
 
-```haxe
+```hx
 // Declare a promised value
 var p1 = new Promise<Int>();
 
