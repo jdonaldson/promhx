@@ -38,8 +38,6 @@ class Test {
         p1.resolve(1);
         p2.resolve(2);
 
-        // if you want, you can limit the number of times a value can resolve.
-        // p1.resolve(1).once();
     }
 
 }
