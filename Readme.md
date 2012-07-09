@@ -10,14 +10,13 @@ A typical case is to specify a callback for a given promise once the value
 becomes available:
 
 ```js
-promise.then(function(p1) trace("do something with promise1's value"));
+promise.then(function(p1) trace("do something with promise's value"));
 ```
 
 Alternatively, you can specify a callback on multiple promise instances using
 the static method "when":
 
 ```js
-var promise1,promise2 = new Promise<Int>();
 Promise.when(promise1, promise2).then(function(p1,p2) trace("do something with the promise values"));
 ```
 Promhx has a number of powerful features:
@@ -28,6 +27,7 @@ Promhx has a number of powerful features:
 * Errors are propogated through the promise chain.
 
 Promhx has the following behavior:
+
 * Promises can only be resolved once.
 * Promises will remember their resolved value, and any functions specified
   afterwards by "then()" will get ther result synchronously.
