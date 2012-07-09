@@ -78,15 +78,12 @@ class Promise<T> {
       Resolves the given value for processing on any waiting functions.
      **/
     public function resolve(val:T){
+        if (set) throw("Promise has already been resolved");
         set = true;
         _val = val;
         for (f in _update){
-            try{
-                f(_val);
-            } catch (e:Dynamic){
-                if (_error.length == 0) throw e;
-                else for (ef in _error) ef(e);
-            }
+            try f(_val)
+            catch (e:Dynamic) handleError(e);
         }
         _update = new Array<T->Dynamic>();
         return this;
