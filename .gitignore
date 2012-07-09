@@ -1,0 +1,5 @@
+.tmbuild
+.DS_Store
+bin/
+tags
+
