@@ -41,6 +41,7 @@ class Promise<T> {
                         var vals = [];
                         for (pv in parr) vals.push(pv._val);
                         if (arg_arr) vals = cast [vals];
+                        trace(vals);
                         try p.resolve(Reflect.callMethod({},f,vals))
                         catch (e:Dynamic) p.handleError(e);
                     }
@@ -62,12 +63,12 @@ class Promise<T> {
         return true;
     }
 
-    @:overload(function(arg1:Promise<A>, arg2:Promise<B>):{then:(A->B->C)->Promise<C>}{})
-    @:overload(function(arg1:Promise<A>, arg2:Promise<B>, arg3:Promise<C>):{then:(A->B->C->D)->Promise<D>}{})
-    @:overload(function(arg1:Promise<A>, arg2:Promise<B>, arg3:Promise<C>, arg4:Promise<D>):{then:(A->B->C->D->E)->Promise<E>}{})
-    @:overload(function(arg1:Promise<A>, arg2:Promise<B>, arg3:Promise<C>, arg4:Promise<D>, arg5:Promise<E>):{then:(A->B->C->D->E->F)->Promise<F>}{})
-    @:overload(function(arg1:Promise<A>, arg2:Promise<B>, arg3:Promise<C>, arg4:Promise<D>, arg5:Promise<E>, arg6:Promise<F>):{then:(A->B->C->D->E->F->G)->Promise<G>}{})
-    public dynamic static function when<A,B,C,D,E,F,G>(f:Array<Promise<Dynamic>>):{then:(Array<Dynamic>->B)->Promise<B>} {return null;}
+    @:overload(function<A,B,C>(arg1:Promise<A>, arg2:Promise<B>):{then:(A->B->C)->Promise<C>}{})
+    @:overload(function<A,B,C,D>(arg1:Promise<A>, arg2:Promise<B>, arg3:Promise<C>):{then:(A->B->C->D)->Promise<D>}{})
+    @:overload(function<A,B,C,D,E>(arg1:Promise<A>, arg2:Promise<B>, arg3:Promise<C>, arg4:Promise<D>):{then:(A->B->C->D->E)->Promise<E>}{})
+    @:overload(function<A,B,C,D,E,F>(arg1:Promise<A>, arg2:Promise<B>, arg3:Promise<C>, arg4:Promise<D>, arg5:Promise<E>):{then:(A->B->C->D->E->F)->Promise<F>}{})
+    @:overload(function<A,B,C,D,E,F,G>(arg1:Promise<A>, arg2:Promise<B>, arg3:Promise<C>, arg4:Promise<D>, arg5:Promise<E>, arg6:Promise<F>):{then:(A->B->C->D->E->F->G)->Promise<G>}{})
+    public dynamic static function when<A>(f:Array<Promise<Dynamic>>):{then:(Array<Dynamic>->A)->Promise<A>} {return null;}
 
     /**
       Resolves the given value for processing on any waiting functions.
@@ -81,7 +82,6 @@ class Promise<T> {
             catch (e:Dynamic) handleError(e);
         }
         _update = new Array<T->Dynamic>();
-        return this;
     }
 
     /**
