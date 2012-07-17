@@ -1,4 +1,7 @@
 package promhx;
+import haxe.macro.Expr;
+import haxe.macro.Context;
+using Lambda;
 class Promise<T> {
     private var _val:T;
     private var _set:Bool;
@@ -19,40 +22,44 @@ class Promise<T> {
         return this;
     }
 
+    private static function _when(arr:Array<Dynamic>):Dynamic{
+        var ret = {then:function(x) trace("hi")};
+        return ret;
+        // could be an array of arrays
+        var arg_arr = false;
+        if (arr.length > 0 && Std.is(arr[0],Array)) {
+            arg_arr = true;
+            arr = arr[0];
+        }
+        var p = new Promise<Dynamic>();
+        var parr:Array<Promise<Dynamic>> = cast arr; 
+        // "then" function for the promise closure
+        var pthen =  function(f:Dynamic){
+            // "then" function callback for each promise
+            var cthen = function(v:Dynamic){
+                if (Promise.allSet(parr)){
+                    var vals = [];
+                    for (pv in parr) vals.push(pv._val);
+                    if (arg_arr) vals = cast [vals];
+                    trace(f);
+                    try p.resolve(Reflect.callMethod({},f,vals))
+                    catch (e:Dynamic) p.handleError(e);
+                }
+            }
+            cthen(null);
+            for (p in parr) p.then(cthen);
+            return p;
+        }
+        var ret = {then:pthen};
+        return ret;
+    }
+
     /**
       static initialization to set the magic "when" function
      **/
     private static function __init__(){
         //arr = Array of promises
-        var whenf = function(arr:Array<Dynamic>):Dynamic{
-            // could be an array of arrays
-            var arg_arr = false;
-            if (arr.length > 0 && Std.is(arr[0],Array)) {
-                arg_arr = true;
-                arr = arr[0];
-            }
-            var p = new Promise<Dynamic>();
-            var parr:Array<Promise<Dynamic>> = cast arr; 
-            // "then" function for the promise closure
-            var pthen =  function(f:Dynamic){
-                // "then" function callback for each promise
-                var cthen = function(v:Dynamic){
-                    if (Promise.allSet(parr)){
-                        var vals = [];
-                        for (pv in parr) vals.push(pv._val);
-                        if (arg_arr) vals = cast [vals];
-                        try p.resolve(Reflect.callMethod({},f,vals))
-                        catch (e:Dynamic) p.handleError(e);
-                    }
-                }
-                cthen(null);
-                for (p in parr) p.then(cthen);
-                return p;
-            }
-            var ret = {then:pthen};
-            return ret;
-        }
-        Promise.when = Reflect.makeVarArgs(whenf);
+        Promise.when =  Reflect.makeVarArgs(cast _when);
     }
     /**
       Utility function to determine if all Promise values are set.
@@ -62,12 +69,64 @@ class Promise<T> {
         return true;
     }
 
-    @:overload(function(arg1:Promise<A>, arg2:Promise<B>):{then:(A->B->C)->Promise<C>}{})
-    @:overload(function(arg1:Promise<A>, arg2:Promise<B>, arg3:Promise<C>):{then:(A->B->C->D)->Promise<D>}{})
-    @:overload(function(arg1:Promise<A>, arg2:Promise<B>, arg3:Promise<C>, arg4:Promise<D>):{then:(A->B->C->D->E)->Promise<E>}{})
-    @:overload(function(arg1:Promise<A>, arg2:Promise<B>, arg3:Promise<C>, arg4:Promise<D>, arg5:Promise<E>):{then:(A->B->C->D->E->F)->Promise<F>}{})
-    @:overload(function(arg1:Promise<A>, arg2:Promise<B>, arg3:Promise<C>, arg4:Promise<D>, arg5:Promise<E>, arg6:Promise<F>):{then:(A->B->C->D->E->F->G)->Promise<G>}{})
-    public dynamic static function when<A,B,C,D,E,F,G>(f:Array<Promise<Dynamic>>):{then:(Array<Dynamic>->B)->Promise<B>} {return null;}
+    @:overload(function<A,B,C>(arg1:Promise<A>, arg2:Promise<B>):{then:(A->B->C)->Promise<C>}{})
+    @:overload(function<A,B,C,D>(arg1:Promise<A>, arg2:Promise<B>, arg3:Promise<C>):{then:(A->B->C->D)->Promise<D>}{})
+    @:overload(function<A,B,C,D,E>(arg1:Promise<A>, arg2:Promise<B>, arg3:Promise<C>, arg4:Promise<D>):{then:(A->B->C->D->E)->Promise<E>}{})
+    @:overload(function<A,B,C,D,E,F>(arg1:Promise<A>, arg2:Promise<B>, arg3:Promise<C>, arg4:Promise<D>, arg5:Promise<E>):{then:(A->B->C->D->E->F)->Promise<F>}{})
+    @:overload(function<A,B,C,D,E,F,G>(arg1:Promise<A>, arg2:Promise<B>, arg3:Promise<C>, arg4:Promise<D>, arg5:Promise<E>, arg6:Promise<F>):{then:(A->B->C->D->E->F->G)->Promise<G>}{})
+    public dynamic static function when<A>(f:Array<Promise<Dynamic>>):{then:(Array<Dynamic>->A)->Promise<A>} {return null;}
+
+    //@:overload(function<A,B,C>(arg1:Promise<A>, arg2:Promise<B>):Promise<C>{})
+    //@:overload(function<A,B,C,D>(arg1:Promise<A>, arg2:Promise<B>, arg3:Promise<C>):Promise<D>{})
+    //@:overload(function<A,B,C,D,E>(arg1:Promise<A>, arg2:Promise<B>, arg3:Promise<C>, arg4:Promise<D>):Promise<E>{})
+    //@:macro public static function when2(args:Array<Expr>):Expr{
+    //@:macro public static function when2(args:Expr):Expr{
+    @:macro public static function when2(args:Array<ExprRequire<Promise<Dynamic>>>):Expr{
+    // could be an array of arrays
+        trace(args);
+        //return args[0];
+        return args[0];
+
+        var pos = args[0].pos;
+        var vals_ref = { pos:pos,
+            expr:EConst(CIdent("vals"))
+        }
+         
+        for (a in 0...args.length){
+            EArray(vals_ref, Context.makeExpr(a,pos));
+        }
+        //var eargs = {pos:args[0].pos,
+            //expr:EArrayDecl(args)
+        //}
+        //var f_ref = {pos:args[0].pos,
+            //expr:EConst(CIdent("f"))
+        //}
+
+        //var call ={pos:args[0].pos,
+            //expr:ECall(f_ref, )
+        //}
+        return macro {
+            var p = new Promise<Dynamic>();
+            //var parr:Array<Promise<Dynamic>> = $eargs; 
+            // "then" function for the promise closure
+            var pthen =  function(f:Dynamic){
+                // "then" function callback for each promise
+                var cthen = function(v:Dynamic){
+                    if (untyped Promise.allSet(parr)){
+                        var vals = [];
+                        for (pv in parr) vals.push(untyped pv._val);
+                        //try p.resolve($call)
+                        //catch (e:Dynamic) p.handleError(e);
+                    }
+                }
+                cthen(null);
+                for (p in parr) p.then(cthen);
+                return p;
+            }
+            var ret = {then:pthen};
+            return ret;
+        }
+    }
 
     /**
       Resolves the given value for processing on any waiting functions.

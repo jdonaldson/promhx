@@ -1,5 +1,8 @@
 -cp src
 -cp demo
 -main Test.hx
--x bin/t
+#-swf9 bin/test.swf
+-x bin/test
+-D absolute_path
+#-cmd open bin/test.swf
 
