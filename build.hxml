@@ -4,5 +4,6 @@
 #-swf9 bin/test.swf
 -x bin/test
 -D absolute_path
+-lib tink_macros
 #-cmd open bin/test.swf
 

@@ -1,6 +1,9 @@
 package promhx;
 import haxe.macro.Expr;
+import tink.macro.tools.ExprTools;
+import haxe.macro.Type;
 import haxe.macro.Context;
+using tink.macro.tools.TypeTools;
 using Lambda;
 class Promise<T> {
     private var _val:T;
@@ -32,7 +35,7 @@ class Promise<T> {
             arr = arr[0];
         }
         var p = new Promise<Dynamic>();
-        var parr:Array<Promise<Dynamic>> = cast arr; 
+        var parr:Array<Promise<Dynamic>> = cast arr;
         // "then" function for the promise closure
         var pthen =  function(f:Dynamic){
             // "then" function callback for each promise
@@ -81,50 +84,39 @@ class Promise<T> {
     //@:overload(function<A,B,C,D,E>(arg1:Promise<A>, arg2:Promise<B>, arg3:Promise<C>, arg4:Promise<D>):Promise<E>{})
     //@:macro public static function when2(args:Array<Expr>):Expr{
     //@:macro public static function when2(args:Expr):Expr{
-    @:macro public static function when2(args:Array<ExprRequire<Promise<Dynamic>>>):Expr{
-    // could be an array of arrays
-        trace(args);
-        //return args[0];
-        return args[0];
-
+    @:macro public static function when2<T>(args:Array<ExprRequire<Promise<Dynamic>>>):Expr{
+        //trace(args);
         var pos = args[0].pos;
-        var vals_ref = { pos:pos,
-            expr:EConst(CIdent("vals"))
-        }
-         
-        for (a in 0...args.length){
-            EArray(vals_ref, Context.makeExpr(a,pos));
-        }
-        //var eargs = {pos:args[0].pos,
-            //expr:EArrayDecl(args)
-        //}
-        //var f_ref = {pos:args[0].pos,
-            //expr:EConst(CIdent("f"))
-        //}
+        var types = args.map(Context.typeof);
+        var ptypes = types.map(function(x) switch(x){
+            case TInst(t,params): return params[0];
+            default : throw("Somehow, an illegal promise value was passed");
+        });
+        var cptypes = ptypes.map(function(x) return x.toComplex(true)).array();
+        //cptypes[0] should be an Unknown<0> type.
+        var cfexpr = TFunction(cptypes,cptypes[0]);
 
-        //var call ={pos:args[0].pos,
-            //expr:ECall(f_ref, )
-        //}
+        var eargs = {expr:EArrayDecl(args),pos:pos};
         return macro {
+            var parr:Array<Promise<Dynamic>> = $eargs;
             var p = new Promise<Dynamic>();
-            //var parr:Array<Promise<Dynamic>> = $eargs; 
-            // "then" function for the promise closure
-            var pthen =  function(f:Dynamic){
-                // "then" function callback for each promise
-                var cthen = function(v:Dynamic){
-                    if (untyped Promise.allSet(parr)){
-                        var vals = [];
-                        for (pv in parr) vals.push(untyped pv._val);
-                        //try p.resolve($call)
-                        //catch (e:Dynamic) p.handleError(e);
+            {
+                then:function(f:$cfexpr){
+                    // "then" function callback for each promise
+                    var cthen = function(v:Dynamic){
+                        if (untyped Promise.allSet(parr)){
+                            var vals = [];
+                            for (pv in parr) vals.push(untyped pv._val);
+                            // worry about calling the function later.
+                            //try p.resolve($call)
+                            //catch (e:Dynamic) p.handleError(e);
+                        }
                     }
+                    cthen(null);
+                    for (p in parr) p.then(cthen);
+                    return p;
                 }
-                cthen(null);
-                for (p in parr) p.then(cthen);
-                return p;
             }
-            var ret = {then:pthen};
-            return ret;
         }
     }
 
@@ -144,7 +136,7 @@ class Promise<T> {
     }
 
     /**
-      Handle errors 
+      Handle errors
      **/
     private function handleError(d:Dynamic){
         if (_errorf != null) _errorf(d)
