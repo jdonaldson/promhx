@@ -1,11 +1,16 @@
 package promhx;
+import haxe.macro.Expr;
+import tink.macro.tools.ExprTools;
+import haxe.macro.Type;
+import haxe.macro.Context;
+using tink.macro.tools.TypeTools;
+using Lambda;
 class Promise<T> {
     private var _val:T;
     private var _set:Bool;
     private var _update:Array<T->Dynamic>;
     private var _error:Array<Dynamic->Dynamic>;
     private var _errorf:Dynamic->Dynamic;
-    private static var when_ = {when = Reflect.makeVarArgs(whenf); 1;}
     public function new(){
         _set = false;
         _update = new Array<T->Dynamic>();
@@ -20,51 +25,64 @@ class Promise<T> {
         return this;
     }
 
-    static function __init__(){
-        when = Reflect.makeVarArgs(whenf);
-    }
-    static function whenf(arr:Array<Dynamic>):Dynamic{
-            // could be an array of arrays
-            var arg_arr = false;
-            if (arr.length > 0 && Std.is(arr[0],Array)) {
-                arg_arr = true;
-                arr = arr[0];
-            }
-            var p = new Promise<Dynamic>();
-            var parr:Array<Promise<Dynamic>> = cast arr; 
-            // "then" function for the promise closure
-            var pthen =  function(f:Dynamic){
-                // "then" function callback for each promise
-                var cthen = function(v:Dynamic){
-                    if (Promise.allSet(parr)){
-                        var vals = [];
-                        for (pv in parr) vals.push(pv._val);
-                        if (arg_arr) vals = cast [vals];
-                        try p.resolve(Reflect.callMethod({},f,vals))
-                        catch (e:Dynamic) p.handleError(e);
-                    }
-                }
-                cthen(null);
-                for (p in parr) p.then(cthen);
-                return p;
-            }
-            var ret = {then:pthen};
-            return ret;
-    }
     /**
       Utility function to determine if all Promise values are set.
      **/
-    private static function allSet(as:Array<Promise<Dynamic>>): Bool{
+    public static function allSet(as:Array<Promise<Dynamic>>): Bool{
         for (a in as) if (!a._set) return false;
         return true;
     }
 
-    @:overload(function<A,B,C>(arg1:Promise<A>, arg2:Promise<B>):{then:(A->B->C)->Promise<C>}{})
-    @:overload(function<A,B,C,D>(arg1:Promise<A>, arg2:Promise<B>, arg3:Promise<C>):{then:(A->B->C->D)->Promise<D>}{})
-    @:overload(function<A,B,C,D,E>(arg1:Promise<A>, arg2:Promise<B>, arg3:Promise<C>, arg4:Promise<D>):{then:(A->B->C->D->E)->Promise<E>}{})
-    @:overload(function<A,B,C,D,E,F>(arg1:Promise<A>, arg2:Promise<B>, arg3:Promise<C>, arg4:Promise<D>, arg5:Promise<E>):{then:(A->B->C->D->E->F)->Promise<F>}{})
-    @:overload(function<A,B,C,D,E,F,G>(arg1:Promise<A>, arg2:Promise<B>, arg3:Promise<C>, arg4:Promise<D>, arg5:Promise<E>, arg6:Promise<F>):{then:(A->B->C->D->E->F->G)->Promise<G>}{})
-    public dynamic static function when<A>(f:Array<Promise<Dynamic>>):{then:(Array<Dynamic>->A)->Promise<A>} {return null;}
+    @:macro public static function when<T>(args:Array<ExprRequire<Promise<Dynamic>>>):Expr{
+        // just using a simple pos for all expressions
+        var pos = args[0].pos;
+
+        //the types of all the arguments (should be all Promises)
+        var types = args.map(Context.typeof);
+
+        //the parameters of the Promise types
+        var ptypes = types.map(function(x) switch(x){
+            case TInst(t,params): return params[0];
+            default : throw("Somehow, an illegal promise value was passed");
+        });
+
+        //The complex types of the promise parameters
+        var cptypes = ptypes.map(function(x) return x.toComplex(true)).array();
+        //The unknown type for the then function, also used for the promise return
+        var ctmono = Context.typeof(macro null).toComplex(true);
+        //The complex "then" function signature
+        var cfexpr = TFunction(cptypes,ctmono);
+        //the macro arguments expressed as an array expression.
+        var eargs = {expr:EArrayDecl(args),pos:pos};
+        // An array of promise values
+        var epargs = args.map(function(x) {
+            return {expr:EField(x,"_val"),pos:pos}
+        }).array();
+        // A call expression on f using the array of promise values
+        var ecall = {expr:ECall(macro f, epargs),pos:pos}
+
+        // the returned function that actually does the runtime work.
+        return macro {
+            var parr:Array<Promise<Dynamic>> = $eargs;
+            var p = new Promise<$ctmono>();
+            {
+                then:function(f:$cfexpr){
+                     //"then" function callback for each promise
+                    var cthen = function(v:Dynamic){
+                        if ( Promise.allSet(parr)){
+                            try{ untyped $ecall; }
+                            catch(e:Dynamic){
+                                untyped p.handleError(e);
+                            }
+                        }
+                    }
+                    cthen(null);
+                    for (p in parr) p.then(cthen);
+                    return p;
+                }
+            }
+        }
+    }
 
     /**
       Resolves the given value for processing on any waiting functions.
@@ -81,7 +99,7 @@ class Promise<T> {
     }
 
     /**
-      Handle errors 
+      Handle errors
      **/
     private function handleError(d:Dynamic){
         if (_errorf != null) _errorf(d)
