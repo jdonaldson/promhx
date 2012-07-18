@@ -1,5 +1,6 @@
 -cp src
 -cp demo
 -main Test.hx
--x bin/t
-
+#-x bin/t
+-swf bin/test.swf
+-cmd open bin/test.swf

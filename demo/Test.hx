@@ -12,8 +12,8 @@ class Test {
         // the "then" function must match the arity of the contained values
         // from the arguments to "when".
         var p2 = new Promise<Int>(); 
-        Promise.when(p1,p2).then(function(x,y) trace(x+y));
-        
+        //Promise.when = Reflect.makeVarArgs(Promise.whenf);
+        Promise.when(p1,p2).then(function(x,y)trace(x+y));
         // You can also call it on an array of values, but you lose typing.
         Promise.when([p1,p2]).then(function(arr) trace(arr));
 

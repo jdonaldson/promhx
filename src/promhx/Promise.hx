@@ -5,7 +5,16 @@ class Promise<T> {
     private var _update:Array<T->Dynamic>;
     private var _error:Array<Dynamic->Dynamic>;
     private var _errorf:Dynamic->Dynamic;
+#if flash
+    private static var _init = false;
+#end
     public function new(){
+#if flash
+        if (!_init) {
+            Promise.when = Reflect.makeVarArgs(Promise.whenf);
+            _init = true;
+        }
+#end
         _set = false;
         _update = new Array<T->Dynamic>();
         _error = new Array<Dynamic->Dynamic>();
@@ -23,8 +32,9 @@ class Promise<T> {
       static initialization to set the magic "when" function
      **/
     private static function __init__(){
-        //arr = Array of promises
-        var whenf = function(arr:Array<Dynamic>):Dynamic{
+        when = Reflect.makeVarArgs(whenf);
+    }
+    private static function whenf(arr:Array<Dynamic>):Dynamic{
             // could be an array of arrays
             var arg_arr = false;
             if (arr.length > 0 && Std.is(arr[0],Array)) {
@@ -41,7 +51,6 @@ class Promise<T> {
                         var vals = [];
                         for (pv in parr) vals.push(pv._val);
                         if (arg_arr) vals = cast [vals];
-                        trace(vals);
                         try p.resolve(Reflect.callMethod({},f,vals))
                         catch (e:Dynamic) p.handleError(e);
                     }
@@ -52,8 +61,6 @@ class Promise<T> {
             }
             var ret = {then:pthen};
             return ret;
-        }
-        Promise.when = Reflect.makeVarArgs(whenf);
     }
     /**
       Utility function to determine if all Promise values are set.
