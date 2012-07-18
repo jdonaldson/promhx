@@ -25,91 +25,55 @@ class Promise<T> {
         return this;
     }
 
-    private static function _when(arr:Array<Dynamic>):Dynamic{
-        var ret = {then:function(x) trace("hi")};
-        return ret;
-        // could be an array of arrays
-        var arg_arr = false;
-        if (arr.length > 0 && Std.is(arr[0],Array)) {
-            arg_arr = true;
-            arr = arr[0];
-        }
-        var p = new Promise<Dynamic>();
-        var parr:Array<Promise<Dynamic>> = cast arr;
-        // "then" function for the promise closure
-        var pthen =  function(f:Dynamic){
-            // "then" function callback for each promise
-            var cthen = function(v:Dynamic){
-                if (Promise.allSet(parr)){
-                    var vals = [];
-                    for (pv in parr) vals.push(pv._val);
-                    if (arg_arr) vals = cast [vals];
-                    trace(f);
-                    try p.resolve(Reflect.callMethod({},f,vals))
-                    catch (e:Dynamic) p.handleError(e);
-                }
-            }
-            cthen(null);
-            for (p in parr) p.then(cthen);
-            return p;
-        }
-        var ret = {then:pthen};
-        return ret;
-    }
-
-    /**
-      static initialization to set the magic "when" function
-     **/
-    private static function __init__(){
-        //arr = Array of promises
-        Promise.when =  Reflect.makeVarArgs(cast _when);
-    }
     /**
       Utility function to determine if all Promise values are set.
      **/
-    private static function allSet(as:Array<Promise<Dynamic>>): Bool{
+    public static function allSet(as:Array<Promise<Dynamic>>): Bool{
         for (a in as) if (!a._set) return false;
         return true;
     }
 
-    @:overload(function<A,B,C>(arg1:Promise<A>, arg2:Promise<B>):{then:(A->B->C)->Promise<C>}{})
-    @:overload(function<A,B,C,D>(arg1:Promise<A>, arg2:Promise<B>, arg3:Promise<C>):{then:(A->B->C->D)->Promise<D>}{})
-    @:overload(function<A,B,C,D,E>(arg1:Promise<A>, arg2:Promise<B>, arg3:Promise<C>, arg4:Promise<D>):{then:(A->B->C->D->E)->Promise<E>}{})
-    @:overload(function<A,B,C,D,E,F>(arg1:Promise<A>, arg2:Promise<B>, arg3:Promise<C>, arg4:Promise<D>, arg5:Promise<E>):{then:(A->B->C->D->E->F)->Promise<F>}{})
-    @:overload(function<A,B,C,D,E,F,G>(arg1:Promise<A>, arg2:Promise<B>, arg3:Promise<C>, arg4:Promise<D>, arg5:Promise<E>, arg6:Promise<F>):{then:(A->B->C->D->E->F->G)->Promise<G>}{})
-    public dynamic static function when<A>(f:Array<Promise<Dynamic>>):{then:(Array<Dynamic>->A)->Promise<A>} {return null;}
-
-    //@:overload(function<A,B,C>(arg1:Promise<A>, arg2:Promise<B>):Promise<C>{})
-    //@:overload(function<A,B,C,D>(arg1:Promise<A>, arg2:Promise<B>, arg3:Promise<C>):Promise<D>{})
-    //@:overload(function<A,B,C,D,E>(arg1:Promise<A>, arg2:Promise<B>, arg3:Promise<C>, arg4:Promise<D>):Promise<E>{})
-    //@:macro public static function when2(args:Array<Expr>):Expr{
-    //@:macro public static function when2(args:Expr):Expr{
-    @:macro public static function when2<T>(args:Array<ExprRequire<Promise<Dynamic>>>):Expr{
-        //trace(args);
+    @:macro public static function when<T>(args:Array<ExprRequire<Promise<Dynamic>>>):Expr{
+        // just using a simple pos for all expressions
         var pos = args[0].pos;
+
+        //the types of all the arguments (should be all Promises)
         var types = args.map(Context.typeof);
+
+        //the parameters of the Promise types
         var ptypes = types.map(function(x) switch(x){
             case TInst(t,params): return params[0];
             default : throw("Somehow, an illegal promise value was passed");
         });
-        var cptypes = ptypes.map(function(x) return x.toComplex(true)).array();
-        //cptypes[0] should be an Unknown<0> type.
-        var cfexpr = TFunction(cptypes,cptypes[0]);
 
+        //The complex types of the promise parameters
+        var cptypes = ptypes.map(function(x) return x.toComplex(true)).array();
+        //The unknown type for the then function, also used for the promise return
+        var ctmono = Context.typeof(macro null).toComplex(true);
+        //The complex "then" function signature
+        var cfexpr = TFunction(cptypes,ctmono);
+        //the macro arguments expressed as an array expression.
         var eargs = {expr:EArrayDecl(args),pos:pos};
+        // An array of promise values
+        var epargs = args.map(function(x) {
+            return {expr:EField(x,"_val"),pos:pos}
+        }).array();
+        // A call expression on f using the array of promise values
+        var ecall = {expr:ECall(macro f, epargs),pos:pos}
+
+        // the returned function that actually does the runtime work.
         return macro {
             var parr:Array<Promise<Dynamic>> = $eargs;
-            var p = new Promise<Dynamic>();
+            var p = new Promise<$ctmono>();
             {
                 then:function(f:$cfexpr){
-                    // "then" function callback for each promise
+                     //"then" function callback for each promise
                     var cthen = function(v:Dynamic){
-                        if (untyped Promise.allSet(parr)){
-                            var vals = [];
-                            for (pv in parr) vals.push(untyped pv._val);
-                            // worry about calling the function later.
-                            //try p.resolve($call)
-                            //catch (e:Dynamic) p.handleError(e);
+                        if ( Promise.allSet(parr)){
+                            try{ untyped $ecall; }
+                            catch(e:Dynamic){
+                                untyped p.handleError(e);
+                            }
                         }
                     }
                     cthen(null);
