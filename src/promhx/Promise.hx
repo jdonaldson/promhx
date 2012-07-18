@@ -5,16 +5,8 @@ class Promise<T> {
     private var _update:Array<T->Dynamic>;
     private var _error:Array<Dynamic->Dynamic>;
     private var _errorf:Dynamic->Dynamic;
-#if flash
-    private static var _init = false;
-#end
+    private static var when_ = {when = Reflect.makeVarArgs(whenf); 1;}
     public function new(){
-#if flash
-        if (!_init) {
-            Promise.when = Reflect.makeVarArgs(Promise.whenf);
-            _init = true;
-        }
-#end
         _set = false;
         _update = new Array<T->Dynamic>();
         _error = new Array<Dynamic->Dynamic>();
@@ -28,13 +20,10 @@ class Promise<T> {
         return this;
     }
 
-    /**
-      static initialization to set the magic "when" function
-     **/
-    private static function __init__(){
+    static function __init__(){
         when = Reflect.makeVarArgs(whenf);
     }
-    private static function whenf(arr:Array<Dynamic>):Dynamic{
+    static function whenf(arr:Array<Dynamic>):Dynamic{
             // could be an array of arrays
             var arg_arr = false;
             if (arr.length > 0 && Std.is(arr[0],Array)) {
