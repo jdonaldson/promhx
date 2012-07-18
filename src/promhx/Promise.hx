@@ -28,11 +28,19 @@ class Promise<T> {
     /**
       Utility function to determine if all Promise values are set.
      **/
-    public static function allSet(as:Array<Promise<Dynamic>>): Bool{
+    public static function allSet(as:Iterable<Promise<Dynamic>>): Bool{
         for (a in as) if (!a._set) return false;
         return true;
     }
 
+    /**
+      Macro method that binds the promise arguments to a single function
+      callback that is triggered when all promises are resolved.
+      Note: You may call this function on as many promise arguments as you
+      like. The overloads give just two examples of usage.
+     **/
+    @:overload(function<A,B,C>(arg1:Promise<A>, arg2:Promise<B>):{then:(A->B->C)->Promise<C>}{})
+    @:overload(function<A,B,C,D>(arg1:Promise<A>, arg2:Promise<B>, arg3:Promise<C>):{then:(A->B->C->D)->Promise<D>}{})
     @:macro public static function when<T>(args:Array<ExprRequire<Promise<Dynamic>>>):Expr{
         // just using a simple pos for all expressions
         var pos = args[0].pos;
@@ -59,7 +67,7 @@ class Promise<T> {
             return {expr:EField(x,"_val"),pos:pos}
         }).array();
         // A call expression on f using the array of promise values
-        var ecall = {expr:ECall(macro f, epargs),pos:pos}
+        var ecall = {expr:ECall(macro f, epargs), pos:pos}
 
         // the returned function that actually does the runtime work.
         return macro {
@@ -80,6 +88,29 @@ class Promise<T> {
                     for (p in parr) p.then(cthen);
                     return p;
                 }
+            }
+        }
+    }
+
+    public static function whenCol<T>(arg:Iterable<Promise<Dynamic>>):{then:(Iterable<Dynamic>->T)->Promise<T>}{
+        var p = new Promise<T>();
+        return {
+            then:function(f:Iterable<Dynamic>->T) {
+                //"then" function callback for each promise
+                var cthen = function(v:Dynamic){
+                    if (Promise.allSet(arg)){
+                        var vals = [];
+                        for (a in arg) vals.push(a._val);
+                        try{
+                            f(vals);
+                        }catch(e:Dynamic){
+                            p.handleError(e);
+                        }
+                    }
+                }
+                cthen(null);
+                for (p in arg) p.then(cthen);
+                return p;
             }
         }
     }
