@@ -14,9 +14,6 @@ class Test {
         var p2 = new Promise<Int>(); 
         Promise.when(p1,p2).then(function(x,y)trace(x+y));
 
-        // There is a "when" function you can call on collections of promises.
-        Promise.whenCol([p1,p2]).then(function(arg)trace(arg));
-
         // The return value is another promise, so you can chain.
         Promise.when(p1,p2).then(function(x,y) return x+y)
             .then(function(x) trace(x+1));

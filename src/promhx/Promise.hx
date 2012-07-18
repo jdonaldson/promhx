@@ -92,28 +92,29 @@ class Promise<T> {
         }
     }
 
-    public static function whenCol<T>(arg:Iterable<Promise<Dynamic>>):{then:(Iterable<Dynamic>->T)->Promise<T>}{
-        var p = new Promise<T>();
-        return {
-            then:function(f:Iterable<Dynamic>->T) {
-                //"then" function callback for each promise
-                var cthen = function(v:Dynamic){
-                    if (Promise.allSet(arg)){
-                        var vals = [];
-                        for (a in arg) vals.push(a._val);
-                        try{
-                            f(vals);
-                        }catch(e:Dynamic){
-                            p.handleError(e);
-                        }
-                    }
-                }
-                cthen(null);
-                for (p in arg) p.then(cthen);
-                return p;
-            }
-        }
-    }
+    //TODO: try to figure out how to do this cleanly with the existing when function
+    //public static function whenCol<T>(arg:Iterable<Promise<Dynamic>>):{then:(Iterable<Dynamic>->T)->Promise<T>}{
+    //    var p = new Promise<T>();
+    //    return {
+    //        then:function(f:Iterable<Dynamic>->T) {
+    //            //"then" function callback for each promise
+    //            var cthen = function(v:Dynamic){
+    //                if (Promise.allSet(arg)){
+    //                    var vals = [];
+    //                    for (a in arg) vals.push(a._val);
+    //                    try{
+    //                        f(vals);
+    //                    }catch(e:Dynamic){
+    //                        p.handleError(e);
+    //                    }
+    //                }
+    //            }
+    //            cthen(null);
+    //            for (p in arg) p.then(cthen);
+    //            return p;
+    //        }
+    //    }
+    //}
 
     /**
       Resolves the given value for processing on any waiting functions.

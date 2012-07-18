@@ -2,9 +2,9 @@
 -cp demo
 -main Test.hx
 
-#-swf9 bin/test.swf
-#-cmd open bin/test.swf
--x bin/test
+-swf9 bin/test.swf
+-cmd open bin/test.swf
+#-x bin/test
 
 -D absolute_path
 -lib tink_macros
