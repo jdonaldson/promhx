@@ -1,9 +1,11 @@
 package promhx;
+#if macro
 import haxe.macro.Expr;
 import tink.macro.tools.ExprTools;
 import haxe.macro.Type;
 import haxe.macro.Context;
 using tink.macro.tools.TypeTools;
+#end
 using Lambda;
 class Promise<T> {
     private var _val:T;
@@ -41,17 +43,26 @@ class Promise<T> {
      **/
     @:overload(function<A,B,C>(arg1:Promise<A>, arg2:Promise<B>):{then:(A->B->C)->Promise<C>}{})
     @:overload(function<A,B,C,D>(arg1:Promise<A>, arg2:Promise<B>, arg3:Promise<C>):{then:(A->B->C->D)->Promise<D>}{})
-    @:macro public static function when<T>(args:Array<ExprRequire<Promise<Dynamic>>>):Expr{
+    @:macro public static function when<T>(args:Array<ExprOf<Promise<Dynamic>>>):Expr{
         // just using a simple pos for all expressions
         var pos = args[0].pos;
-
+        var d = TPType("Dynamic".asComplexType());
+        var p = "promhx.Promise".asComplexType([d]);
+        var err:Expr;
+        for (a in args){
+            if (!ExprTools.is(a,p)){
+                Context.error("Arguments must be Promise types",a.pos);
+            }
+        }
         //the types of all the arguments (should be all Promises)
         var types = args.map(Context.typeof);
-
         //the parameters of the Promise types
         var ptypes = types.map(function(x) switch(x){
             case TInst(t,params): return params[0];
-            default : throw("Somehow, an illegal promise value was passed");
+            default : {
+                Context.error("Somehow, an illegal promise value was passed",pos);
+                return null;
+            }
         });
 
         //The complex types of the promise parameters
