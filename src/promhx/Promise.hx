@@ -13,10 +13,16 @@ class Promise<T> {
     private var _update:Array<T->Dynamic>;
     private var _error:Array<Dynamic->Dynamic>;
     private var _errorf:Dynamic->Dynamic;
-    public function new(){
+
+    /**
+      Constructor argument can take optional function argument, which adds
+      a callback to the error handler chain.
+     **/
+    public function new(?errorf:Dynamic->Dynamic){
         _set = false;
         _update = new Array<T->Dynamic>();
         _error = new Array<Dynamic->Dynamic>();
+        if (errorf != null) _error.push(errorf);
     }
 
     /**
@@ -171,8 +177,8 @@ class Promise<T> {
     /**
       Converts any value to a Promise
      **/
-    public static function promise<T>(_val:T) : Promise<T>{
-        var ret = new Promise<T>();
+    public static function promise<T>(_val:T, ?errorf:Dynamic->Dynamic) : Promise<T>{
+        var ret = new Promise<T>(errorf);
         ret.resolve(_val);
         return ret;
     }

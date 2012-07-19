@@ -1,10 +1,10 @@
 -cp src
 -cp demo
--main Test.hx
-
--swf9 bin/test.swf
--cmd open bin/test.swf
+-main DemoUtils
+#-swf9 bin/test.swf
+#-cmd open bin/test.swf
 #-x bin/test
+-js bin/test.js
 
 -D absolute_path
 -lib tink_macros
