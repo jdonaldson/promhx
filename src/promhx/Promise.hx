@@ -181,7 +181,13 @@ class Promise<T> {
         var ret = new Promise<A>();
         _update.push(f);
         _error.push(ret.handleError);
-        if (_set) f(_val);
+        if(_set){
+            try f(_val)
+            catch (e:Dynamic) handleError(e);
+        }else{
+            _update.push(f);
+            _error.push(ret.handleError);
+        }
         return ret;
     }
 
