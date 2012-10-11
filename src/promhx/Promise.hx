@@ -52,39 +52,57 @@ class Promise<T> {
     @:macro public static function when<T>(args:Array<ExprOf<Promise<Dynamic>>>):Expr{
         // just using a simple pos for all expressions
         var pos = args[0].pos;
+        // Dynamic Complex Type expression
         var d = TPType("Dynamic".asComplexType());
+        // Generic Dynamic Complex Type expression
         var p = "promhx.Promise".asComplexType([d]);
-        var err:Expr;
-        for (a in args){
-            if (!ExprTools.is(a,p)){
-                Context.error("Arguments must be Promise types",a.pos);
-            }
-        }
-        //the types of all the arguments (should be all Promises)
-        var types = args.map(Context.typeof);
-        //the parameters of the Promise types
-        var ptypes = types.map(function(x) switch(x){
-            case TInst(t,params): return params[0];
-            default : {
-                Context.error("Somehow, an illegal promise value was passed",pos);
-                return null;
-            }
-        });
-
-        //The complex types of the promise parameters
-        var cptypes = ptypes.map(function(x) return x.toComplex(true)).array();
+        var ip = "Iterable".asComplexType([TPType(p)]);
         //The unknown type for the then function, also used for the promise return
         var ctmono = Context.typeof(macro null).toComplex(true);
-        //The complex "then" function signature
-        var cfexpr = TFunction(cptypes,ctmono);
-        //the macro arguments expressed as an array expression.
-        var eargs = {expr:EArrayDecl(args),pos:pos};
-        // An array of promise values
-        var epargs = args.map(function(x) {
-            return {expr:EField(x,"_val"),pos:pos}
-        }).array();
-        // A call expression on f using the array of promise values
-        var ecall = {expr:ECall(macro f, epargs), pos:pos}
+        var eargs:Expr; // the array of promises
+        var ecall:Expr; // the function call on the promises
+        var cfexpr:ComplexType; // the type signature for the function callback
+        for (a in args){
+            if (ExprTools.is(a,ip)){
+                if (args.length > 1) {
+                    Context.error("Only a single Iterable of Promises can be passed", a.pos);
+                }
+                var cptypes = [Context.typeof(a).toComplex(true)];
+                eargs = a;
+                ecall = macro {
+                    var arr = [];
+                    for (a in $a) arr.push(a._val);
+                    f(arr);
+                }
+            }
+            else if (ExprTools.is(a,p)){
+                //the types of all the arguments (should be all Promises)
+                var types = args.map(Context.typeof);
+                //the parameters of the Promise types
+                var ptypes = types.map(function(x) switch(x){
+                    case TInst(t,params): return params[0];
+                    default : {
+                        Context.error("Somehow, an illegal promise value was passed",pos);
+                        return null;
+                    }
+                });
+                 var cptypes = ptypes.map(function(x) return x.toComplex(true)).array();
+                //the macro arguments expressed as an array expression.
+                eargs = {expr:EArrayDecl(args),pos:pos};
+                var cfexpr = TFunction(cptypes,ctmono);
+
+                // An array of promise values
+                var epargs = args.map(function(x) {
+                    return {expr:EField(x,"_val"),pos:pos}
+                }).array();
+                ecall = {expr:ECall(macro f, epargs), pos:pos}
+
+            } else{
+                Context.error("Arguments must all be Promise types, or a single Iterable of Promise types",a.pos);
+            }
+        }
+
+
 
         // the returned function that actually does the runtime work.
         return macro {
@@ -163,6 +181,7 @@ class Promise<T> {
         var ret = new Promise<A>();
         _update.push(f);
         _error.push(ret.handleError);
+        if (_set) f(_val);
         return ret;
     }
 
