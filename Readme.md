@@ -25,6 +25,8 @@ Promhx has a number of powerful features:
 * Callback functions are typed according to the values that the promises
   contain.
 * Errors are propogated through the promise chain.
+* Promise arguments can be passed in iterables, which are transformed into
+  arrays in the callback.
 
 Promhx has the following behavior:
 
@@ -33,6 +35,8 @@ Promhx has the following behavior:
   afterwards by "then()" will get ther result synchronously.
 * It is only possible to cancel a promise by rejecting it, which triggers an
   error.
+* Arguments passed as literal arrays are treated as if they were passed
+  individually.  This is due to a limitation in the Haxe macro system.
 
 ```js
 // Declare a promised value
@@ -50,6 +54,12 @@ Promise.when(p1,p2).then(function(x,y) trace(x+y));
 // The return value is another promise, so you can chain.
 Promise.when(p1,p2).then(function(x,y) return x+y)
     .then(function(x) trace(x+1));
+
+// Iterable<Promise<T>> are passed a single Iterable<T> callback:
+Promise.when(k).then(function(x) trace("passed as Iterable instance: " + x));
+
+// Array literals are treated as if each argument were passed individually:
+Promise.when([p1,p2]).then(function(x,y) trace("passed as array literal: " +  x + ',' + y));
 
 // You can easily catch errors by specifying a callback.
 Promise.when(p1,p2).then(function(x,y) throw('an error'))
