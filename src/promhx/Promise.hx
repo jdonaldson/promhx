@@ -179,8 +179,6 @@ class Promise<T> {
      **/
     public function then<A>(f:T->A):Promise<A>{
         var ret = new Promise<A>();
-        _update.push(f);
-        _error.push(ret.handleError);
         if(_set){
             try f(_val)
             catch (e:Dynamic) handleError(e);
