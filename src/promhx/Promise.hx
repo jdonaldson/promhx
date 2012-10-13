@@ -61,55 +61,53 @@ class Promise<T> {
         var ctmono = Context.typeof(macro null).toComplex(true);
         var eargs:Expr; // the array of promises
         var ecall:Expr; // the function call on the promises
-        var cfexpr:ComplexType; // the type signature for the function callback
-        for (a in args){
-            if (ExprTools.is(a,ip)){
-                if (args.length > 1) {
-                    Context.error("Only a single Iterable of Promises can be passed", a.pos);
-                }
-                var cptypes = [Context.typeof(a).toComplex(true)];
-                eargs = a;
-                ecall = macro {
-                    var arr = [];
-                    for (a in $a) arr.push(a._val);
-                    f(arr);
-                }
+
+        // multiple argument, with iterable first argument... treat as error for now
+        if (args.length > 1 && ExprTools.is(args[0],ip)){
+            Context.error("Only a single Iterable of Promises can be passed", args[0].pos);
+        } else if (ExprTools.is(args[0],ip)){ // Iterable first argument, single argument
+            var cptypes =[Context.typeof(args[0]).toComplex(true)];
+            eargs = args[0];
+            ecall = macro {
+                var arr = [];
+                for (a in $eargs) arr.push(a._val);
+                f(arr);
             }
-            else if (ExprTools.is(a,p)){
-                //the types of all the arguments (should be all Promises)
-                var types = args.map(Context.typeof);
-                //the parameters of the Promise types
-                var ptypes = types.map(function(x) switch(x){
-                    case TInst(t,params): return params[0];
-                    default : {
-                        Context.error("Somehow, an illegal promise value was passed",pos);
-                        return null;
-                    }
-                });
-                 var cptypes = ptypes.map(function(x) return x.toComplex(true)).array();
-                //the macro arguments expressed as an array expression.
-                eargs = {expr:EArrayDecl(args),pos:pos};
-                var cfexpr = TFunction(cptypes,ctmono);
+        } else { // multiple argument of non-iterables
+            for (a in args){
+                if (ExprTools.is(a,p)){
+                    //the types of all the arguments (should be all Promises)
+                    var types = args.map(Context.typeof);
+                    //the parameters of the Promise types
+                    var ptypes = types.map(function(x) switch(x){
+                        case TInst(t,params): return params[0];
+                        default : {
+                            Context.error("Somehow, an illegal promise value was passed",pos);
+                            return null;
+                        }
+                    });
+                    var cptypes = ptypes.map(function(x) return x.toComplex(true)).array();
+                    //the macro arguments expressed as an array expression.
+                    eargs = {expr:EArrayDecl(args),pos:pos};
 
-                // An array of promise values
-                var epargs = args.map(function(x) {
-                    return {expr:EField(x,"_val"),pos:pos}
-                }).array();
-                ecall = {expr:ECall(macro f, epargs), pos:pos}
+                    // An array of promise values
+                    var epargs = args.map(function(x) {
+                        return {expr:EField(x,"_val"),pos:pos}
+                    }).array();
+                    ecall = {expr:ECall(macro f, epargs), pos:pos}
 
-            } else{
-                Context.error("Arguments must all be Promise types, or a single Iterable of Promise types",a.pos);
+                } else{
+                    Context.error("Arguments must all be Promise types, or a single Iterable of Promise types",a.pos);
+                }
             }
         }
-
-
 
         // the returned function that actually does the runtime work.
         return macro {
             var parr:Array<Promise<Dynamic>> = $eargs;
             var p = new Promise<$ctmono>();
             {
-                then:function(f:$cfexpr){
+                then:function(f){
                      //"then" function callback for each promise
                     var cthen = function(v:Dynamic){
                         if ( Promise.allSet(parr)){
@@ -126,30 +124,6 @@ class Promise<T> {
             }
         }
     }
-
-    //TODO: try to figure out how to do this cleanly with the existing when function
-    //public static function whenCol<T>(arg:Iterable<Promise<Dynamic>>):{then:(Iterable<Dynamic>->T)->Promise<T>}{
-    //    var p = new Promise<T>();
-    //    return {
-    //        then:function(f:Iterable<Dynamic>->T) {
-    //            //"then" function callback for each promise
-    //            var cthen = function(v:Dynamic){
-    //                if (Promise.allSet(arg)){
-    //                    var vals = [];
-    //                    for (a in arg) vals.push(a._val);
-    //                    try{
-    //                        f(vals);
-    //                    }catch(e:Dynamic){
-    //                        p.handleError(e);
-    //                    }
-    //                }
-    //            }
-    //            cthen(null);
-    //            for (p in arg) p.then(cthen);
-    //            return p;
-    //        }
-    //    }
-    //}
 
     /**
       Resolves the given value for processing on any waiting functions.
