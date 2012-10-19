@@ -47,6 +47,7 @@ class Promise<T> {
       Note: You may call this function on as many promise arguments as you
       like. The overloads give just two examples of usage.
      **/
+    @:overload(function<A,B>(arg:Iterable<Promise<A>>):{then:(Array<A>->B)->Promise<B>}{})
     @:overload(function<A,B,C>(arg1:Promise<A>, arg2:Promise<B>):{then:(A->B->C)->Promise<C>}{})
     @:overload(function<A,B,C,D>(arg1:Promise<A>, arg2:Promise<B>, arg3:Promise<C>):{then:(A->B->C->D)->Promise<D>}{})
     @:macro public static function when<T>(args:Array<ExprOf<Promise<Dynamic>>>):Expr{
@@ -64,7 +65,7 @@ class Promise<T> {
 
         // multiple argument, with iterable first argument... treat as error for now
         if (args.length > 1 && ExprTools.is(args[0],ip)){
-            Context.error("Only a single Iterable of Promises can be passed", args[0].pos);
+            Context.error("Only a single Iterable of Promises can be passed", args[1].pos);
         } else if (ExprTools.is(args[0],ip)){ // Iterable first argument, single argument
             var cptypes =[Context.typeof(args[0]).toComplex(true)];
             eargs = args[0];
@@ -95,7 +96,6 @@ class Promise<T> {
                         return {expr:EField(x,"_val"),pos:pos}
                     }).array();
                     ecall = {expr:ECall(macro f, epargs), pos:pos}
-
                 } else{
                     Context.error("Arguments must all be Promise types, or a single Iterable of Promise types",a.pos);
                 }
@@ -107,7 +107,7 @@ class Promise<T> {
             var parr:Array<Promise<Dynamic>> = $eargs;
             var p = new Promise<$ctmono>();
             {
-                then:function(f){
+                then : function(f){
                      //"then" function callback for each promise
                     var cthen = function(v:Dynamic){
                         if ( Promise.allSet(parr)){
@@ -117,8 +117,8 @@ class Promise<T> {
                             }
                         }
                     }
-                    cthen(null);
-                    for (p in parr) p.then(cthen);
+                    if (Promise.allSet(parr)) cthen(null);
+                    else for (p in parr) p.then(cthen);
                     return p;
                 }
             }
