@@ -31,6 +31,7 @@ class Test {
         Promise.when(p1,p2).then(function(x,y) return x+y)
             .then(function(x) trace(x+1));
         
+
         // You can easily catch errors by specifying a callback.
         Promise.when(p1,p2).then(function(x,y) throw('an error'))
             .error(function(x) trace(x));
@@ -47,6 +48,9 @@ class Test {
         // evaluation of all promises.
         p2.resolve(2);
         p1.resolve(1);
+
+        // arguments that are all resolved will only trigger once
+        Promise.when(p1,p2).then(function(x,y) trace(x + ", " + y));
     }
 
 }
