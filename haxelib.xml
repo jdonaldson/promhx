@@ -1,0 +1,5 @@
+<project name="promhx" url="https://github.com/jdonaldson/promhx" license="">
+	<user name="jdonaldson"/>
+	<description>Promhx is a promise library for Haxe. Promises contain values that are not immediately available. However, you can specify callback functions that will trigger when the values do become available.</description>
+	<version name="0.1.0.0">First build of package from Github project</version>
+</project>
