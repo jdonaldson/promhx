@@ -159,6 +159,7 @@ class Promise<T> {
         if (_errorf != null) _errorf(d)
         else if (_error.length == 0) throw d
         else for (ef in _error) ef(d);
+        return null;
     }
 
     /**
