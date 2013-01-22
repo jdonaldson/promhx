@@ -26,7 +26,6 @@ class Promise<T> {
     private var _update:Array<T->Dynamic>;
     private var _error:Array<Dynamic->Dynamic>;
     private var _errorf:Dynamic->Dynamic;
-
     /**
       Constructor argument can take optional function argument, which adds
       a callback to the error handler chain.
@@ -124,7 +123,7 @@ class Promise<T> {
                      //"then" function callback for each promise
                     var cthen = function(v:Dynamic){
                         if ( Promise.allSet(parr)){
-                            try{ untyped $ecall; }
+                            try{ untyped p.resolve($ecall); }
                             catch(e:Dynamic){
                                 untyped p.handleError(e);
                             }
@@ -176,6 +175,23 @@ class Promise<T> {
         }
         return ret;
     }
+
+    public function pipe<A>(f:T->Promise<A>):Promise<A>{
+        if(_set){
+            return f(_val);
+        }else{
+            var ret = new Promise<A>();
+            var this_update = function(x:T){
+                var fret = f(x);
+                fret._update.push(ret.resolve);
+                fret._error.push(ret.handleError);
+            }
+            _update.push(this_update);
+            _error.push(ret.handleError);
+            return ret;
+        }
+    }
+
 
 
     /**
