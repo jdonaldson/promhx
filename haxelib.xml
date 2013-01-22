@@ -6,5 +6,5 @@
         However, you can specify callback functions that will trigger when
         the values do become available.
     </description> 
-    <version name="0.1.0.0">First build of package from Github project</version>
+    <version name="0.2.0.0">First build of package from Github project</version>
 </project>
