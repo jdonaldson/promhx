@@ -62,7 +62,7 @@ class Promise<T> {
     @:overload(function<A,B>(arg:Iterable<Promise<A>>):{then:(Array<A>->B)->Promise<B>}{})
     @:overload(function<A,B,C>(arg1:Promise<A>, arg2:Promise<B>):{then:(A->B->C)->Promise<C>}{})
     @:overload(function<A,B,C,D>(arg1:Promise<A>, arg2:Promise<B>, arg3:Promise<C>):{then:(A->B->C->D)->Promise<D>}{})
-    @:macro public static function when<T>(args:Array<ExprOf<Promise<Dynamic>>>):Expr{
+    macro public static function when<T>(args:Array<ExprOf<Promise<Dynamic>>>):Expr{
         // just using a simple pos for all expressions
         var pos = args[0].pos;
         // Dynamic Complex Type expression
@@ -93,7 +93,7 @@ class Promise<T> {
                     var types = args.map(Context.typeof);
                     //the parameters of the Promise types
                     var ptypes = types.map(function(x) switch(x){
-                        case TInst(t,params): return params[0];
+                        case TInst(_,params): return params[0];
                         default : {
                             Context.error("Somehow, an illegal promise value was passed",pos);
                             return null;
@@ -183,10 +183,10 @@ class Promise<T> {
             var ret = new Promise<A>();
             var this_update = function(x:T){
                 var fret = f(x);
-                fret._update.push(ret.resolve);
+                fret._update.push(cast ret.resolve);
                 fret._error.push(ret.handleError);
             }
-            _update.push(this_update);
+            _update.push(cast this_update);
             _error.push(ret.handleError);
             return ret;
         }
