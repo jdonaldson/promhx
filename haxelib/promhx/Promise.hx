@@ -4,9 +4,7 @@
 * MIT License
 * 
 * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-* 
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-* 
 * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 * 
 ****/
@@ -19,13 +17,16 @@ import haxe.macro.Type;
 import haxe.macro.Context;
 using tink.macro.tools.TypeTools;
 #end
+
 using Lambda;
+
 class Promise<T> {
     private var _val:T;
     private var _set:Bool;
     private var _update:Array<T->Dynamic>;
     private var _error:Array<Dynamic->Dynamic>;
-    private var _errorf:Dynamic->Dynamic;
+    private var _errorf:Dynamic->Void;
+
     /**
       Constructor argument can take optional function argument, which adds
       a callback to the error handler chain.
@@ -40,7 +41,7 @@ class Promise<T> {
     /**
       Specify an error handling function
      **/
-    public function error(f:Dynamic->Dynamic) {
+    public function error(f:Dynamic->Void) {
         _errorf = f;
         return this;
     }
@@ -57,7 +58,7 @@ class Promise<T> {
       Macro method that binds the promise arguments to a single function
       callback that is triggered when all promises are resolved.
       Note: You may call this function on as many promise arguments as you
-      like. The overloads give just two examples of usage.
+      like. The overloads just give examples of usage.
      **/
     @:overload(function<A,B>(arg:Iterable<Promise<A>>):{then:(Array<A>->B)->Promise<B>}{})
     @:overload(function<A,B,C>(arg1:Promise<A>, arg2:Promise<B>):{then:(A->B->C)->Promise<C>}{})
