@@ -7,5 +7,6 @@
 #-js bin/test.js
 
 -D absolute_path
--lib tink_macros
+-lib tink_macro
+-lib tink_core
 
