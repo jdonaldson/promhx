@@ -7,5 +7,5 @@
   "version": "0.2.2",
   "releasenote": "Repackaging for new haxelib format",
   "contributors": ["jdonaldson"],
-  "dependencies": {["tink_macro", "tink_core"]}
+  "dependencies": {"tink_macro":"", "tink_core":""}
 }
