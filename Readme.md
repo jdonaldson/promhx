@@ -35,8 +35,6 @@ Promhx has the following behavior:
   afterwards by "then()" will get ther result synchronously.
 * It is only possible to cancel a promise by rejecting it, which triggers an
   error.
-* Arguments passed as literal arrays are treated as if they were passed
-  individually.  This is due to a limitation in the Haxe macro system.
 
 ```js
 // Declare a promised value
