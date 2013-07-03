@@ -42,7 +42,7 @@ var p1 = new Promise<Int>();
 p1.then(function(x) trace("delivered " + x));
 
 // Deliver multiple promises when they are all available.
-// the "then" function must match the arity of the contained values
+// the "then" function must match the types and arity of the contained values
 // from the arguments to "when".
 var p2 = new Promise<Int>();
 Promise.when(p1,p2).then(function(x,y)trace(x+y));
