@@ -25,8 +25,6 @@ Promhx has a number of powerful features:
 * Callback functions are typed according to the values that the promises
   contain.
 * Errors are propogated through the promise chain.
-* Promise arguments can be passed in iterables, which are transformed into
-  arrays in the callback.
 
 Promhx has the following behavior:
 
@@ -52,12 +50,6 @@ Promise.when(p1,p2).then(function(x,y)trace(x+y));
 
 var k:Array<Promise<Dynamic>> = new Array();
 k.push(p1); k.push(p2);
-
-// Special handling for Iterables, Array Literals:
-
-// Iterable<Promise<T>> is passed as a single Iterable<T> callback:
-Promise.when(k).then(function(x) trace("passed as Iterable instance: " + x));
-Promise.when([p1,p2]).then(function(x) trace("passed as array: " +  x));
 
 // The return value is another promise, so you can chain.
 Promise.when(p1,p2).then(function(x,y) return x+y)
@@ -95,8 +87,8 @@ Promise.when(p1,p2).then(function(x,y) {throw('an error'); return 'hi';})
 
 // finally, resolve the promise values, which will start the
 // evaluation of all promises.
-p2.resolve(2);
 p1.resolve(1);
+p2.resolve(2);
 p3.resolve('hi');
 
 // arguments that are all resolved will only trigger once
