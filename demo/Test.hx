@@ -2,6 +2,7 @@ import promhx.Promise;
 
 class Test {
     static function main() {
+
         // Declare a promised value
         var p1 = new Promise<Int>();
 
@@ -13,16 +14,6 @@ class Test {
         // from the arguments to "when".
         var p2 = new Promise<Int>();
         Promise.when(p1,p2).then(function(x,y)trace(x+y));
-
-
-        var k:Array<Promise<Dynamic>> = new Array();
-        k.push(p1); k.push(p2);
-
-        // Special handling for Iterables, Array Literals:
-
-        // Iterable<Promise<T>> is passed as a single Iterable<T> callback:
-        Promise.when(k).then(function(x) trace("passed as Iterable instance: " + x));
-        Promise.when([p1,p2]).then(function(x) trace("passed as array: " +  x));
 
         // The return value is another promise, so you can chain.
         Promise.when(p1,p2).then(function(x,y) return x+y)
