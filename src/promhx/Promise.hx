@@ -1,12 +1,12 @@
 /****
 * Copyright (c) 2013 Justin Donaldson
-* 
+*
 * MIT License
-* 
+*
 * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-* 
+*
 ****/
 
 package promhx;
@@ -15,7 +15,7 @@ import haxe.macro.Expr;
 import tink.macro.tools.ExprTools;
 import haxe.macro.Type;
 import haxe.macro.Context;
-using tink.macro.tools.TypeTools;
+// using tink.macro.tools.TypeTools;
 #end
 
 using Lambda;
@@ -54,71 +54,52 @@ class Promise<T> {
         return true;
     }
 
+    macro public static function foo(a:Expr) : Expr {
+        trace(a);
+        return macro null;
+    }
+
     /**
       Macro method that binds the promise arguments to a single function
       callback that is triggered when all promises are resolved.
       Note: You may call this function on as many promise arguments as you
-      like. The overloads just give examples of usage.
+      like.
      **/
-    @:overload(function<A,B>(arg:Iterable<Promise<A>>):{then:(Array<A>->B)->Promise<B>}{})
-    @:overload(function<A,B,C>(arg1:Promise<A>, arg2:Promise<B>):{then:(A->B->C)->Promise<C>}{})
-    @:overload(function<A,B,C,D>(arg1:Promise<A>, arg2:Promise<B>, arg3:Promise<C>):{then:(A->B->C->D)->Promise<D>}{})
-    macro public static function when<T>(args:Array<ExprOf<Promise<Dynamic>>>):Expr{
+    macro public static function when<T>( args : Array<ExprOf<Promise<Dynamic>>>) : Expr {
+
+
         // just using a simple pos for all expressions
         var pos = args[0].pos;
-        // Dynamic Complex Type expression
-        var d = TPType("Dynamic".asComplexType());
-        // Generic Dynamic Complex Type expression
-        var p = "promhx.Promise".asComplexType([d]);
-        var ip = "Iterable".asComplexType([TPType(p)]);
         //The unknown type for the then function, also used for the promise return
-        var ctmono = Context.typeof(macro null).toComplex(true);
         var eargs:Expr; // the array of promises
         var ecall:Expr; // the function call on the promises
 
         // multiple argument, with iterable first argument... treat as error for now
-        if (args.length > 1 && ExprTools.is(args[0],ip)){
-            Context.error("Only a single Iterable of Promises can be passed", args[1].pos);
-        } else if (ExprTools.is(args[0],ip)){ // Iterable first argument, single argument
-            var cptypes =[Context.typeof(args[0]).toComplex(true)];
-            eargs = args[0];
-            ecall = macro {
-                var arr = [];
-                for (a in $eargs) arr.push(a._val);
-                f(arr);
-            }
-        } else { // multiple argument of non-iterables
-            for (a in args){
-                if (ExprTools.is(a,p)){
-                    //the types of all the arguments (should be all Promises)
-                    var types = args.map(Context.typeof);
-                    //the parameters of the Promise types
-                    var ptypes = types.map(function(x) switch(x){
-                        case TInst(_,params): return params[0];
-                        default : {
-                            Context.error("Somehow, an illegal promise value was passed",pos);
-                            return null;
-                        }
-                    });
-                    var cptypes = ptypes.map(function(x) return x.toComplex(true)).array();
-                    //the macro arguments expressed as an array expression.
-                    eargs = {expr:EArrayDecl(args),pos:pos};
-
-                    // An array of promise values
-                    var epargs = args.map(function(x) {
-                        return {expr:EField(x,"_val"),pos:pos}
-                    }).array();
-                    ecall = {expr:ECall(macro f, epargs), pos:pos}
-                } else{
-                    Context.error("Arguments must all be Promise types, or a single Iterable of Promise types",a.pos);
+        for (a in args){
+            //the types of all the arguments (should be all Promises)
+            var types = args.map(Context.typeof);
+            //the parameters of the Promise types
+            var ptypes = types.map(function(x) switch(x){
+                case TInst(_,params): return params[0];
+                default : {
+                    Context.error("Somehow, an illegal promise value was passed",pos);
+                    return null;
                 }
-            }
+            });
+            //the macro arguments expressed as an array expression.
+            eargs = {expr:EArrayDecl(args),pos:pos};
+
+            // An array of promise values
+            var epargs = args.map(function(x) {
+                return {expr:EField(x,"_val"),pos:pos}
+            }).array();
+            ecall = {expr: ECall(macro f, epargs), pos:pos}
         }
 
         // the returned function that actually does the runtime work.
         return macro {
             var parr:Array<Promise<Dynamic>> = $eargs;
-            var p = new Promise<$ctmono>();
+            var p = new Promise();
             {
                 then : function(f){
                      //"then" function callback for each promise
@@ -136,6 +117,24 @@ class Promise<T> {
                 }
             }
         }
+    }
+
+    /**
+      "Flattens" an Iterable of promises into a single promise which resolves
+      to an array of values.
+     **/
+    public static function flatMap<T>(itb : Iterable<Promise<T>>) : Promise<Array<T>> {
+        var p = new Promise<Array<T>>();
+        var cthen = function(v:Dynamic){
+            if (Promise.allSet(itb)){
+                var vals = [for (v in itb) v._val];
+                try p.resolve(vals)
+                catch(e:Dynamic) untyped p.handleError(e);
+            }
+        };
+        if (Promise.allSet(itb)) cthen(null);
+        else for (p in itb) p.then(cthen);
+        return p;
     }
 
     /**
@@ -203,7 +202,7 @@ class Promise<T> {
         handleError(e);
     }
     /**
-      Converts any value to a Promise
+      Converts any value to a resolved Promise
      **/
     public static function promise<T>(_val:T, ?errorf:Dynamic->Dynamic) : Promise<T>{
         var ret = new Promise<T>(errorf);
@@ -211,6 +210,4 @@ class Promise<T> {
         return ret;
     }
 }
-
-
 
