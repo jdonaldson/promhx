@@ -1,4 +1,4 @@
--cp src
+-cp src/main
 -cp demo
 -main Test
 #-swf9 bin/test.swf
