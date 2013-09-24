@@ -1,12 +1,5 @@
 -cp src/main
--cp demo
--main Test
-#-swf9 bin/test.swf
-#-cmd open bin/test.swf
+-cp src/test
+-main TestAll
 -x bin/test
-#-js bin/test.js
-
--D absolute_path
--lib tink_macro
--lib tink_core
 
