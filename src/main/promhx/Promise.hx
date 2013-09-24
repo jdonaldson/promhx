@@ -72,15 +72,6 @@ class Promise<T> {
             //the types of all the arguments (should be all Promises)
             var types = [for (a in args) Context.typeof(a)];
 
-            //the parameters of the Promise types
-            var ptypes = types.map(function(x) switch(x){
-                case TInst(_,params): return params[0];
-                default : {
-                    Context.error("Somehow, an illegal promise value was passed",pos);
-                    return null;
-                }
-            });
-
             //the macro arguments expressed as an array expression.
             eargs = {expr:EArrayDecl(args),pos:pos};
 
