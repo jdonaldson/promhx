@@ -10,31 +10,30 @@
 ****/
 
 package promhx;
+
 #if macro
 import haxe.macro.Expr;
-import tink.macro.tools.ExprTools;
 import haxe.macro.Type;
 import haxe.macro.Context;
-// using tink.macro.tools.TypeTools;
 #end
 
 using Lambda;
 
 class Promise<T> {
-    private var _val:T;
-    private var _set:Bool;
-    private var _update:Array<T->Dynamic>;
-    private var _error:Array<Dynamic->Dynamic>;
-    private var _errorf:Dynamic->Void;
+    private var _val    : T;
+    private var _set    : Bool;
+    private var _update : Array<T->Dynamic>;
+    private var _error  : Array<Dynamic->Dynamic>;
+    private var _errorf : Dynamic->Void;
 
     /**
       Constructor argument can take optional function argument, which adds
       a callback to the error handler chain.
      **/
     public function new(?errorf:Dynamic->Dynamic){
-        _set = false;
+        _set    = false;
         _update = new Array<T->Dynamic>();
-        _error = new Array<Dynamic->Dynamic>();
+        _error  = new Array<Dynamic->Dynamic>();
         if (errorf != null) _error.push(errorf);
     }
 
@@ -71,8 +70,8 @@ class Promise<T> {
         // just using a simple pos for all expressions
         var pos = args[0].pos;
         //The unknown type for the then function, also used for the promise return
-        var eargs:Expr; // the array of promises
-        var ecall:Expr; // the function call on the promises
+        var eargs : Expr; // the array of promises
+        var ecall : Expr; // the function call on the promises
 
         // multiple argument, with iterable first argument... treat as error for now
         for (a in args){
