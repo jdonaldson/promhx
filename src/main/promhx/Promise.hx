@@ -17,8 +17,6 @@ import haxe.macro.Type;
 import haxe.macro.Context;
 #end
 
-using Lambda;
-
 class Promise<T> {
     private var _val    : T;
     private var _set    : Bool;
@@ -66,17 +64,14 @@ class Promise<T> {
      **/
     macro public static function when<T>( args : Array<ExprOf<Promise<Dynamic>>>) : Expr {
 
-
-        // just using a simple pos for all expressions
-        var pos = args[0].pos;
-        //The unknown type for the then function, also used for the promise return
+        var pos = args[0].pos; // default pos
         var eargs : Expr; // the array of promises
         var ecall : Expr; // the function call on the promises
 
-        // multiple argument, with iterable first argument... treat as error for now
         for (a in args){
             //the types of all the arguments (should be all Promises)
-            var types = args.map(Context.typeof);
+            var types = [for (a in args) Context.typeof(a)];
+
             //the parameters of the Promise types
             var ptypes = types.map(function(x) switch(x){
                 case TInst(_,params): return params[0];
@@ -85,13 +80,12 @@ class Promise<T> {
                     return null;
                 }
             });
+
             //the macro arguments expressed as an array expression.
             eargs = {expr:EArrayDecl(args),pos:pos};
 
             // An array of promise values
-            var epargs = args.map(function(x) {
-                return {expr:EField(x,"_val"),pos:pos}
-            }).array();
+            var epargs = [for (a in args) { expr: EField(a, "_val"), pos: pos}];
             ecall = {expr: ECall(macro f, epargs), pos:pos}
         }
 
