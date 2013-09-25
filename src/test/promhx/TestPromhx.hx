@@ -23,4 +23,19 @@ class TestPromhx extends TestCase {
         p1.resolve(expected1);
         p2.resolve(expected2);
     }
+
+    public function testChainedThen(){
+        var expected1 = 1;
+        var expected2 = 2;
+        var p1        = new Promise<Int>();
+        var p2        = p1.then(function(x){
+            return expected2;
+        });
+        p2.then(function(x){
+            assertEquals(expected2, x);
+        });
+        p1.resolve(expected1);
+
+    }
+
 }

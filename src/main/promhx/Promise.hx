@@ -150,11 +150,20 @@ class Promise<T> {
      **/
     public function then<A>(f:T->A):Promise<A>{
         var ret = new Promise<A>();
+
+        // the function wrapper for the callback, which will
+        // resolve the return promise
+        var fret = function(v:T) {
+            var res = f(v);
+            ret.resolve(res); 
+            return res;
+        }
+
         if(_set){
-            try f(_val)
+            try fret(_val)
             catch (e:Dynamic) handleError(e);
         }else{
-            _update.push(f);
+            _update.push(fret);
             _error.push(ret.handleError);
         }
         return ret;
