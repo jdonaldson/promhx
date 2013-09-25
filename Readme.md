@@ -1,6 +1,8 @@
 Promhx
 ========
 
+[![Build Status](https://travis-ci.org/jdonaldson/promhx.png)](https://travis-ci.org/jdonaldson/promhx)
+
 Promhx is a [promise](http://en.wikipedia.org/wiki/Futures_and_promises)
 library for [Haxe](http://www.haxe.org).  Promises contain values that are not
 immediately available. However, you can specify callback functions that will
