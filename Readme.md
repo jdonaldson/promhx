@@ -49,10 +49,6 @@ p1.then(function(x) trace("delivered " + x));
 var p2 = new Promise<Int>();
 Promise.when(p1,p2).then(function(x,y)trace(x+y));
 
-
-var k:Array<Promise<Dynamic>> = new Array();
-k.push(p1); k.push(p2);
-
 // The return value is another promise, so you can chain.
 Promise.when(p1,p2).then(function(x,y) return x+y)
     .then(function(x) trace(x+1));
