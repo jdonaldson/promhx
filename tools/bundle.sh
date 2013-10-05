@@ -1,9 +1,10 @@
 echo "removing haxelib/promhx"
-rm -r haxelib/promhx
+rm -r haxelib
+mkdir -p haxelib/promhx
 echo "removing promhx.zip"
 rm promhx.zip
 
-cp -r src/main/* haxelib
 cp haxelib.json haxelib
+cp -r src/main/promhx haxelib
 
 zip -r promhx.zip haxelib -x "*.DS_Store" "*.un~"
