@@ -80,53 +80,46 @@ class Promise<T> {
         var eargs : Expr; // the array of promises
         var ecall : Expr; // the function call on the promises
 
-        for (a in args){
-            //the types of all the arguments (should be all Promises)
-            var types = [for (a in args) Context.typeof(a)];
 
-            //the macro arguments expressed as an array expression.
-            eargs = {expr:EArrayDecl(args),pos:pos};
+        //the types of all the arguments (should be all Promises)
+        var types = [for (a in args) Context.typeof(a)];
 
-            // An array of promise values
-            var epargs = [for (a in args) { expr: EField(a, "_val"), pos: pos}];
-            ecall = {expr: ECall(macro f, epargs), pos:pos}
-        }
+        //the macro arguments expressed as an array expression.
+        eargs = {expr:EArrayDecl(args),pos:pos};
+
+        // An array of promise values
+        var epargs = [for (a in args) { expr: EField(a, "_val"), pos: pos}];
+        ecall = {expr: ECall(macro f, epargs), pos:pos}
 
         // the returned function that actually does the runtime work.
         return macro {
             var parr:Array<Promise<Dynamic>> = $eargs;
             var p = new Promise();
             {
-                then : function(f){
-                     //"then" function callback for each promise
-                    var cthen = function(v:Dynamic){
-                        if ( Promise.allSet(parr)){
-                            try{ untyped p.resolve($ecall); }
-                            catch(e:Dynamic){
-                                untyped p.handleError(e);
-                            }
-                        }
-                    }
-                    if (Promise.allSet(parr)) cthen(null);
-                    else for (p in parr) p.then(cthen);
-                    return p;
-                }
+                then : function(f) return Promise.whenAll(parr)
+                        .then(function(x){
+                            try untyped p.resolve($ecall)
+                            catch(e:Dynamic) untyped p.handleError(e);
+                        })
             }
         }
     }
 
     /**
-      "Flattens" an Iterable of promises into a single promise which resolves
+      Transforms an iterable of promises into a single promise which resolves
       to an array of values.
      **/
-    public static function flatMap<T>(itb : Iterable<Promise<T>>) : Promise<Array<T>> {
+    public static function whenAll<T>(itb : Iterable<Promise<T>>) : Promise<Array<T>> {
         var p = new Promise<Array<T>>();
+        var itr = itb.iterator();
+        var cur = itr.hasNext() ? itr.next() : null;
         var cthen = function(v:Dynamic){
-            if (Promise.allSet(itb)){
-                var vals = [for (v in itb) v._val];
-                try p.resolve(vals)
-                catch(e:Dynamic) untyped p.handleError(e);
+            while(cur != null){
+                if (!cur._set) return;
+                else cur = itr.next();
             }
+            try p.resolve([for (v in itb) v._val])
+            catch(e:Dynamic) untyped p.handleError(e);
         };
         if (Promise.allSet(itb)) cthen(null);
         else for (p in itb) p.then(cthen);
