@@ -19,3 +19,6 @@ before_script:
 script:
   - haxe build.hxml
 
+branches:
+      only:
+          - master 
