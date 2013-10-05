@@ -3,7 +3,7 @@ package promhx;
 import haxe.unit.TestCase;
 import promhx.Promise;
 
-class TestPromhx extends TestCase {
+class TestPromise extends TestCase {
 
     public function testSimpleThen(){
         var p1 = new Promise<Int>();

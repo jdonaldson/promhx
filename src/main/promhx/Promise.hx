@@ -28,6 +28,7 @@ import haxe.macro.Expr;
 import haxe.macro.Type;
 import haxe.macro.Context;
 #end
+import com.mindrocks.monads.Monad;
 
 class Promise<T> {
     private var _val    : T;
@@ -207,5 +208,6 @@ class Promise<T> {
         ret.resolve(_val);
         return ret;
     }
+
 }
 

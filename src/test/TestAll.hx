@@ -1,11 +1,11 @@
 import haxe.unit.TestRunner;
-import promhx.TestPromhx;
-import promhx.TestMPromhx;
+import promhx.TestPromise;
+import promhx.TestPromiseM;
 class TestAll {
 	static function main() {
 		var r = new TestRunner();
-		// r.add(new TestPromhx());
-		r.add(new TestMPromhx());
+		r.add(new TestPromise());
+		r.add(new TestPromiseM());
 		r.run();
 	}
 }
