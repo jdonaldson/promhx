@@ -1,5 +1,5 @@
 -cp src/main
 -cp src/test
+-lib monax
 -main TestAll
 -x bin/test
-

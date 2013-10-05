@@ -22,25 +22,21 @@
 ****/
 
 package promhx;
-class OptionM {
+import haxe.macro.Expr;
+import haxe.macro.Context;
+import com.mindrocks.monads.Monad;
 
-    @:macro public static function dO(body : Expr) return // the function to trigger the Monad macro.
-        Monad.dO("promhx.OptionM", body, Context)
+class PromiseM {
 
-        inline public static function ret<T>(x : T) return // creates an element
-        Promise.promise(x);
+    macro public static function dO(body : Expr)  // the function to trigger the Monad macro.
+        return Monad._dO("promhx.PromiseM", body, Context);
 
-        inline public static function map < T, U > (x : Option<T>, f : T -> U) : Option<U> {
-            switch (x) {
-                case Some(x) : return Some(f(x));
-                default : return None;
-            }
-        }
+    inline public static function ret<T>(x : T) // creates an element
+        return Promise.promise(x);
 
-    inline public static function flatMap<T, U>(x : Option<T>, f : T -> Option<U>) : Option<U> {
-        switch (x) {
-            case Some(x) : return f(x);
-            default : return None;
-        }
-    }
+    inline public static function map < T, U > (x : Promise<T>, f : T -> U) 
+        return x.then(function(y) return f(y));
+
+    inline public static function flatMap<T, U>(x : Promise<T>, f : T -> Promise<U>)
+        return x.pipe(function(y) return f(y));
 }
