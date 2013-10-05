@@ -6,19 +6,23 @@ import promhx.PromiseM;
 class TestMPromhx extends TestCase {
 
     public function testSimpleThen(){
-#if js
-        js.Lib.debug();
-#end
-        var p10 = new Promise<Int>();
-        var p20 = new Promise<String>();
-        var k = PromiseM.dO({
-            p1 <= p10;
-            p2 <= p20;
-            p3 <= ret(p1 + p2 + '!');
-        });
-        p10.resolve(0);
-        p20.resolve('hi');
-        k.then(function(x) trace(x));
+        var p1 = new Promise<Int>();
+        var p2 = new Promise<String>();
+
+        // 1) promise monad
+        PromiseM.dO({
+            val1 <= p1;
+            val2 <= p2;
+            ret({val1:val1, val2:val2});
+        }).then(function(x) trace(x));
+
+        // 2) old promise interface
+        Promise.when(p1,p2)
+            .then(function(val1,val2) trace({val1:val1, val2:val2}));
+
+        p1.resolve(10);
+        p2.resolve('foo');
+
         assertEquals(1,1);
     }
 

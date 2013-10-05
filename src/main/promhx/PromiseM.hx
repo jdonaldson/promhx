@@ -35,8 +35,8 @@ class PromiseM {
         return Promise.promise(x);
 
     inline public static function map < T, U > (x : Promise<T>, f : T -> U) 
-        return x.then(function(y) return f(y));
+        return x.then(f);
 
     inline public static function flatMap<T, U>(x : Promise<T>, f : T -> Promise<U>)
-        return x.pipe(function(y) return f(y));
+        return x.pipe(f);
 }
