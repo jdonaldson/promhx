@@ -4,8 +4,9 @@
   "license": "MIT",
   "tags": ["asynchronous", "async"],
   "description": "Promhx is a promise library for Haxe. Promises contain values that are not immediately available. However, you can specify callback functions that will trigger when the values do become available. ",
-  "releasenote": "fix issue with piping to already resolved promises",
-  "version": "0.2.5",
+  "releasenote": "update with dependency on monax",
+  "version": "0.2.6",
   "contributors": ["jdonaldson"]
+  "dependencies": {"monax":""}
 }
 
