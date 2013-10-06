@@ -14,6 +14,7 @@ before_script:
   - mkdir ~/haxelib                                    # create a folder for installing haxelib
   - haxelib setup ~/haxelib
   - haxelib install hxcpp                              # install hxcpp to test C++ target
+  - haxelib install monax                              # dependency
  
 # Run the test!
 script:
