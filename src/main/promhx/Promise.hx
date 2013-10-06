@@ -42,6 +42,7 @@ class Promise<T> {
       a callback to the error handler chain.
      **/
     public function new(?errorf:Dynamic->Dynamic){
+
         _set    = false;
         _update = new Array<T->Dynamic>();
         _error  = new Array<Dynamic->Dynamic>();
@@ -65,7 +66,6 @@ class Promise<T> {
     }
 
     macro public static function foo(a:Expr) : Expr {
-        trace(a);
         return macro null;
     }
 
@@ -148,6 +148,7 @@ class Promise<T> {
         if (_errorf != null) _errorf(d)
         else if (_error.length == 0) throw d
         else for (ef in _error) ef(d);
+        var p1 = new Promise<Int>();
         return null;
     }
 
@@ -177,13 +178,22 @@ class Promise<T> {
 
     public function pipe<A>(f:T->Promise<A>):Promise<A>{
         if(_set){
-            return f(_val);
+            // if already set, then directly invoke the promise creation callback
+            var fret = f(_val);
+            return fret;
         }else{
+            // if not, we need to create a proxy promise
             var ret = new Promise<A>();
+
+            // and an update, which will propagate the created promise value
+            // to the proxy
             var this_update = function(x:T){
                 var fret = f(x);
-                fret._update.push(cast ret.resolve);
-                fret._error.push(ret.handleError);
+                if (fret._set) ret.resolve(fret._val);
+                else {
+                    fret._update.push(cast ret.resolve);
+                    fret._error.push(ret.handleError);
+                }
             }
             _update.push(cast this_update);
             _error.push(ret.handleError);
