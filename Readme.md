@@ -26,7 +26,7 @@ Promhx has a number of powerful features:
 * You can specify a "then" callback on one or more promise values.
 * Callback functions are typed according to the values that the promises
   contain.
-* Errors are propogated through the promise chain.
+* Errors are propagated through the promise chain.
 
 Promhx has the following behavior:
 
