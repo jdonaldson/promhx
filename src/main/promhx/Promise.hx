@@ -30,6 +30,7 @@ import haxe.macro.Context;
 #end
 import com.mindrocks.monads.Monad;
 
+@:expose
 class Promise<T> {
     private var _val    : T;
     private var _set    : Bool;

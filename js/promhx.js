@@ -51,6 +51,7 @@ promhx.Promise = function(errorf) {
 	this._error = new Array();
 	if(errorf != null) this._error.push(errorf);
 };
+$hxExpose(promhx.Promise, "promhx.Promise");
 promhx.Promise.__name__ = true;
 promhx.Promise.allSet = function($as) {
 	var $it0 = $as.iterator();
@@ -184,4 +185,14 @@ var Bool = Boolean;
 Bool.__ename__ = ["Bool"];
 var Class = { __name__ : ["Class"]};
 var Enum = { };
+function $hxExpose(src, path) {
+	var o = typeof window != "undefined" ? window : exports;
+	var parts = path.split(".");
+	for(var ii = 0; ii < parts.length-1; ++ii) {
+		var p = parts[ii];
+		if(typeof o[p] == "undefined") o[p] = {};
+		o = o[p];
+	}
+	o[parts[parts.length-1]] = src;
+}
 })();
