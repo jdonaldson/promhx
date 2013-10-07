@@ -28,15 +28,29 @@ import haxe.macro.Expr;
 import haxe.macro.Type;
 import haxe.macro.Context;
 #end
+import haxe.Timer;
 import com.mindrocks.monads.Monad;
 
 @:expose
 class Promise<T> {
-    private var _val    : T;
-    private var _set    : Bool;
-    private var _update : Array<T->Dynamic>;
-    private var _error  : Array<Dynamic->Dynamic>;
-    private var _errorf : Dynamic->Void;
+    var _val    : T;
+    var _set    : Bool;
+    var _update : Array<T->Dynamic>;
+    var _error  : Array<Dynamic->Dynamic>;
+    var _errorf : Dynamic->Void;
+    static var _next : (Dynamic->Dynamic);
+
+    public static function __init__(){
+        _next =
+#if js // js might have setImmediate, which is best to enable io to catch up
+        untyped setImmediate != null ? setImmediate : Timer.delay.bind(_,0);
+#elseif (flash8 || flash ) // flash can use a timer delay
+        Timer.delay.bind(_,0);
+#elseif (neko || cpp || cs || java) // other platforms have threads, so they can be fully synchronous
+         function(f:Void->Dynamic) return f();
+#end
+    }
+
 
     /**
       Constructor argument can take optional function argument, which adds
@@ -49,6 +63,7 @@ class Promise<T> {
         _error  = new Array<Dynamic->Dynamic>();
         if (errorf != null) _error.push(errorf);
     }
+
 
     /**
       Specify an error handling function
@@ -135,11 +150,13 @@ class Promise<T> {
         if (_set) throw("Promise has already been resolved");
         _set = true;
         _val = val;
-        for (f in _update){
-            try f(_val)
-            catch (e:Dynamic) handleError(e);
-        }
-        _update = new Array<T->Dynamic>();
+        _next(function(){
+            for (f in _update){
+                try f(_val)
+                catch (e:Dynamic) handleError(e);
+            }
+            _update = new Array<T->Dynamic>();
+        });
     }
 
     /**

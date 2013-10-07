@@ -1,4 +1,31 @@
 (function () { "use strict";
+var haxe = {}
+haxe.Timer = function(time_ms) {
+	var me = this;
+	this.id = setInterval(function() {
+		me.run();
+	},time_ms);
+};
+haxe.Timer.__name__ = true;
+haxe.Timer.delay = function(f,time_ms) {
+	var t = new haxe.Timer(time_ms);
+	t.run = function() {
+		t.stop();
+		f();
+	};
+	return t;
+}
+haxe.Timer.prototype = {
+	run: function() {
+		console.log("run");
+	}
+	,stop: function() {
+		if(this.id == null) return;
+		clearInterval(this.id);
+		this.id = null;
+	}
+	,__class__: haxe.Timer
+}
 var js = {}
 js.Boot = function() { }
 js.Boot.__name__ = true;
@@ -150,20 +177,23 @@ promhx.Promise.prototype = {
 		return null;
 	}
 	,resolve: function(val) {
+		var _g = this;
 		if(this._set) throw "Promise has already been resolved";
 		this._set = true;
 		this._val = val;
-		var _g = 0, _g1 = this._update;
-		while(_g < _g1.length) {
-			var f = _g1[_g];
-			++_g;
-			try {
-				f(this._val);
-			} catch( e ) {
-				this.handleError(e);
+		promhx.Promise._next(function() {
+			var _g1 = 0, _g2 = _g._update;
+			while(_g1 < _g2.length) {
+				var f = _g2[_g1];
+				++_g1;
+				try {
+					f(_g._val);
+				} catch( e ) {
+					_g.handleError(e);
+				}
 			}
-		}
-		this._update = new Array();
+			_g._update = new Array();
+		});
 	}
 	,error: function(f) {
 		this._errorf = f;
@@ -185,6 +215,11 @@ var Bool = Boolean;
 Bool.__ename__ = ["Bool"];
 var Class = { __name__ : ["Class"]};
 var Enum = { };
+promhx.Promise._next = setImmediate != null?setImmediate:(function(f1,a1) {
+	return function(f) {
+		return f1(f,a1);
+	};
+})(haxe.Timer.delay,0);
 function $hxExpose(src, path) {
 	var o = typeof window != "undefined" ? window : exports;
 	var parts = path.split(".");
