@@ -70,13 +70,5 @@ class TestCase #if mt_build implements mt.Protect #end {
 		}
 	}
 
-	function runAsync( func : Void->Void ) :Void {
-	    currentTest.asyncStarted = true;
-	    func();
-	    if (currentTest.asyncFinished != null) currentTest.asyncFinished();
-    }
-
-
-
 
 }

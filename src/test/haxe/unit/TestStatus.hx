@@ -37,7 +37,6 @@ class TestStatus {
 
 	public function new() 	{
 		done = false;
-		async_started = false;
 		success = false;
 	}
 
