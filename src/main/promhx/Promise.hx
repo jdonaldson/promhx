@@ -44,9 +44,9 @@ class Promise<T> {
       Initialize the _next function for js to the "best" next execution context
      **/
     public static function __init__() untyped {
-        _next = untyped __js__("typeof(setImmediate) == 'function'")
+        _next =  __js__("typeof(setImmediate) == 'function'")
             ? setImmediate
-            : function(f) setTimeout(f,0);
+            : haxe.Timer.delay.bind(_, 0);
     }
 #end
 
