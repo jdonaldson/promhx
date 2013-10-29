@@ -67,7 +67,7 @@ promhx.Promise.whenAll = function(itb) {
 	var cur = itr.hasNext()?itr.next():null;
 	var cthen = function(v) {
 		while(cur != null) if(!cur._set) return; else cur = itr.next();
-		try {
+		if(!p._set) try {
 			p.resolve((function($this) {
 				var $r;
 				var _g = [];
@@ -150,20 +150,23 @@ promhx.Promise.prototype = {
 		return null;
 	}
 	,resolve: function(val) {
+		var _g = this;
 		if(this._set) throw "Promise has already been resolved";
 		this._set = true;
 		this._val = val;
-		var _g = 0, _g1 = this._update;
-		while(_g < _g1.length) {
-			var f = _g1[_g];
-			++_g;
-			try {
-				f(this._val);
-			} catch( e ) {
-				this.handleError(e);
+		promhx.Promise._next(function() {
+			var _g1 = 0, _g2 = _g._update;
+			while(_g1 < _g2.length) {
+				var f = _g2[_g1];
+				++_g1;
+				try {
+					f(_g._val);
+				} catch( e ) {
+					_g.handleError(e);
+				}
 			}
-		}
-		this._update = new Array();
+			_g._update = new Array();
+		});
 	}
 	,error: function(f) {
 		this._errorf = f;
@@ -185,6 +188,9 @@ var Bool = Boolean;
 Bool.__ename__ = ["Bool"];
 var Class = { __name__ : ["Class"]};
 var Enum = { };
+promhx.Promise._next = setImmediate != null?setImmediate:function(f) {
+	setTimeout(f,0);
+};
 function $hxExpose(src, path) {
 	var o = typeof window != "undefined" ? window : exports;
 	var parts = path.split(".");
