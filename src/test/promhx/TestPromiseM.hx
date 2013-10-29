@@ -1,22 +1,36 @@
 
 package promhx;
-import haxe.unit.TestCase;
 import promhx.PromiseM;
+import utest.Assert;
 
-class TestPromiseM extends TestCase {
+class TestPromiseM {
+    public function new(){}
     public function testSimpleDo(){
+        var expected1 = 10;
+        var expected2 = 'foo';
+        var actual1 = null;
+        var actual2 = null;
         var p1 = new Promise<Int>();
         var p2 = new Promise<String>();
-
+        var val2 = null;
         var p3 = PromiseM.dO({
             val1 <= p1;
             val2 <= p2;
-            val3 <= p2;
             ret({val1:val1, val2:val2});
         });
+        var p3 = PromiseM.dO({
+            val1 <= p1;
+            val2 <= p2;
+            ret({val1:val1, val2:val2});
+        });
+        var async = Assert.createAsync(function(){
+            Assert.equals(expected1, actual1);
+            Assert.equals(expected2, actual2);
+        });
         p3.then(function(y) {
-            assertEquals(y.val1, 10);
-            assertEquals(y.val2, 'foo');
+            actual1 = y.val1;
+            actual2 = y.val2;
+            async();
         });
 
         p1.resolve(10);

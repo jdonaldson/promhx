@@ -32,11 +32,19 @@ import com.mindrocks.monads.Monad;
 
 @:expose
 class Promise<T> {
-    private var _val    : T;
-    private var _set    : Bool;
-    private var _update : Array<T->Dynamic>;
-    private var _error  : Array<Dynamic->Dynamic>;
-    private var _errorf : Dynamic->Void;
+    var _val    : T;
+    var _set    : Bool;
+    var _update : Array<T->Dynamic>;
+    var _error  : Array<Dynamic->Dynamic>;
+    var _errorf : Dynamic->Void;
+    static var _next : (Void->Void)->Void;
+    public static function __init__(){
+        _next = 
+            untyped setImmediate != null
+            ? setImmediate
+            : function(f) untyped setTimeout(f,0);
+    }
+
 
     /**
       Constructor argument can take optional function argument, which adds
@@ -49,6 +57,7 @@ class Promise<T> {
         _error  = new Array<Dynamic->Dynamic>();
         if (errorf != null) _error.push(errorf);
     }
+
 
     /**
       Specify an error handling function
@@ -120,8 +129,10 @@ class Promise<T> {
                 if (!cur._set) return;
                 else cur = itr.next();
             }
-            try p.resolve([for (v in itb) v._val])
-            catch(e:Dynamic) untyped p.handleError(e);
+            if (!p._set){
+                try p.resolve([for (v in itb) v._val])
+                catch(e:Dynamic) untyped p.handleError(e);
+            }
         };
         if (Promise.allSet(itb)) cthen(null);
         else for (p in itb) p.then(cthen);
@@ -135,11 +146,13 @@ class Promise<T> {
         if (_set) throw("Promise has already been resolved");
         _set = true;
         _val = val;
+#if (js || flash) _next(function(){ #end
         for (f in _update){
             try f(_val)
-            catch (e:Dynamic) handleError(e);
+                catch (e:Dynamic) handleError(e);
         }
         _update = new Array<T->Dynamic>();
+#if (js || flash) }); #end
     }
 
     /**

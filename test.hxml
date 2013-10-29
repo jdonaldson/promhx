@@ -1,5 +1,10 @@
 -cp src/main
 -cp src/test
 -lib monax
+-lib nodejs
 -main TestAll
--x bin/test
+-cp ./lib/utest/src
+# -x bin/test
+-D nodejs
+-js bin/test.js
+-cmd node bin/test.js
