@@ -38,12 +38,17 @@ class Promise<T> {
     var _error  : Array<Dynamic->Dynamic>;
     var _errorf : Dynamic->Void;
     static var _next : (Void->Void)->Void;
-    public static function __init__(){
-        _next = 
-            untyped setImmediate != null
+
+#if js
+    /**
+      Initialize the _next function for js to the "best" next execution context
+     **/
+    public static function __init__() untyped {
+        _next = untyped __js__("typeof(setImmediate) == 'function'")
             ? setImmediate
-            : function(f) untyped setTimeout(f,0);
+            : function(f) setTimeout(f,0);
     }
+#end
 
 
     /**
