@@ -37,18 +37,15 @@ class Promise<T> {
     var _update : Array<T->Dynamic>;
     var _error  : Array<Dynamic->Dynamic>;
     var _errorf : Dynamic->Void;
-    static var _next : (Void->Void)->Void;
 
-#if (js || flash)
-    /**
-      Initialize the _next function for js/flash to the "best" next execution context
-     **/
-    public static function __init__() untyped {
-        _next =  __js__("typeof(setImmediate) == 'function'")
-            ? setImmediate
-            : setTimeout;
-    }
+    static inline function _next(f:Void->Void) {
+#if (js && nodejs)
+        untyped setImmediate(f);
+#elseif (js || flash)
+        untyped setTimeout(f);
 #end
+    }
+
 
 
     /**

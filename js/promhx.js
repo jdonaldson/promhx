@@ -53,6 +53,9 @@ promhx.Promise = function(errorf) {
 };
 $hxExpose(promhx.Promise, "promhx.Promise");
 promhx.Promise.__name__ = true;
+promhx.Promise._next = function(f) {
+	setTimeout(f);
+}
 promhx.Promise.allSet = function($as) {
 	var $it0 = $as.iterator();
 	while( $it0.hasNext() ) {
@@ -154,7 +157,7 @@ promhx.Promise.prototype = {
 		if(this._set) throw "Promise has already been resolved";
 		this._set = true;
 		this._val = val;
-		promhx.Promise._next(function() {
+		setTimeout(function() {
 			var _g1 = 0, _g2 = _g._update;
 			while(_g1 < _g2.length) {
 				var f = _g2[_g1];
@@ -188,7 +191,6 @@ var Bool = Boolean;
 Bool.__ename__ = ["Bool"];
 var Class = { __name__ : ["Class"]};
 var Enum = { };
-promhx.Promise._next = typeof(setImmediate) == 'function'?setImmediate:setTimeout;
 function $hxExpose(src, path) {
 	var o = typeof window != "undefined" ? window : exports;
 	var parts = path.split(".");
