@@ -1,7 +1,5 @@
 -cp src/main/
 -lib monax
--lib nodejs
--D nodejs
 promhx.Promise
 -js js/promhx.js
 --macro exclude('com.mindrocks')
