@@ -16,6 +16,7 @@ before_script:
   - haxelib setup ~/haxelib
   - haxelib install hxcpp                              # install hxcpp to test C++ target
   - haxelib install monax                              # dependency
+  - haxelib install nodejs                              # dependency
  
 # Run the test!
 script:
