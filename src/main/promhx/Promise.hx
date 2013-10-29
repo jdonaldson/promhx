@@ -39,14 +39,14 @@ class Promise<T> {
     var _errorf : Dynamic->Void;
     static var _next : (Void->Void)->Void;
 
-#if js
+#if (js || flash)
     /**
-      Initialize the _next function for js to the "best" next execution context
+      Initialize the _next function for js/flash to the "best" next execution context
      **/
     public static function __init__() untyped {
         _next =  __js__("typeof(setImmediate) == 'function'")
             ? setImmediate
-            : haxe.Timer.delay.bind(_, 0);
+            : setTimeout;
     }
 #end
 

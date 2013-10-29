@@ -1,31 +1,4 @@
 (function () { "use strict";
-var haxe = {}
-haxe.Timer = function(time_ms) {
-	var me = this;
-	this.id = setInterval(function() {
-		me.run();
-	},time_ms);
-};
-haxe.Timer.__name__ = true;
-haxe.Timer.delay = function(f,time_ms) {
-	var t = new haxe.Timer(time_ms);
-	t.run = function() {
-		t.stop();
-		f();
-	};
-	return t;
-}
-haxe.Timer.prototype = {
-	run: function() {
-		console.log("run");
-	}
-	,stop: function() {
-		if(this.id == null) return;
-		clearInterval(this.id);
-		this.id = null;
-	}
-	,__class__: haxe.Timer
-}
 var js = {}
 js.Boot = function() { }
 js.Boot.__name__ = true;
@@ -215,11 +188,7 @@ var Bool = Boolean;
 Bool.__ename__ = ["Bool"];
 var Class = { __name__ : ["Class"]};
 var Enum = { };
-promhx.Promise._next = typeof(setImmediate) == 'function'?setImmediate:(function(f1,a1) {
-	return function(f) {
-		return f1(f,a1);
-	};
-})(haxe.Timer.delay,0);
+promhx.Promise._next = typeof(setImmediate) == 'function'?setImmediate:setTimeout;
 function $hxExpose(src, path) {
 	var o = typeof window != "undefined" ? window : exports;
 	var parts = path.split(".");
