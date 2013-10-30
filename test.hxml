@@ -4,7 +4,26 @@
 -lib nodejs
 -main TestAll
 -cp ./lib/utest/src
-# -x bin/test
 -D nodejs
+-js bin/test_node.js
+-cmd node bin/test_node.js
+--next
+
+# generate js for browser testing
+# no auto-execution
+-cp src/main
+-cp src/test
+-lib monax
+-main TestAll
+-cp ./lib/utest/src
 -js bin/test.js
--cmd node bin/test.js
+
+--next
+
+-cp src/main
+-cp src/test
+-lib monax
+-main TestAll
+-cp ./lib/utest/src
+-x bin/test
+

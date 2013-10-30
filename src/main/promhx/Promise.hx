@@ -137,7 +137,7 @@ class Promise<T> {
      **/
     public function resolve(val:T){
         if (_set) throw("Promise has already been resolved");
-#if (js || flash) EventQueue.next(function(){ #end
+#if (js || flash) EventQueue.setImmediate(function(){ #end
         _set = true;
         _val = val;
         for (f in _update){

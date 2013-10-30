@@ -1,38 +1,29 @@
 package promhx;
 class EventQueue {
-    static var _next:(Void->Void)->Void;
-    static var setImmediate:(Void->Void)-> Void;
-    static var setTimeout:(Void->Void)-> Void;
 
-#if (js || flash)
-    static function __init__() untyped {
-        
+    // We can get better performace on js targets with a small shim.  Respect noEmbedJs
+    // in case dev doesn't want to use any polyfills.
 #if (js && !noEmbedJS)
-        var global:Dynamic = {};
+    static function __init__() untyped {
+#if (!nodejs)
+        // if we're not on nodejs, "this" won't be  "window" since we are in
+        //an enclosing function.  So, set the global to window and use that
+        var global = window;
+#end
         haxe.macro.Compiler.includeFile("lib/setImmediate/setImmediate.js");
-        setImmediate = global.setImmediate;
-#end
-
-#if js
-        _next = __js__("typeof setImmediate == 'function' ? setImmediate : setTimeout");
-#elseif flash
-        _next = haxe.Timer.delay.bind(_,0);
-#end
     }
 #end
 
-
-    static function typeof(x: Dynamic) : String untyped {
-#if js
-        return  __js__("typeof x");
-#elseif flash
-        return  __typeof__(x);
+    // if not js this can be inlined
+#if !js inline #end
+    public static function setImmediate(f:Void->Void):Void {
+#if flash
+        haxe.Timer.delay(f,0);
+#elseif js
+        untyped __js__("typeof setImmediate == 'function' ? setImmediate(f) : setTimeout(f)");
 #else
-        throw "typeof not supported on this platform";
-        return null;
+        f();
 #end
     }
-
-    public static inline function next(f) _next(f);
 
 }
