@@ -47,11 +47,8 @@ js.Boot.__instanceof = function(o,cl) {
 var promhx = {}
 promhx.EventQueue = function() { }
 promhx.EventQueue.__name__ = true;
-promhx.EventQueue["typeof"] = function(x) {
-	return typeof x;
-}
-promhx.EventQueue.next = function(f) {
-	promhx.EventQueue._next(f);
+promhx.EventQueue.setImmediate = function(f) {
+	typeof setImmediate == 'function' ? setImmediate(f) : setTimeout(f);
 }
 promhx.Promise = function(errorf) {
 	this._set = false;
@@ -160,7 +157,7 @@ promhx.Promise.prototype = {
 	,resolve: function(val) {
 		var _g = this;
 		if(this._set) throw "Promise has already been resolved";
-		promhx.EventQueue._next(function() {
+		promhx.EventQueue.setImmediate(function() {
 			_g._set = true;
 			_g._val = val;
 			var _g1 = 0, _g2 = _g._update;
@@ -196,7 +193,7 @@ var Bool = Boolean;
 Bool.__ename__ = ["Bool"];
 var Class = { __name__ : ["Class"]};
 var Enum = { };
-var global = { };
+var global = window;
 (function (global, undefined) {
     "use strict";
 
@@ -416,8 +413,6 @@ var global = { };
     }
 }(typeof global === "object" && global ? global : this));
 ;
-promhx.EventQueue.setImmediate = global.setImmediate;
-promhx.EventQueue._next = typeof setImmediate == 'function' ? setImmediate : setTimeout;
 function $hxExpose(src, path) {
 	var o = typeof window != "undefined" ? window : exports;
 	var parts = path.split(".");
