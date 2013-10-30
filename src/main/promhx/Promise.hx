@@ -29,6 +29,7 @@ import haxe.macro.Type;
 import haxe.macro.Context;
 #end
 import com.mindrocks.monads.Monad;
+import promhx.EventQueue;
 
 @:expose
 class Promise<T> {
@@ -37,16 +38,6 @@ class Promise<T> {
     var _update : Array<T->Dynamic>;
     var _error  : Array<Dynamic->Dynamic>;
     var _errorf : Dynamic->Void;
-
-    static inline function _next(f:Void->Void) {
-#if (js && nodejs)
-        untyped setImmediate(f);
-#elseif (js || flash)
-        untyped setTimeout(f);
-#end
-    }
-
-
 
     /**
       Constructor argument can take optional function argument, which adds
@@ -146,9 +137,9 @@ class Promise<T> {
      **/
     public function resolve(val:T){
         if (_set) throw("Promise has already been resolved");
+#if (js || flash) EventQueue.next(function(){ #end
         _set = true;
         _val = val;
-#if (js || flash) _next(function(){ #end
         for (f in _update){
             try f(_val)
                 catch (e:Dynamic) handleError(e);

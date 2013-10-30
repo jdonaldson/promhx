@@ -1,3 +1,6 @@
 [submodule "lib/utest"]
 	path = lib/utest
 	url = https://github.com/fponticelli/utest.git
+[submodule "lib/setImmediate"]
+	path = lib/setImmediate
+	url = https://github.com/NobleJS/setImmediate.git
