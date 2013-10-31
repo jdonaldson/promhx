@@ -6,6 +6,7 @@
 -cp ./lib/utest/src
 -D nodejs
 -js bin/test_node.js
+-cmd echo "--------------------------------------NODE--------------------------------------"
 -cmd node bin/test_node.js
 --next
 
@@ -25,5 +26,6 @@
 -lib monax
 -main TestAll
 -cp ./lib/utest/src
+-cmd echo "--------------------------------------NEKO--------------------------------------"
 -x bin/test
 

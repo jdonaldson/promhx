@@ -68,9 +68,6 @@ class Promise<T> {
         return true;
     }
 
-    macro public static function foo(a:Expr) : Expr {
-        return macro null;
-    }
 
     /**
       Macro method that binds the promise arguments to a single function
