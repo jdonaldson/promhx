@@ -33,11 +33,12 @@ import promhx.EventQueue;
 
 @:expose
 class Promise<T> {
-    var _val    : T;
-    var _set    : Bool;
-    var _update : Array<T->Dynamic>;
-    var _error  : Array<Dynamic->Dynamic>;
-    var _errorf : Dynamic->Void;
+    var _val       : T;
+    var _set       : Bool;
+    var _resolving : Bool;
+    var _update    : Array<T->Dynamic>;
+    var _error     : Array<Dynamic->Dynamic>;
+    var _errorf    : Dynamic->Void;
 
     /**
       Constructor argument can take optional function argument, which adds
@@ -46,6 +47,7 @@ class Promise<T> {
     public function new(?errorf:Dynamic->Dynamic){
 
         _set    = false;
+        _resolving    = false;
         _update = new Array<T->Dynamic>();
         _error  = new Array<Dynamic->Dynamic>();
         if (errorf != null) _error.push(errorf);
@@ -55,7 +57,7 @@ class Promise<T> {
     /**
       Specify an error handling function
      **/
-    public function error(f:Dynamic->Void) {
+    public function error(f:Dynamic->Void) : Promise<T> {
         _errorf = f;
         return this;
     }
@@ -68,6 +70,19 @@ class Promise<T> {
         return true;
     }
 
+    /**
+      Utility function to determine if a Promise value is set.
+     **/
+    public function isSet(): Bool{
+        return _set || _resolving;
+    }
+
+    /**
+      Utility function to determine if a Promise value is in the process of resolving.
+     **/
+    public function isResolving(): Bool{
+        return _resolving;
+    }
 
     /**
       Macro method that binds the promise arguments to a single function
@@ -132,8 +147,9 @@ class Promise<T> {
     /**
       Resolves the given value for processing on any waiting functions.
      **/
-    public function resolve(val:T){
+    public function resolve(val:T) : Void {
         if (_set) throw("Promise has already been resolved");
+        _resolving = true;
 #if (js || flash) EventQueue.setImmediate(function(){ #end
         _set = true;
         _val = val;
@@ -142,6 +158,7 @@ class Promise<T> {
                 catch (e:Dynamic) handleError(e);
         }
         _update = new Array<T->Dynamic>();
+        _resolving = false;
 #if (js || flash) }); #end
     }
 
@@ -210,14 +227,14 @@ class Promise<T> {
     /**
       Rejects the promise, throwing an error.
      **/
-    public function reject(e:Dynamic){
+    public function reject(e:Dynamic) : Void {
         _update = new Array<T->Dynamic>();
         handleError(e);
     }
     /**
       Converts any value to a resolved Promise
      **/
-    public static function promise<T>(_val:T, ?errorf:Dynamic->Dynamic) : Promise<T>{
+    public static function promise<T>(_val:T, ?errorf:Dynamic->Dynamic) : Promise<T> {
         var ret = new Promise<T>(errorf);
         ret.resolve(_val);
         return ret;
