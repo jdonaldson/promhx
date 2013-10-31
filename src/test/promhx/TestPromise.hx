@@ -38,6 +38,23 @@ class TestPromise {
         p2.resolve(expected2);
     }
 
+    public function testSimpleWhenError(){
+        var p1        = new Promise<Int>();
+        var p2        = new Promise<Int>();
+        var error = false;
+        var async = Assert.createAsync(function(){
+            Assert.isTrue(error);
+        });
+        Promise.when(p1,p2).then(function(x,y){
+            untyped obvious.error;
+        }).error(function(e){
+            error = true;
+            async();
+        });
+        p1.resolve(0);
+        p2.resolve(0);
+    }
+
     public function testChainedThen(){
         var expected1 = 1;
         var expected2 = 2;
