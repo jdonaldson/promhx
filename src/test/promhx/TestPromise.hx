@@ -77,6 +77,23 @@ class TestPromise {
         p2.resolve(0);
     }
 
+    public function testSimpleWhenReject(){
+        var p1        = new Promise<Int>();
+        var p2        = new Promise<Int>();
+        var error = false;
+        var async = Assert.createAsync(function(){
+            Assert.isTrue(error);
+        });
+        Promise.when(p1,p2).then(function(x,y){
+            Assert.isTrue(false, "The 'then' method should not trigger"); //or whatever make the test fail
+        }).error(function(e){
+            error = true;
+            async();
+        });
+        p1.reject("error");
+        p2.resolve(0);
+    }
+
     public function testChainedThen(){
         var expected1 = 1;
         var expected2 = 2;
