@@ -20,7 +20,7 @@ class TestPromise {
         p1.resolve(expected);
     }
 
-    public function testSet(){
+    public function testResolved(){
         var p1 = new Promise<Int>();
         p1.resolve(0);
         Assert.isTrue(p1.isResolved());
