@@ -44,12 +44,13 @@ class Promise<T> {
       Constructor argument can take optional function argument, which adds
       a callback to the error handler chain.
      **/
-    public function new(?errorf:Dynamic->Dynamic){
+    public function new(?errorf : Dynamic->Dynamic) {
 
-        _set    = false;
-        _resolving    = false;
-        _update = new Array<T->Dynamic>();
-        _error  = new Array<Dynamic->Dynamic>();
+        _set         = false;
+        _resolving   = false;
+        _update      = new Array<T->Dynamic>();
+        _error       = new Array<Dynamic->Dynamic>();
+
         if (errorf != null) _error.push(errorf);
     }
 
@@ -57,7 +58,7 @@ class Promise<T> {
     /**
       Specify an error handling function
      **/
-    public function error(f:Dynamic->Void) : Promise<T> {
+    public function error(f : Dynamic->Void): Promise<T> {
         _errorf = f;
         return this;
     }
@@ -65,7 +66,7 @@ class Promise<T> {
     /**
       Utility function to determine if all Promise values are set.
      **/
-    public static function allSet(as:Iterable<Promise<Dynamic>>): Bool{
+    public static function allSet(as : Iterable<Promise<Dynamic>>): Bool {
         for (a in as) if (!a._set) return false;
         return true;
     }
@@ -73,15 +74,22 @@ class Promise<T> {
     /**
       Utility function to determine if a Promise value is set.
      **/
-    public function isSet(): Bool{
+    public function isSet(): Bool {
         return _set || _resolving;
     }
 
     /**
       Utility function to determine if a Promise value is in the process of resolving.
      **/
-    public function isResolving(): Bool{
+    public function isResolving(): Bool {
         return _resolving;
+    }
+
+    /**
+      Utility function to determine if a Promise value is in the process of resolving.
+     **/
+    public function isResolved(): Bool {
+        return _set && !_resolving;
     }
 
     /**
@@ -126,28 +134,31 @@ class Promise<T> {
       to an array of values.
      **/
     public static function whenAll<T>(itb : Iterable<Promise<T>>) : Promise<Array<T>> {
-        var p = new Promise<Array<T>>();
+        var ret = new Promise<Array<T>>();
         var itr = itb.iterator();
         var cur = itr.hasNext() ? itr.next() : null;
         var cthen = function(v:Dynamic){
             while(cur != null){
-                if (!cur._set) return;
+                if (!cur.isSet()) return;
                 else cur = itr.next();
             }
-            if (!p._set){
-                try p.resolve([for (v in itb) v._val])
-                catch(e:Dynamic) untyped p.handleError(e);
+            if (!ret.isSet()){
+                try ret.resolve([for (v in itb) v._val])
+                catch(e:Dynamic) untyped ret.handleError(e);
             }
         };
         if (Promise.allSet(itb)) cthen(null);
-        else for (p in itb) p.then(cthen);
-        return p;
+        else for (p in itb) {
+            p.then(cthen);
+            p.error(ret.handleError);
+        }
+        return ret;
     }
 
     /**
       Resolves the given value for processing on any waiting functions.
      **/
-    public function resolve(val:T) : Void {
+    public function resolve(val : T): Void {
         if (_set) throw("Promise has already been resolved");
         _resolving = true;
 #if (js || flash) EventQueue.setImmediate(function(){ #end
@@ -165,7 +176,7 @@ class Promise<T> {
     /**
       Handle errors
      **/
-    private function handleError(d:Dynamic){
+    private function handleError(d : Dynamic) {
         if (_errorf != null) _errorf(d)
         else if (_error.length == 0) throw d
         else for (ef in _error) ef(d);
@@ -176,7 +187,7 @@ class Promise<T> {
     /**
       add a wait function directly to the Promise instance.
      **/
-    public function then<A>(f:T->A):Promise<A>{
+    public function then<A>(f : T->A): Promise<A> {
         var ret = new Promise<A>();
 
         // the function wrapper for the callback, which will
@@ -197,7 +208,7 @@ class Promise<T> {
         return ret;
     }
 
-    public function pipe<A>(f:T->Promise<A>):Promise<A>{
+    public function pipe<A>(f : T->Promise<A>): Promise<A> {
         if(_set){
             // if already set, then directly invoke the promise creation callback
             var fret = f(_val);
@@ -227,14 +238,14 @@ class Promise<T> {
     /**
       Rejects the promise, throwing an error.
      **/
-    public function reject(e:Dynamic) : Void {
+    public function reject(e : Dynamic): Void {
         _update = new Array<T->Dynamic>();
         handleError(e);
     }
     /**
       Converts any value to a resolved Promise
      **/
-    public static function promise<T>(_val:T, ?errorf:Dynamic->Dynamic) : Promise<T> {
+    public static function promise<T>(_val : T, ?errorf : Dynamic->Dynamic): Promise<T> {
         var ret = new Promise<T>(errorf);
         ret.resolve(_val);
         return ret;
