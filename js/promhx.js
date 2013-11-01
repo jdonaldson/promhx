@@ -48,10 +48,13 @@ var promhx = {}
 promhx.EventQueue = function() { }
 promhx.EventQueue.__name__ = true;
 promhx.EventQueue.setImmediate = function(f) {
-	typeof setImmediate == 'function' ? setImmediate(f) : setTimeout(f);
+	setImmediate(f);
 }
 promhx.Promise = function(errorf) {
-	this._set = false;
+	this._resolved = false;
+	this._fulfilling = false;
+	this._fulfilled = false;
+	this._rejected = false;
 	this._update = new Array();
 	this._error = new Array();
 	if(errorf != null) this._error.push(errorf);
@@ -62,18 +65,18 @@ promhx.Promise.allSet = function($as) {
 	var $it0 = $as.iterator();
 	while( $it0.hasNext() ) {
 		var a = $it0.next();
-		if(!a._set) return false;
+		if(!a._resolved) return false;
 	}
 	return true;
 }
 promhx.Promise.whenAll = function(itb) {
-	var p = new promhx.Promise();
+	var ret = new promhx.Promise();
 	var itr = itb.iterator();
 	var cur = itr.hasNext()?itr.next():null;
 	var cthen = function(v) {
-		while(cur != null) if(!cur._set) return; else cur = itr.next();
-		if(!p._set) try {
-			p.resolve((function($this) {
+		while(cur != null) if(!cur._resolved) return; else cur = itr.next();
+		if(!ret._resolved) try {
+			ret.resolve((function($this) {
 				var $r;
 				var _g = [];
 				var $it0 = itb.iterator();
@@ -85,17 +88,18 @@ promhx.Promise.whenAll = function(itb) {
 				return $r;
 			}(this)));
 		} catch( e ) {
-			p.handleError(e);
+			ret.handleError(e);
 		}
 	};
 	if(promhx.Promise.allSet(itb)) cthen(null); else {
 		var $it1 = itb.iterator();
 		while( $it1.hasNext() ) {
-			var p1 = $it1.next();
-			p1.then(cthen);
+			var p = $it1.next();
+			p.then(cthen);
+			p.error($bind(ret,ret.handleError));
 		}
 	}
-	return p;
+	return ret;
 }
 promhx.Promise.promise = function(_val,errorf) {
 	var ret = new promhx.Promise(errorf);
@@ -108,14 +112,14 @@ promhx.Promise.prototype = {
 		this.handleError(e);
 	}
 	,pipe: function(f) {
-		if(this._set) {
+		if(this._resolved) {
 			var fret = f(this._val);
 			return fret;
 		} else {
 			var ret = new promhx.Promise();
 			var this_update = function(x) {
 				var fret = f(x);
-				if(fret._set) ret.resolve(fret._val); else {
+				if(fret._resolved) ret.resolve(fret._val); else {
 					fret._update.push($bind(ret,ret.resolve));
 					fret._error.push($bind(ret,ret.handleError));
 				}
@@ -132,7 +136,7 @@ promhx.Promise.prototype = {
 			ret.resolve(res);
 			return res;
 		};
-		if(this._set) try {
+		if(this._resolved) try {
 			fret(this._val);
 		} catch( e ) {
 			this.handleError(e);
@@ -143,6 +147,7 @@ promhx.Promise.prototype = {
 		return ret;
 	}
 	,handleError: function(d) {
+		this._rejected = true;
 		if(this._errorf != null) this._errorf(d); else if(this._error.length == 0) throw d; else {
 			var _g = 0, _g1 = this._error;
 			while(_g < _g1.length) {
@@ -156,10 +161,11 @@ promhx.Promise.prototype = {
 	}
 	,resolve: function(val) {
 		var _g = this;
-		if(this._set) throw "Promise has already been resolved";
-		promhx.EventQueue.setImmediate(function() {
-			_g._set = true;
-			_g._val = val;
+		if(this._resolved) throw "Promise has already been resolved";
+		this._val = val;
+		this._resolved = true;
+		this._fulfilling = true;
+		setImmediate(function() {
 			var _g1 = 0, _g2 = _g._update;
 			while(_g1 < _g2.length) {
 				var f = _g2[_g1];
@@ -171,7 +177,21 @@ promhx.Promise.prototype = {
 				}
 			}
 			_g._update = new Array();
+			_g._fulfilling = false;
+			_g._fulfilled = true;
 		});
+	}
+	,isFulfilling: function() {
+		return this._fulfilling;
+	}
+	,isFulfilled: function() {
+		return this._fulfilled;
+	}
+	,isRejected: function() {
+		return this._rejected;
+	}
+	,isResolved: function() {
+		return this._resolved;
 	}
 	,error: function(f) {
 		this._errorf = f;

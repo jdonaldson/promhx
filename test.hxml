@@ -1,3 +1,14 @@
+# generate js for browser testing
+# no auto-execution
+-cp src/main
+-cp src/test
+-lib monax
+-main TestAll
+-cp ./lib/utest/src
+-js bin/test.js
+
+--next
+
 -cp src/main
 -cp src/test
 -lib monax
@@ -8,17 +19,6 @@
 -js bin/test_node.js
 -cmd echo "--------------------------------------NODE--------------------------------------"
 -cmd node bin/test_node.js
---next
-
-# generate js for browser testing
-# no auto-execution
--cp src/main
--cp src/test
--lib monax
--main TestAll
--cp ./lib/utest/src
--js bin/test.js
-
 --next
 
 -cp src/main

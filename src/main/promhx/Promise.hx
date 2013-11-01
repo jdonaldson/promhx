@@ -34,8 +34,9 @@ import promhx.EventQueue;
 @:expose
 class Promise<T> {
     var _val       : T;
-    var _set       : Bool;
-    var _resolving : Bool;
+    var _resolved       : Bool;
+    var _fulfilled : Bool;
+    var _fulfilling : Bool;
     var _rejected  : Bool;
     var _update    : Array<T->Dynamic>;
     var _error     : Array<Dynamic->Dynamic>;
@@ -47,11 +48,12 @@ class Promise<T> {
      **/
     public function new(?errorf : Dynamic->Dynamic) {
 
-        _set         = false;
-        _resolving   = false;
+        _resolved   = false;
+        _fulfilling = false;
+        _fulfilled  = false;
         _rejected   = false;
-        _update      = new Array<T->Dynamic>();
-        _error       = new Array<Dynamic->Dynamic>();
+        _update     = new Array<T->Dynamic>();
+        _error      = new Array<Dynamic->Dynamic>();
 
         if (errorf != null) _error.push(errorf);
     }
@@ -69,29 +71,17 @@ class Promise<T> {
       Utility function to determine if all Promise values are set.
      **/
     public static function allSet(as : Iterable<Promise<Dynamic>>): Bool {
-        for (a in as) if (!a._set) return false;
+        for (a in as) if (!a._resolved) return false;
         return true;
     }
 
-    /**
-      Utility function to determine if a Promise value is set.
-     **/
-    public inline function isSet(): Bool {
-        return _set || _resolving;
-    }
 
-    /**
-      Utility function to determine if a Promise value is in the process of resolving.
-     **/
-    public inline function isResolving(): Bool {
-        return _resolving;
-    }
 
     /**
       Utility function to determine if a Promise value has been resolved.
      **/
     public inline function isResolved(): Bool {
-        return _set && !_resolving;
+        return _resolved;
     }
 
     /**
@@ -99,6 +89,20 @@ class Promise<T> {
      **/
     public inline function isRejected(): Bool {
         return _rejected;
+    }
+
+    /**
+      Utility function to determine if a Promise value has been rejected.
+     **/
+    public inline function isFulfilled(): Bool {
+        return _fulfilled;
+    }
+
+    /**
+      Utility function to determine if a Promise value has been rejected.
+     **/
+    public inline function isFulfilling(): Bool {
+        return _fulfilling;
     }
 
     /**
@@ -148,10 +152,10 @@ class Promise<T> {
         var cur = itr.hasNext() ? itr.next() : null;
         var cthen = function(v:Dynamic){
             while(cur != null){
-                if (!cur.isSet()) return;
+                if (!cur.isResolved()) return;
                 else cur = itr.next();
             }
-            if (!ret.isSet()){
+            if (!ret.isResolved()){
                 try ret.resolve([for (v in itb) v._val])
                 catch(e:Dynamic) untyped ret.handleError(e);
             }
@@ -168,17 +172,18 @@ class Promise<T> {
       Resolves the given value for processing on any waiting functions.
      **/
     public function resolve(val : T): Void {
-        if (_set) throw("Promise has already been resolved");
-        _resolving = true;
-#if (js || flash) EventQueue.setImmediate(function(){ #end
-        _set = true;
+        if (_resolved) throw("Promise has already been resolved");
         _val = val;
+        _resolved = true;
+        _fulfilling = true;
+#if (js || flash) EventQueue.setImmediate(function(){ #end
         for (f in _update){
             try f(_val)
                 catch (e:Dynamic) handleError(e);
         }
         _update = new Array<T->Dynamic>();
-        _resolving = false;
+        _fulfilling = false;
+        _fulfilled = true;
 #if (js || flash) }); #end
     }
 
@@ -208,7 +213,7 @@ class Promise<T> {
             return res;
         }
 
-        if(_set){
+        if(_resolved){
             try fret(_val)
             catch (e:Dynamic) handleError(e);
         }else{
@@ -219,7 +224,7 @@ class Promise<T> {
     }
 
     public function pipe<A>(f : T->Promise<A>): Promise<A> {
-        if(_set){
+        if(isResolved()){
             // if already set, then directly invoke the promise creation callback
             var fret = f(_val);
             return fret;
@@ -231,7 +236,7 @@ class Promise<T> {
             // to the proxy
             var this_update = function(x:T){
                 var fret = f(x);
-                if (fret._set) ret.resolve(fret._val);
+                if (fret._resolved) ret.resolve(fret._val);
                 else {
                     fret._update.push(cast ret.resolve);
                     fret._error.push(ret.handleError);

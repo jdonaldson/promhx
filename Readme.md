@@ -88,18 +88,19 @@ Promise.when(p1,p2).then(function(x,y) {throw('an error'); return 'hi';})
 // Promises can go through various stages before finally resolving.  The
 // following methods check the status.
 
-// Check to see if a promise has been set already. This happens immediately
-// when the promise.resolve() is called.
-trace(p1.isSet());
 
-// Check to see if a promise is in the process of resolving
-// In some cases promises are not completely resolved.  This can happen if
-// the promise is delaying execution (on flash, js).
-trace(p1.isResolving());
-
-// Check to see if a promise has been resolved.  This will return true
-// when the promise has finished resolving.
+// Check to see if a promise has been resolved.  This will return true as soon
+// as resolve() returns.
 trace(p1.isResolved());
+
+// Check to see if a promise is in the process of fulfilling.
+// In some cases promises are not completely resolved.  This can happen if
+// the promise is delaying execution (on flash, js), or is updating other
+// promises.
+trace(p1.isFulfilling());
+
+// Check to see if the promise has completed fulfilling its updates.
+trace(p1.isFulfilled());
 
 // Check to see if a promise has been rejected.  This can happen if
 // the promise throws an error, or if the current promise is waiting

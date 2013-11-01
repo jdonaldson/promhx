@@ -18,11 +18,7 @@ class TestPromiseM {
             val2 <= p2;
             ret({val1:val1, val2:val2});
         });
-        var p3 = PromiseM.dO({
-            val1 <= p1;
-            val2 <= p2;
-            ret({val1:val1, val2:val2});
-        });
+
         var async = Assert.createAsync(function(){
             Assert.equals(expected1, actual1);
             Assert.equals(expected2, actual2);

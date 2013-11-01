@@ -23,21 +23,21 @@ class TestPromise {
     public function testSet(){
         var p1 = new Promise<Int>();
         p1.resolve(0);
-        Assert.isTrue(p1.isSet());
+        Assert.isTrue(p1.isResolved());
     }
 
 #if (js || flash)
     public function testAsynchronousResolving(){
         var p1 = new Promise<Int>();
         p1.resolve(0);
-        Assert.isTrue(p1.isResolving(), "p1 was not resolving, should be asynchronous");
+        Assert.isTrue(p1.isFulfilling(), "p1 was not resolving, should be asynchronous");
     }
 
 #else
     public function testSynchronousResolving(){
         var p1 = new Promise<Int>();
         p1.resolve(0);
-        Assert.isTrue(!p1.isResolving(),  "p1 was resolving, should be synchronous");
+        Assert.isTrue(!p1.isFulfilling(),  "p1 was resolving, should be synchronous");
     }
 #end
 
