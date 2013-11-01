@@ -27,6 +27,8 @@ Promhx has a number of powerful features:
 * Callback functions are typed according to the values that the promises
   contain.
 * Errors are propagated through the promise chain.
+* Promises on single threaded platforms (flash, js) are evaluated in the next
+frame, so as to not block IO.
 
 Promhx has the following behavior:
 
@@ -82,6 +84,22 @@ Promise.when(p1,p2).then(function(x,y) {throw('an error'); return 'hi';})
 // If no error callback is specified, the error is thrown.
 // Uncomment this next line to cause an error!
 //Promise.when(p1,p2).then(function(x,y) throw('an error'));
+
+// Promises can go through various stages before finally resolving.  The
+// following methods check the status.
+
+// Check to see if a promise has been set already. This happens immediately
+// when the promise.resolve() is called.
+trace(p1.isSet());
+
+// Check to see if a promise is in the process of resolving
+// In some cases promises are not completely resolved.  This can happen if
+// the promise is delaying execution (on flash, js).
+trace(p1.isResolving());
+
+// Check to see if a promise has been resolved.  This will return true
+// when the promise has finished resolving.
+trace(p1.isResolved());
 
 // finally, resolve the promise values, which will start the
 // evaluation of all promises.
