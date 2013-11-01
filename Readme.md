@@ -101,6 +101,11 @@ trace(p1.isResolving());
 // when the promise has finished resolving.
 trace(p1.isResolved());
 
+// Check to see if a promise has been rejected.  This can happen if
+// the promise throws an error, or if the current promise is waiting
+// on a promise that has thrown an error.
+trace(p1.isRejected());
+
 // finally, resolve the promise values, which will start the
 // evaluation of all promises.
 p1.resolve(1);

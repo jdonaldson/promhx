@@ -36,6 +36,7 @@ class Promise<T> {
     var _val       : T;
     var _set       : Bool;
     var _resolving : Bool;
+    var _rejected  : Bool;
     var _update    : Array<T->Dynamic>;
     var _error     : Array<Dynamic->Dynamic>;
     var _errorf    : Dynamic->Void;
@@ -48,6 +49,7 @@ class Promise<T> {
 
         _set         = false;
         _resolving   = false;
+        _rejected   = false;
         _update      = new Array<T->Dynamic>();
         _error       = new Array<Dynamic->Dynamic>();
 
@@ -74,22 +76,29 @@ class Promise<T> {
     /**
       Utility function to determine if a Promise value is set.
      **/
-    public function isSet(): Bool {
+    public inline function isSet(): Bool {
         return _set || _resolving;
     }
 
     /**
       Utility function to determine if a Promise value is in the process of resolving.
      **/
-    public function isResolving(): Bool {
+    public inline function isResolving(): Bool {
         return _resolving;
     }
 
     /**
-      Utility function to determine if a Promise value is in the process of resolving.
+      Utility function to determine if a Promise value has been resolved.
      **/
-    public function isResolved(): Bool {
+    public inline function isResolved(): Bool {
         return _set && !_resolving;
+    }
+
+    /**
+      Utility function to determine if a Promise value has been rejected.
+     **/
+    public inline function isRejected(): Bool {
+        return _rejected;
     }
 
     /**
@@ -177,6 +186,7 @@ class Promise<T> {
       Handle errors
      **/
     private function handleError(d : Dynamic) {
+        _rejected = true;
         if (_errorf != null) _errorf(d)
         else if (_error.length == 0) throw d
         else for (ef in _error) ef(d);
