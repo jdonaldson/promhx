@@ -1,5 +1,4 @@
-/****
-* Copyright (c) 2013 Justin Donaldson
+/****  Copyright (c) 2013 Justin Donaldson
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
@@ -146,22 +145,21 @@ class Promise<T> {
       Transforms an iterable of promises into a single promise which resolves
       to an array of values.
      **/
-    public static function whenAll<T>(itb : Iterable<Promise<T>>) : Promise<Array<T>> {
+    public static function whenAll<T>(arr : Array<Promise<T>>) : Promise<Array<T>> {
         var ret = new Promise<Array<T>>();
-        var itr = itb.iterator();
-        var cur = itr.hasNext() ? itr.next() : null;
+        var idx = 0;
         var cthen = function(v:Dynamic){
-            while(cur != null){
-                if (!cur.isResolved()) return;
-                else cur = itr.next();
+            while(idx < arr.length){
+                if (!arr[idx].isResolved()) return;
+                idx+=1;
             }
             if (!ret.isResolved()){
-                try ret.resolve([for (v in itb) v._val])
+                try ret.resolve([for (v in arr) v._val])
                 catch(e:Dynamic) untyped ret.handleError(e);
             }
         };
-        if (Promise.allSet(itb)) cthen(null);
-        else for (p in itb) {
+        if (Promise.allSet(arr)) cthen(null);
+        else for (p in arr) {
             p.then(cthen);
             p.error(ret.handleError);
         }
