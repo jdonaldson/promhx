@@ -52,15 +52,12 @@ class TestPromise {
         var async = Assert.createAsync(function(){
             Assert.equals(expected, actual);
         });
-        trace('hi');
         Promise.when(p1,p2).then(function(x,y){
-        trace('ho');
             actual = x + y;
             async();
         });
         p1.resolve(expected1);
         p2.resolve(expected2);
-        trace('hee');
     }
 
     public function testSimpleWhenError(){
