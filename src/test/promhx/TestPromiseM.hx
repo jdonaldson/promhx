@@ -8,8 +8,8 @@ class TestPromiseM {
     public function testSimpleDo(){
         var expected1 = 10;
         var expected2 = 'foo';
-        var actual1 = null;
-        var actual2 = null;
+        var actual1 = 0;
+        var actual2 = 'bar';
         var p1 = new Promise<Int>();
         var p2 = new Promise<String>();
         var val2 = null;

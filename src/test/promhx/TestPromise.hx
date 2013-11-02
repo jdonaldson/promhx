@@ -9,7 +9,7 @@ class TestPromise {
     public function testSimpleThen(){
         var p1 = new Promise<Int>();
         var expected = 1;
-        var actual = null;
+        var actual:Int = 0;
         var async = Assert.createAsync(function(){
             Assert.equals(expected, actual);
         });
@@ -48,16 +48,19 @@ class TestPromise {
         var p1        = new Promise<Int>();
         var p2        = new Promise<Int>();
         var expected = expected1 + expected2;
-        var actual = null;
+        var actual = 0;
         var async = Assert.createAsync(function(){
             Assert.equals(expected, actual);
         });
+        trace('hi');
         Promise.when(p1,p2).then(function(x,y){
+        trace('ho');
             actual = x + y;
             async();
         });
         p1.resolve(expected1);
         p2.resolve(expected2);
+        trace('hee');
     }
 
     public function testSimpleWhenError(){
@@ -68,7 +71,7 @@ class TestPromise {
             Assert.isTrue(error);
         });
         Promise.when(p1,p2).then(function(x,y){
-            untyped obvious.error;
+            throw "an error";
         }).error(function(e){
             error = true;
             async();
@@ -102,7 +105,7 @@ class TestPromise {
             return expected2;
         });
         var expected = expected2;
-        var actual = null;
+        var actual = 0;
         var async = Assert.createAsync(function(){
             Assert.equals(expected, actual);
         });
