@@ -21,7 +21,7 @@ before_script:
  
 # Run the test!
 script:
-  - haxe test.hxml
+  - haxe test_all.hxml
 
 branches:
       only:
