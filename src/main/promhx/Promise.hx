@@ -112,29 +112,33 @@ class Promise<T> {
      **/
     macro public static function when<T>( args : Array<ExprOf<Promise<Dynamic>>>) : Expr {
 
-        var pos = args[0].pos; // default pos
-        var eargs : Expr; // the array of promises
-        var ecall : Expr; // the function call on the promises
+        // a default position
+        var pos = Context.currentPos();
 
         //the macro arguments translated to an array expression.
-        eargs = {expr:EArrayDecl(args),pos:pos};
+        var eargs = {expr:EArrayDecl(args), pos:pos};
 
         // An array of the resolved promise values
         var epargs = [for (a in args) { expr: EField(a, "_val"), pos: pos}];
-
-        //a macro expression calling the ident variable "f" as a function with resolved values.
-        ecall = {expr: ECall(macro $i{"f"}, epargs), pos:pos}
 
         // the returned function that actually does the runtime work.
         return macro {
             // a function that accepts a variable argument function
             var varargf = function(f){
+                // we wait on all of the promises with the iterable-based "whenAll"
+                // this will resolve an array, so we use pipe to ignore it, and set
+                // up a new promise for return.
+                // this new promise resolves via a macro-defined function expression
+                // on "f" that provides arity and types for the resolved promise values.
                 return Promise.whenAll($eargs).pipe(function(x){
                             var p = new Promise();
-                            p.resolve($ecall);
+                            // we get the type/arity of "f" from the resolved promise values.
+                            // haxe infers the call/complex type for us, so we don't need to declare it:
+                            p.resolve(f($a{epargs}));
                             return p;
                         });
             };
+
             // return an anonymous object with the function definition for "then"
             { then : varargf };
         }
