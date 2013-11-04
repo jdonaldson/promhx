@@ -116,24 +116,27 @@ class Promise<T> {
         var eargs : Expr; // the array of promises
         var ecall : Expr; // the function call on the promises
 
-        //the macro arguments expressed as an array expression.
+        //the macro arguments translated to an array expression.
         eargs = {expr:EArrayDecl(args),pos:pos};
 
-        // An array of promise values
+        // An array of the resolved promise values
         var epargs = [for (a in args) { expr: EField(a, "_val"), pos: pos}];
-        ecall = {expr: ECall(macro f, epargs), pos:pos}
+
+        //a macro expression calling the ident variable "f" as a function with resolved values.
+        ecall = {expr: ECall(macro $i{"f"}, epargs), pos:pos}
 
         // the returned function that actually does the runtime work.
         return macro {
-            var parr:Array<Promise<Dynamic>> = $eargs;
-            var p = new Promise();
-            {
-                then : function(f) return Promise.whenAll(parr)
-                        .pipe(function(x){
+            // a function that accepts a variable argument function
+            var varargf = function(f){
+                return Promise.whenAll($eargs).pipe(function(x){
+                            var p = new Promise();
                             p.resolve($ecall);
                             return p;
-                        })
-            }
+                        });
+            };
+            // return an anonymous object with the function definition for "then"
+            { then : varargf };
         }
     }
 
