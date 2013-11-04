@@ -5,7 +5,6 @@
 -lib nodejs
 -main TestAll
 -cp ./lib/utest/src
--D nodejs
 -js bin/test_node.js
 -cmd echo "--------------------------------------NODE--------------------------------------"
 -cmd node bin/test_node.js

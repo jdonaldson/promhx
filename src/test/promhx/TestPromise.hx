@@ -20,6 +20,7 @@ class TestPromise {
         p1.resolve(expected);
     }
 
+
     public function testResolved(){
         var p1 = new Promise<Int>();
         p1.resolve(0);
@@ -49,10 +50,12 @@ class TestPromise {
         var p2        = new Promise<Int>();
         var expected = expected1 + expected2;
         var actual = 0;
+        
         var async = Assert.createAsync(function(){
             Assert.equals(expected, actual);
         });
-        Promise.when(p1,p2).then(function(x,y){
+
+        var p3 = Promise.when(p1,p2).then(function(x,y){
             actual = x + y;
             async();
         });
