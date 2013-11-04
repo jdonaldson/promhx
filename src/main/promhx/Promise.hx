@@ -129,9 +129,9 @@ class Promise<T> {
             var p = new Promise();
             {
                 then : function(f) return Promise.whenAll(parr)
-                        .then(function(x){
-                            try untyped p.resolve($ecall)
-                            catch(e:Dynamic) untyped p.handleError(e);
+                        .pipe(function(x){
+                            p.resolve($ecall);
+                            return p;
                         })
             }
         }
