@@ -116,10 +116,6 @@ class Promise<T> {
         var eargs : Expr; // the array of promises
         var ecall : Expr; // the function call on the promises
 
-
-        //the types of all the arguments (should be all Promises)
-        var types = [for (a in args) Context.typeof(a)];
-
         //the macro arguments expressed as an array expression.
         eargs = {expr:EArrayDecl(args),pos:pos};
 
