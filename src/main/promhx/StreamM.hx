@@ -1,3 +1,4 @@
+
 /****
 * Copyright (c) 2013 Justin Donaldson 
 * 
@@ -26,17 +27,17 @@ import haxe.macro.Expr;
 import haxe.macro.Context;
 import com.mindrocks.monads.Monad;
 
-class PromiseM {
+class StreamM {
 
     macro public static function dO(body : Expr)  // the function to trigger the Monad macro.
-        return Monad._dO("promhx.PromiseM", body, Context);
+        return Monad._dO("promhx.StreamM", body, Context);
 
     inline public static function ret<A>(x : A) // creates an element
-        return Promise.promise(x);
+        return Stream.stream(x);
 
-    inline public static function map < A, B > (x : Promise<A>, f : A -> B) 
+    inline public static function map < A, B > (x : Stream<A>, f : A -> B) 
         return x.then(f);
 
-    inline public static function flatMap<A, B>(x : Promise<A>, f : A -> Promise<B>)
+    inline public static function flatMap<A, B>(x : Stream<A>, f : A -> Stream<B>)
         return x.pipe(f);
 }
