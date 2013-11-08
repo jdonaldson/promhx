@@ -79,7 +79,7 @@ class Promise<T> extends Async<T>{
       to an array of values.
      **/
     public static function whenAll<T>(itb : Iterable<Promise<T>>) : Promise<Array<T>> {
-        return Async._whenAll(itb, create);
+        return Async._whenAll(itb, new Promise());
     }
 
     /**
@@ -95,8 +95,9 @@ class Promise<T> extends Async<T>{
       add a wait function directly to the Async instance.
      **/
     override public function then<A>(f : T->A): Promise<A> {
-        return cast Async._then(this, f, create);
+        return  cast _then(f);
     }
+
 
     /**
       Converts any value to a resolved Promise
@@ -110,7 +111,7 @@ class Promise<T> extends Async<T>{
     /**
       Create a non-resolved promise (equivalent to calling constructor);
      **/
-    static function create<A>() return new Promise<A>();
+    override function create<A>() return new Promise<A>();
 
 }
 

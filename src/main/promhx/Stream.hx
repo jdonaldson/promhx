@@ -34,9 +34,9 @@ import promhx.EventQueue;
 class Stream<T> extends Async<T>{
     public function new(?errorf : Dynamic->Dynamic) super(errorf);
     /**
-      Macro method that binds the promise arguments to a single function
-      callback that is triggered when all promises are resolved.
-      Note: You may call this function on as many promise arguments as you
+      Macro method that binds the stream arguments to a single function
+      callback that is triggered when all streams are resolved.
+      Note: You may call this function on as many stream arguments as you
       like.
      **/
     macro public static function whenever<T>( args : Array<ExprOf<Async<Dynamic>>>) : Expr {
@@ -47,21 +47,21 @@ class Stream<T> extends Async<T>{
         //the macro arguments translated to an array expression.
         var eargs = {expr:EArrayDecl(args), pos:pos};
 
-        // An array of the resolved promise values
+        // An array of the resolved stream values
         var epargs = [for (a in args) { expr: EField(a, "_val"), pos: pos}];
 
         // the returned function that actually does the runtime work.
         return macro {
             // a function that accepts a variable argument function
             var varargf = function(f){
-                // we wait on all of the promises with the iterable-based "whenAll"
+                // we wait on all of the streams with the iterable-based "whenAll"
                 // this will resolve an array, so we use pipe to ignore it, and set
-                // up a new promise for return.
-                // this new promise resolves via a macro-defined function expression
-                // on "f" that provides arity and types for the resolved promise values.
+                // up a new stream for return.
+                // this new stream resolves via a macro-defined function expression
+                // on "f" that provides arity and types for the resolved stream values.
                 return Stream.wheneverAll($eargs).pipe(function(x){
                             var p = new Stream();
-                            // we get the type/arity of "f" from the resolved promise values.
+                            // we get the type/arity of "f" from the resolved stream values.
                             // haxe infers the call/complex type for us, so we don't need to declare it:
                             p.resolve(f($a{epargs}));
                             return p;
@@ -74,40 +74,24 @@ class Stream<T> extends Async<T>{
     }
 
     /**
-      Transforms an iterable of promises into a single promise which resolves
+      Transforms an iterable of streams into a single stream which resolves
       to an array of values.
      **/
     public static function wheneverAll<T>(itb : Iterable<Stream<T>>) : Stream<Array<T>> {
-        return Async._whenAll(itb, create);
-    }
-
-    /**
-      Resolves the given value for processing on any waiting functions.
-     **/
-    override public function resolve(val : T): Void {
-        if (_resolved) throw("Stream has already been resolved");
-        _resolve(val);
-    }
-
-
-    /**
-      add a wait function directly to the Async instance.
-     **/
-    override public function then<A>(f : T->A): Stream<A> {
-        return cast Async._then(this, f, create);
+        return Async._whenAll(itb, new Stream<Array<T>>());
     }
 
     /**
       Converts any value to a resolved Stream
      **/
-    public static function promise<T>(_val : T, ?errorf : Dynamic->Dynamic): Stream<T> {
+    public static function stream<T>(_val : T, ?errorf : Dynamic->Dynamic): Stream<T> {
         var ret = new Stream<T>(errorf);
         ret.resolve(_val);
         return ret;
     }
 
     /**
-      Create a non-resolved promise (equivalent to calling constructor);
+      Create a non-resolved stream (equivalent to calling constructor);
      **/
-    static function create<A>() return new Stream<A>();
+    override function create<A>() return new Stream<A>();
 }

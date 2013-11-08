@@ -76,8 +76,13 @@ class Async<T>{
       Utility function to determine if all Promise values are set.
      **/
     public static function allSet(as : Iterable<Async<Dynamic>>): Bool {
-        for (a in as) if (!a._resolved) return false;
-        return true;
+        var atLeastOneAsync = false;
+        for (a in as) {
+            if (!a._resolved) return false;
+            else atLeastOneAsync = true;
+        }
+
+        return atLeastOneAsync;
     }
 
     /**
@@ -151,9 +156,7 @@ class Async<T>{
         handleError(e);
     }
 
-    static inline public function create<A,B>() : Async<B>{
-        return new Async<B>();
-    }
+    public function create<A>() return new Async<A>(); 
 
     /**
       Converts any value to a resolved Async 
@@ -168,70 +171,65 @@ class Async<T>{
       add a wait function directly to the Async instance.
      **/
     public function then<A>(f : T->A): Async<A> {
-        return _then(this, f, create);
+        return _then(f);
     }
 
-    inline static function _then<A,AA:Async<A>, B, AB:Async<B>>(aa : AA, f : A->B, c : Void->AB): AB {
-        var ret = c();
+    function _then<A>(f : T->A) {
+        var ret = create();
         // the function wrapper for the callback, which will
         // resolve the return promise
-        var fret = function(v:A) {
+        var fret = function(v) {
             var res = f(v);
             ret.resolve(res);
             return res;
         }
-        if(aa._resolved){
-            try fret(aa._val)
-            catch (e:Dynamic) aa.handleError(e);
+        if(_resolved){
+            try ret.resolve(f(_val))
+            catch (e:Dynamic) handleError(e);
         }else{
-            aa._update.push(fret);
-            aa._error.push(ret.handleError);
+            _update.push(fret);
+            _error.push(ret.handleError);
         }
         return ret;
     }
 
-    public function pipe<A>(f : T->Async<A>): Async<A> {
-        return _pipe(f, create);
-    }
 
-    inline function _pipe<A, B:Async<A>>(f : T->B, c: Void->B): B {
+    public function pipe<A,B:Async<A>>(f : T->Async<A>){
         if(isResolved()){
             // if already set, then directly invoke the promise creation callback
             var fret = f(_val);
             return fret;
         }else{
-            // if not, we need to create a proxy async
-            var ret = c();
-
-            // and an update, which will propagate the created promise value
-            // to the proxy
-            var this_update = function(x:T){
+            var ret = create();
+            // if not, we need an update, which will propagate the created 
+            // promise value to the proxy
+            _update.push(function(x){
                 var fret = f(x);
                 if (fret._resolved) ret.resolve(fret._val);
                 else {
                     fret._update.push(cast ret.resolve);
                     fret._error.push(ret.handleError);
                 }
-            }
-            _update.push(cast this_update);
+                return null;
+            });
             _error.push(ret.handleError);
             return ret;
         }
     }
+
 
     /**
       Transforms an iterable of Asyncs into a single async which resolves
       to an array of values.
      **/
     public static function whenAll<A>(itb : Iterable<Async<A>>) : Async<Array<A>> {
-        return _whenAll(itb, create);
+        return _whenAll(itb, new Async<Array<A>>());
     }
 
-    inline static function _whenAll<A, B:Async<A>, C:Async<Array<A>>> (itb : Iterable<B>, c : Void->C) : C {
-        var ret = c();
+    inline static function _whenAll<A, B:Async<A>, C:Async<Array<A>>> (itb : Iterable<B>, ret : C) : C {
         var idx = 0;
         var arr = [for (i in itb) i];
-        var cthen = function(v:Dynamic){
+        var cthen = function(v){
             while(idx < arr.length){
                 if (!arr[idx].isResolved()) return;
                 idx+=1;
