@@ -28,7 +28,7 @@
  **/
 
 
-package promhx;
+package promhx.util;
 
 #if macro
 import haxe.macro.Expr;
@@ -36,30 +36,34 @@ import haxe.macro.Type;
 import haxe.macro.Context;
 #end
 import com.mindrocks.monads.Monad;
-import promhx.EventQueue;
+import promhx.util.EventQueue;
+import promhx.Thenable;
 
-class Async<T>{
+class AsyncBase<T>{
+    public var id         : Int;
+    static var _idctr = 0;
     var _val        : T;
     var _resolved   : Bool;
     var _fulfilled  : Bool;
     var _fulfilling : Bool;
     var _rejected   : Bool;
-    var _update     : Array<T->Dynamic>;
-    var _error      : Array<Dynamic->Dynamic>;
-    var _errorf     : Dynamic->Void;
+    var _update     : Array<T->Void>;
+    var _error      : Array<Dynamic->Void>;
 
     /**
       Constructor argument can take optional function argument, which adds
       a callback to the error handler chain.
      **/
-    public function new(?errorf : Dynamic->Dynamic) {
+    public function new(?errorf : Dynamic->Void) {
 
+
+        id = _idctr; _idctr+=1;
         _resolved   = false;
         _fulfilling = false;
         _fulfilled  = false;
         _rejected   = false;
-        _update     = new Array<T->Dynamic>();
-        _error      = new Array<Dynamic->Dynamic>();
+        _update     = new Array<T->Void>();
+        _error      = new Array<Dynamic->Void>();
 
         if (errorf != null) _error.push(errorf);
     }
@@ -68,22 +72,10 @@ class Async<T>{
       Specify an error handling function
      **/
     public function error(f : Dynamic->Void){
-        _errorf = f;
+        _error.push(f);
         return this;
     }
 
-    /**
-      Utility function to determine if all Promise values are set.
-     **/
-    public static function allSet(as : Iterable<Async<Dynamic>>): Bool {
-        var atLeastOneAsync = false;
-        for (a in as) {
-            if (!a._resolved) return false;
-            else atLeastOneAsync = true;
-        }
-
-        return atLeastOneAsync;
-    }
 
     /**
       Utility function to determine if a Promise value has been resolved.
@@ -128,9 +120,9 @@ class Async<T>{
 #if (js || flash) EventQueue.setImmediate(function(){ #end
         for (f in _update){
             try f(_val)
-                catch (e:Dynamic) handleError(e);
+            catch (e:Dynamic) handleError(e);
         }
-        _update = new Array<T->Dynamic>();
+        _update = new Array<T->Void>();
         _fulfilling = false;
         _fulfilled = true;
 #if (js || flash) }); #end
@@ -141,10 +133,9 @@ class Async<T>{
      **/
     private function handleError(d : Dynamic) {
         _rejected = true;
-        if (_errorf != null) _errorf(d)
-        else if (_error.length == 0) throw d
+
+        if (_error.length == 0) throw d
         else for (ef in _error) ef(d);
-        var p1 = new Promise<Int>();
         return null;
     }
 
@@ -152,81 +143,42 @@ class Async<T>{
       Rejects the promise, throwing an error.
      **/
     public function reject(e : Dynamic): Void {
-        _update = new Array<T->Dynamic>();
+        _update = new Array<T->Void>();
         handleError(e);
     }
-
-    public function create<A>() return new Async<A>(); 
-
-    /**
-      Converts any value to a resolved Async 
-     **/
-    public static function Async<T>(_val : T, ?errorf : Dynamic->Dynamic): Async<T> {
-        var ret = new Async<T>(errorf);
-        ret.resolve(_val);
+    
+    public function then<A>(f : T->A) : AsyncBase<A> {
+        var ret = new AsyncBase<A>();
+        thenBuilder(this, f, ret);
         return ret;
     }
 
-    /**
-      add a wait function directly to the Async instance.
-     **/
-    public function then<A>(f : T->A): Async<A> {
-        return _then(f);
-    }
-
-    function _then<A>(f : T->A) {
-        var ret = create();
-        // the function wrapper for the callback, which will
-        // resolve the return promise
-        var fret = function(v) {
-            var res = f(v);
-            ret.resolve(res);
-            return res;
-        }
-        if(_resolved){
-            try ret.resolve(f(_val))
-            catch (e:Dynamic) handleError(e);
-        }else{
-            _update.push(fret);
-            _error.push(ret.handleError);
-        }
-        return ret;
-    }
-
-
-    public function pipe<A,B:Async<A>>(f : T->Async<A>){
-        if(isResolved()){
-            // if already set, then directly invoke the promise creation callback
-            var fret = f(_val);
-            return fret;
-        }else{
-            var ret = create();
-            // if not, we need an update, which will propagate the created 
-            // promise value to the proxy
-            _update.push(function(x){
-                var fret = f(x);
-                if (fret._resolved) ret.resolve(fret._val);
-                else {
-                    fret._update.push(cast ret.resolve);
-                    fret._error.push(ret.handleError);
-                }
-                return null;
-            });
-            _error.push(ret.handleError);
+    inline static public function pipeBuilder<T,A>
+        ( current : AsyncBase<T>, f : T->AsyncBase<A>, ret : AsyncBase<A>){
+        current.error(ret.reject).then(function(x) {
+            f(x).error(ret.reject).then(ret.resolve);  
             return ret;
-        }
+        });
     }
-
 
     /**
-      Transforms an iterable of Asyncs into a single async which resolves
-      to an array of values.
+      Utility function to determine if all Promise values are set.
      **/
-    public static function whenAll<A>(itb : Iterable<Async<A>>) : Async<Array<A>> {
-        return _whenAll(itb, new Async<Array<A>>());
+    public static function allResolved(as : Iterable<AsyncBase<Dynamic>>): Bool {
+        var atLeastOneAsyncBase = false;
+        for (a in as) {
+            if (!a.isRejected()) return false;
+            else atLeastOneAsyncBase = true;
+        }
+
+        return atLeastOneAsyncBase;
     }
 
-    inline static function _whenAll<A, B:Async<A>, C:Async<Array<A>>> (itb : Iterable<B>, ret : C) : C {
+    public static function bind<A,B>(from:AsyncBase<A>, to:AsyncBase<B>, f:  A->B ) {
+        from.error(to.reject).then(function(x) to.resolve(f(x)) );
+    }
+
+    inline public static function whenAllBuilder<T>(itb : Iterable<AsyncBase<T>>, ret : AsyncBase<Array<T>>) : AsyncBase<Array<T>> {
         var idx = 0;
         var arr = [for (i in itb) i];
         var cthen = function(v){
@@ -234,17 +186,26 @@ class Async<T>{
                 if (!arr[idx].isResolved()) return;
                 idx+=1;
             }
-            if (!ret.isResolved()){
-                try ret.resolve([for (v in arr) v._val])
-                catch(e:Dynamic) untyped ret.handleError(e);
-            }
+            if (!ret.isResolved()) ret.resolve([for (v in arr) v._val]);
         };
-        if (promhx.Async.allSet(arr)) cthen(null);
+
+        if (AsyncBase.allResolved(arr)) cthen(null);
         else for (p in arr) {
-            p.then(cthen);
-            p.error(ret.handleError);
+            p._update.push(cthen);
+            p._error.push(ret.reject);
         }
+
         return ret;
     }
 
+    inline public static function thenBuilder<T,A>(current : AsyncBase<T>, f : T->A, ret: AsyncBase<A>) : Void{
+        // the function wrapper for the callback, which will resolve the return
+        if(current.isResolved()) {
+            try ret.resolve(f(current._val))
+                catch(e:Dynamic) ret.reject(e);
+        }else {
+            current._error.push(ret.reject);
+            current._update.push(function(x) ret.resolve(f(x)));
+        }
+    }
 }

@@ -1,6 +1,6 @@
 
 package promhx;
-import promhx.PromiseM;
+import promhx.mdo.PromiseM;
 import utest.Assert;
 
 class TestPromiseM {
@@ -31,9 +31,5 @@ class TestPromiseM {
 
         p1.resolve(10);
         p2.resolve('foo');
-
     }
-
-
-
 }

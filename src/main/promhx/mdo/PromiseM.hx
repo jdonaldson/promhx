@@ -21,7 +21,7 @@
 * 
 ****/
 
-package promhx;
+package promhx.mdo;
 import haxe.macro.Expr;
 import haxe.macro.Context;
 import com.mindrocks.monads.Monad;
@@ -29,7 +29,7 @@ import com.mindrocks.monads.Monad;
 class PromiseM {
 
     macro public static function dO(body : Expr)  // the function to trigger the Monad macro.
-        return Monad._dO("promhx.PromiseM", body, Context);
+        return Monad._dO("promhx.mdo.PromiseM", body, Context);
 
     inline public static function ret<A>(x : A) // creates an element
         return Promise.promise(x);

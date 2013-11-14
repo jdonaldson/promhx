@@ -27,11 +27,11 @@ import haxe.macro.Expr;
 import haxe.macro.Type;
 import haxe.macro.Context;
 #end
-import com.mindrocks.monads.Monad;
-import promhx.EventQueue;
+import promhx.util.EventQueue;
+import promhx.util.AsyncBase;
 
 @:expose
-class Stream<T> extends Async<T>{
+class Stream<T> extends AsyncBase<T>{
     public function new(?errorf : Dynamic->Dynamic) super(errorf);
     /**
       Macro method that binds the stream arguments to a single function
@@ -39,7 +39,7 @@ class Stream<T> extends Async<T>{
       Note: You may call this function on as many stream arguments as you
       like.
      **/
-    macro public static function whenever<T>( args : Array<ExprOf<Async<Dynamic>>>) : Expr {
+    macro public static function whenever<T>( args : Array<ExprOf<Stream<Dynamic>>>) : Expr {
 
         // a default position
         var pos = Context.currentPos();
@@ -59,13 +59,10 @@ class Stream<T> extends Async<T>{
                 // up a new stream for return.
                 // this new stream resolves via a macro-defined function expression
                 // on "f" that provides arity and types for the resolved stream values.
-                return Stream.wheneverAll($eargs).pipe(function(x){
-                            var p = new Stream();
-                            // we get the type/arity of "f" from the resolved stream values.
-                            // haxe infers the call/complex type for us, so we don't need to declare it:
-                            p.resolve(f($a{epargs}));
-                            return p;
-                        });
+                var ret = new Stream();
+                var p = Stream.wheneverAll($eargs);
+                p._update.push(function(x) ret.resolve(f($a{epargs})));
+                return p;
             };
 
             // return an anonymous object with the function definition for "then"
@@ -78,7 +75,9 @@ class Stream<T> extends Async<T>{
       to an array of values.
      **/
     public static function wheneverAll<T>(itb : Iterable<Stream<T>>) : Stream<Array<T>> {
-        return Async._whenAll(itb, new Stream<Array<T>>());
+        var ret : Stream<Array<T>> = new Stream();
+        AsyncBase.whenAllBuilder(itb, ret);
+        return ret;
     }
 
     /**
@@ -90,8 +89,4 @@ class Stream<T> extends Async<T>{
         return ret;
     }
 
-    /**
-      Create a non-resolved stream (equivalent to calling constructor);
-     **/
-    override function create<A>() return new Stream<A>();
 }

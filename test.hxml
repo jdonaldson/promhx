@@ -1,11 +1,18 @@
 
+# -cp src/main
+# -cp src/test
+# -lib monax
+# -lib nodejs
+# -main TestAll
+# -cp ./lib/utest/src
+# -js bin/test_node.js
+# -cmd echo "--------------------------------------NODE--------------------------------------"
+# -cmd node bin/test_node.js
+
 -cp src/main
 -cp src/test
 -lib monax
--lib nodejs
 -main TestAll
 -cp ./lib/utest/src
--js bin/test_node.js
--cmd echo "--------------------------------------NODE--------------------------------------"
--cmd node bin/test_node.js
-
+-cmd echo "--------------------------------------NEKO--------------------------------------"
+-x bin/test

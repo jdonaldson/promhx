@@ -27,11 +27,11 @@ import haxe.macro.Expr;
 import haxe.macro.Type;
 import haxe.macro.Context;
 #end
-import com.mindrocks.monads.Monad;
-import promhx.EventQueue;
+import promhx.util.EventQueue;
+import promhx.util.AsyncBase;
 
 @:expose
-class Promise<T> extends Async<T>{
+class Promise<T> extends AsyncBase<T>{
     public function new(?errorf : Dynamic->Dynamic) super(errorf);
 
     /**
@@ -60,13 +60,11 @@ class Promise<T> extends Async<T>{
                 // up a new promise for return.
                 // this new promise resolves via a macro-defined function expression
                 // on "f" that provides arity and types for the resolved promise values.
-                return Promise.whenAll($eargs).pipe(function(x){
-                            var p = new Promise();
-                            // we get the type/arity of "f" from the resolved promise values.
-                            // haxe infers the call/complex type for us, so we don't need to declare it:
-                            p.resolve(f($a{epargs}));
-                            return p;
-                        });
+                var ret = new Promise();
+                var p = Promise.whenAll($eargs);
+                p._update.push(function(x) ret.resolve(f($a{epargs})));
+                
+                return p;
             };
 
             // return an anonymous object with the function definition for "then"
@@ -79,7 +77,9 @@ class Promise<T> extends Async<T>{
       to an array of values.
      **/
     public static function whenAll<T>(itb : Iterable<Promise<T>>) : Promise<Array<T>> {
-        return Async._whenAll(itb, new Promise());
+        var ret : Promise<Array<T>> = new Promise();
+        AsyncBase.whenAllBuilder(itb, ret);
+        return ret;
     }
 
     /**
@@ -90,12 +90,19 @@ class Promise<T> extends Async<T>{
         _resolve(val);
     }
 
-
     /**
-      add a wait function directly to the Async instance.
+      add a wait function directly to the AsyncBase instance.
      **/
     override public function then<A>(f : T->A): Promise<A> {
-        return  cast _then(f);
+        var ret  = new Promise<A>(); 
+        AsyncBase.thenBuilder(this, f , ret);
+        return ret;
+    }
+
+    public function pipe<A>(f : T->Promise<A>) : Promise<A> {
+        var ret = new Promise<A>();
+        AsyncBase.pipeBuilder(this, f, ret);
+        return ret;
     }
 
 
@@ -107,11 +114,5 @@ class Promise<T> extends Async<T>{
         ret.resolve(_val);
         return ret;
     }
-
-    /**
-      Create a non-resolved promise (equivalent to calling constructor);
-     **/
-    override function create<A>() return new Promise<A>();
-
 }
 

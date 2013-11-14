@@ -1,4 +1,4 @@
-package promhx;
+package promhx.util;
 class EventQueue {
 
 #if (js && !nodejs && !noEmbedJs && !noEmbedSetImmediate)

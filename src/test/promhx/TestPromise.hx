@@ -50,11 +50,9 @@ class TestPromise {
         var p2        = new Promise<Int>();
         var expected = expected1 + expected2;
         var actual = 0;
-        
         var async = Assert.createAsync(function(){
             Assert.equals(expected, actual);
         });
-
         var p3 = Promise.when(p1,p2).then(function(x,y){
             actual = x + y;
             async();
@@ -70,7 +68,7 @@ class TestPromise {
         var async = Assert.createAsync(function(){
             Assert.isTrue(error);
         });
-        Promise.when(p1,p2).then(function(x,y){
+        Promise.when(p1, p2).then(function(x, y){
             throw "an error";
         }).error(function(e){
             error = true;
@@ -98,13 +96,13 @@ class TestPromise {
     }
 
     public function testChainedThen(){
-        var expected1 = 1;
-        var expected2 = 2;
+        var resolved1 = 1;
+        var resolved2 = 2;
         var p1        = new Promise<Int>();
         var p2        = p1.then(function(x){
-            return expected2;
+            return resolved2;
         });
-        var expected = expected2;
+        var expected = resolved2;
         var actual = 0;
         var async = Assert.createAsync(function(){
             Assert.equals(expected, actual);
@@ -113,7 +111,7 @@ class TestPromise {
             actual = x;
             async();
         });
-        p1.resolve(expected1);
+        p1.resolve(resolved1);
     }
 
 
