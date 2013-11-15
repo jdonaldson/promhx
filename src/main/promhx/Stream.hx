@@ -39,7 +39,7 @@ class Stream<T> extends AsyncBase<T>{
       Note: You may call this function on as many stream arguments as you
       like.
      **/
-    macro public static function whenever<T>( args : Array<ExprOf<Stream<Dynamic>>>) : Expr {
+    macro public static function whenever<T>( args : Array<ExprOf<AsyncBase<Dynamic>>>) : Expr {
 
         // a default position
         var pos = Context.currentPos();
@@ -62,7 +62,8 @@ class Stream<T> extends AsyncBase<T>{
                 var ret = new Stream();
                 var p = Stream.wheneverAll($eargs);
                 p._update.push(function(x) ret.resolve(f($a{epargs})));
-                return p;
+                p._error.push(ret.handleError);
+                return ret;
             };
 
             // return an anonymous object with the function definition for "then"
@@ -76,7 +77,22 @@ class Stream<T> extends AsyncBase<T>{
      **/
     public static function wheneverAll<T>(itb : Iterable<Stream<T>>) : Stream<Array<T>> {
         var ret : Stream<Array<T>> = new Stream();
-        AsyncBase.whenAllBuilder(itb, ret);
+        var idx = 0;
+        var arr = [for (i in itb) i];
+        var cthen = function(v){
+            while(idx < arr.length){
+                if (!arr[idx].isResolved()) return;
+                idx+=1;
+            }
+            ret.resolve([for (v in arr) v._val]);
+        };
+
+        if (AsyncBase.allResolved(arr)) cthen(null);
+        else for (p in arr) {
+            p._update.push(cthen);
+            p._error.push(ret.handleError);
+        }
+
         return ret;
     }
 

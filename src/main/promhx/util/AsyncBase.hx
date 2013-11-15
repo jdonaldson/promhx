@@ -46,7 +46,6 @@ class AsyncBase<T>{
     var _resolved   : Bool;
     var _fulfilled  : Bool;
     var _fulfilling : Bool;
-    var _rejected   : Bool;
     var _update     : Array<T->Void>;
     var _error      : Array<Dynamic->Void>;
 
@@ -56,12 +55,10 @@ class AsyncBase<T>{
      **/
     public function new(?errorf : Dynamic->Void) {
 
-
         id = _idctr; _idctr+=1;
         _resolved   = false;
         _fulfilling = false;
         _fulfilled  = false;
-        _rejected   = false;
         _update     = new Array<T->Void>();
         _error      = new Array<Dynamic->Void>();
 
@@ -84,12 +81,6 @@ class AsyncBase<T>{
         return _resolved;
     }
 
-    /**
-      Utility function to determine if a Promise value has been rejected.
-     **/
-    public inline function isRejected(): Bool {
-        return _rejected;
-    }
 
     /**
       Utility function to determine if a Promise value has been rejected.
@@ -108,12 +99,12 @@ class AsyncBase<T>{
     /**
       Resolves the given value for processing on any waiting functions.
      **/
-    public function resolve(val : T): Void  _resolve(val); 
+    public function resolve(val : T): Void  _resolve(val);
 
     /**
       Resolves the given value for processing on any waiting functions.
      **/
-    private function _resolve(val : T): Void {
+    private function _resolve(val : T, ?cb : Void->Void) : Void {
         _val = val;
         _resolved = true;
         _fulfilling = true;
@@ -122,9 +113,9 @@ class AsyncBase<T>{
             try f(_val)
             catch (e:Dynamic) handleError(e);
         }
-        _update = new Array<T->Void>();
         _fulfilling = false;
         _fulfilled = true;
+        if (cb != null) cb();
 #if (js || flash) }); #end
     }
 
@@ -132,21 +123,12 @@ class AsyncBase<T>{
       Handle errors
      **/
     private function handleError(d : Dynamic) {
-        _rejected = true;
-
         if (_error.length == 0) throw d
         else for (ef in _error) ef(d);
         return null;
     }
 
-    /**
-      Rejects the promise, throwing an error.
-     **/
-    public function reject(e : Dynamic): Void {
-        _update = new Array<T->Void>();
-        handleError(e);
-    }
-    
+
     public function then<A>(f : T->A) : AsyncBase<A> {
         var ret = new AsyncBase<A>();
         thenBuilder(this, f, ret);
@@ -155,8 +137,8 @@ class AsyncBase<T>{
 
     inline static public function pipeBuilder<T,A>
         ( current : AsyncBase<T>, f : T->AsyncBase<A>, ret : AsyncBase<A>){
-        current.error(ret.reject).then(function(x) {
-            f(x).error(ret.reject).then(ret.resolve);  
+        current.error(ret.handleError).then(function(x) {
+            f(x).error(ret.handleError).then(ret.resolve);
             return ret;
         });
     }
@@ -167,7 +149,7 @@ class AsyncBase<T>{
     public static function allResolved(as : Iterable<AsyncBase<Dynamic>>): Bool {
         var atLeastOneAsyncBase = false;
         for (a in as) {
-            if (!a.isRejected()) return false;
+            if (!a.isResolved()) return false;
             else atLeastOneAsyncBase = true;
         }
 
@@ -175,36 +157,16 @@ class AsyncBase<T>{
     }
 
     public static function bind<A,B>(from:AsyncBase<A>, to:AsyncBase<B>, f:  A->B ) {
-        from.error(to.reject).then(function(x) to.resolve(f(x)) );
-    }
-
-    inline public static function whenAllBuilder<T>(itb : Iterable<AsyncBase<T>>, ret : AsyncBase<Array<T>>) : AsyncBase<Array<T>> {
-        var idx = 0;
-        var arr = [for (i in itb) i];
-        var cthen = function(v){
-            while(idx < arr.length){
-                if (!arr[idx].isResolved()) return;
-                idx+=1;
-            }
-            if (!ret.isResolved()) ret.resolve([for (v in arr) v._val]);
-        };
-
-        if (AsyncBase.allResolved(arr)) cthen(null);
-        else for (p in arr) {
-            p._update.push(cthen);
-            p._error.push(ret.reject);
-        }
-
-        return ret;
+        from.error(to.handleError).then(function(x) to.resolve(f(x)) );
     }
 
     inline public static function thenBuilder<T,A>(current : AsyncBase<T>, f : T->A, ret: AsyncBase<A>) : Void{
         // the function wrapper for the callback, which will resolve the return
         if(current.isResolved()) {
             try ret.resolve(f(current._val))
-                catch(e:Dynamic) ret.reject(e);
+                catch(e:Dynamic) ret.handleError(e);
         }else {
-            current._error.push(ret.reject);
+            current._error.push(ret.handleError);
             current._update.push(function(x) ret.resolve(f(x)));
         }
     }

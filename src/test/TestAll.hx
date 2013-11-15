@@ -5,6 +5,8 @@ import promhx.TestPromise;
 import promhx.TestStream;
 import promhx.TestPromiseM;
 
+import promhx.Stream;
+
 class TestAll {
 	static function main() {
 		var r = new Runner();

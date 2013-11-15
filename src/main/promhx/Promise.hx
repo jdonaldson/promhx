@@ -32,7 +32,11 @@ import promhx.util.AsyncBase;
 
 @:expose
 class Promise<T> extends AsyncBase<T>{
-    public function new(?errorf : Dynamic->Dynamic) super(errorf);
+    var _rejected   : Bool;
+    public function new(?errorf : Dynamic->Dynamic){
+        super(errorf);
+        _rejected = false;
+    }
 
     /**
       Macro method that binds the promise arguments to a single function
@@ -63,8 +67,8 @@ class Promise<T> extends AsyncBase<T>{
                 var ret = new Promise();
                 var p = Promise.whenAll($eargs);
                 p._update.push(function(x) ret.resolve(f($a{epargs})));
-                
-                return p;
+                p._error.push(ret.handleError);
+                return ret;
             };
 
             // return an anonymous object with the function definition for "then"
@@ -73,12 +77,42 @@ class Promise<T> extends AsyncBase<T>{
     }
 
     /**
+      Utility function to determine if a Promise value has been rejected.
+     **/
+    public inline function isRejected(): Bool {
+        return _rejected;
+    }
+
+    /**
+      Rejects the promise, throwing an error.
+     **/
+    public function reject(e : Dynamic): Void {
+        _update = new Array<T->Void>();
+        handleError(e);
+    }
+
+    /**
       Transforms an iterable of promises into a single promise which resolves
       to an array of values.
      **/
     public static function whenAll<T>(itb : Iterable<Promise<T>>) : Promise<Array<T>> {
         var ret : Promise<Array<T>> = new Promise();
-        AsyncBase.whenAllBuilder(itb, ret);
+        var idx = 0;
+        var arr = [for (i in itb) i];
+        var cthen = function(v){
+            while(idx < arr.length){
+                if (!arr[idx].isResolved()) return;
+                idx+=1;
+            }
+            if (!ret.isResolved()) ret.resolve([for (v in arr) v._val]);
+        };
+
+        if (AsyncBase.allResolved(arr)) cthen(null);
+        else for (p in arr) {
+            p._update.push(cthen);
+            p._error.push(ret.reject);
+        }
+
         return ret;
     }
 
@@ -87,7 +121,9 @@ class Promise<T> extends AsyncBase<T>{
      **/
     override public function resolve(val : T): Void {
         if (_resolved) throw("Promise has already been resolved");
-        _resolve(val);
+        _resolve(val, function(){
+            _update = new Array<T->Void>();
+        });
     }
 
     /**
