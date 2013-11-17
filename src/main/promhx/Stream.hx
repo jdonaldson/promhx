@@ -32,7 +32,13 @@ import promhx.util.AsyncBase;
 
 @:expose
 class Stream<T> extends AsyncBase<T>{
-    public function new(?errorf : Dynamic->Dynamic) super(errorf);
+    var _end : Bool;
+    var _onend : Array<Void->Void>;
+    public function new(?errorf : Dynamic->Dynamic){
+        super(errorf);
+        _end = false;
+        _onend = [];
+    }
     /**
       Macro method that binds the stream arguments to a single function
       callback that is triggered when all streams are resolved.
@@ -96,11 +102,55 @@ class Stream<T> extends AsyncBase<T>{
         return ret;
     }
 
+    public inline function update(val : T) resolve(val);
+
+    override public function resolve(val : T) : Void {
+        if (!_end) _resolve(val);
+    }
+
+
+    public function end(){
+        _end = true;
+        for (f in _onend) try f() catch(e:Dynamic) handleError(e);
+        _update = [];
+        _error = [];
+    }
+
+    public function filter(f : T->Bool) : Stream<T>{
+        var ret = new Stream<T>();
+        _update.push(function(x) if (f(x)) ret.update(x));
+        _error.push(ret.handleError);
+        return ret;
+    }
+
+    public function concat(s : Stream<T>) : Stream<T> {
+        var ret = new Stream<T>();
+        _onend.push(function(){
+            ret._update.push(s.update);
+            ret._error.push(s.handleError);
+        });
+        _update.push(ret.update);
+        _error.push(ret.handleError);
+        return ret;
+    }
+
+    /**
+      Merges another stream into the current one.
+     **/
+    public function merge(s : Stream<T>) : Stream<T> {
+        var ret = new Stream<T>();
+        _update.push(ret.update);
+        _error.push(ret.handleError);
+        s._update.push(ret.update);
+        s._error.push(ret.handleError);
+        return ret;
+    }
+
     /**
       Converts any value to a resolved Stream
      **/
-    public static function stream<T>(_val : T, ?errorf : Dynamic->Dynamic): Stream<T> {
-        var ret = new Stream<T>(errorf);
+    public static function stream<A>(_val : A, ?errorf : Dynamic->Dynamic): Stream<A> {
+        var ret = new Stream<A>(errorf);
         ret.resolve(_val);
         return ret;
     }
