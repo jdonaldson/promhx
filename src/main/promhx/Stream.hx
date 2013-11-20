@@ -27,7 +27,7 @@ import haxe.macro.Expr;
 import haxe.macro.Type;
 import haxe.macro.Context;
 #end
-import promhx.util.EventQueue;
+import promhx.util.EventLoop;
 import promhx.util.AsyncBase;
 
 @:expose

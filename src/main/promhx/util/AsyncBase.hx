@@ -36,7 +36,7 @@ import haxe.macro.Type;
 import haxe.macro.Context;
 #end
 import com.mindrocks.monads.Monad;
-import promhx.util.EventQueue;
+import promhx.util.EventLoop;
 import promhx.Thenable;
 
 class AsyncBase<T>{
@@ -107,7 +107,7 @@ class AsyncBase<T>{
         // this async is in the process of fulfilling another value, move the
         // resolve to the next loop
         if (_fulfilling)
-            return EventQueue.enqueue(_resolve.bind(val, cleanup));
+            return EventLoop.enqueue(_resolve.bind(val, cleanup));
 
         // point of no return, this async has now been resolved at least once.
         _resolved = true;
@@ -117,7 +117,7 @@ class AsyncBase<T>{
         _fulfilling = true;
 
         // the loop handler, which may not even be used
-#if (js || flash) EventQueue.enqueue(function(){ #end
+#if (js || flash) EventLoop.enqueue(function(){ #end
         _val = val; // save the value
         for (f in _update){
             try f(val)

@@ -1,6 +1,6 @@
 package promhx.util;
 
-class EventQueue {
+class EventLoop {
     static var queue : List<Void->Void> = new List();
 
 #if (js && !nodejs && !noEmbedJs && !noEmbedSetImmediate)
