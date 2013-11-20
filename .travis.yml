@@ -15,9 +15,10 @@ before_script:
   - mkdir ~/haxelib                                    # create a folder for installing haxelib
   - haxelib setup ~/haxelib
   - haxelib install hxcpp                              # install hxcpp to test C++ target
-  - haxelib install hxjava                              # install hxjava to test C++ target
+  - haxelib install hxjava                             # install hxjava to test C++ target
   - haxelib install monax                              # dependency
-  - haxelib install nodejs                              # dependency
+  - haxelib install nodejs                             # dependency
+  - haxelib install polygonal-ds                       # dependency
  
 # Run the test!
 script:
