@@ -4,7 +4,27 @@ import promhx.Promise;
 import utest.Assert;
 
 class TestPromise {
+
     public function new(){}
+
+    public function testSimplePipe(){
+        var expected = 1;
+        var actual = 0;
+        var p1 = new Promise<Int>();
+        var p2 = new Promise<Int>();
+        var async = Assert.createAsync(function(){
+            Assert.equals(expected,actual);
+        });
+        p1.pipe(function(x) {
+            p2.resolve(expected);
+            return p2;
+        });
+        p2.then(function(x){
+            actual = x;
+            async();
+        });
+        p1.resolve(0);
+    }
 
     public function testSimpleThen(){
         var p1 = new Promise<Int>();

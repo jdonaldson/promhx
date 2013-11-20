@@ -50,17 +50,14 @@ class TestStream {
         var async = Assert.createAsync(function(){
             Assert.equals(2, actual);
         });
-
-
         var s = new Stream<Int>();
         Stream.whenever(s).then(function(x){
            actual = x;
-           cnt += 1;
+           cnt = x;
            if (cnt == 2) async();
         });
-        s.resolve(1);
-        s.resolve(2);
-
+        s.update(1);
+        s.update(2);
     }
 
     public function testSimpleWhenever(){
@@ -70,11 +67,9 @@ class TestStream {
         var s2        = new Stream<Int>();
         var expected = expected1 + expected2;
         var actual = 0;
-
         var async = Assert.createAsync(function(){
             Assert.equals(expected, actual);
         });
-
         var s3 = Stream.whenever(s1,s2).then(function(x,y){
             actual = x + y;
             async();
@@ -118,6 +113,5 @@ class TestStream {
         });
         s1.resolve(expected1);
     }
-
 
 }

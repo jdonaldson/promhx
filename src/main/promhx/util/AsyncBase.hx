@@ -68,7 +68,7 @@ class AsyncBase<T>{
     /**
       Specify an error handling function
      **/
-    public function error(f : Dynamic->Void){
+    public function error(f : Dynamic->Void) : AsyncBase<T> {
         _error.push(f);
         return this;
     }
@@ -77,97 +77,173 @@ class AsyncBase<T>{
     /**
       Utility function to determine if a Promise value has been resolved.
      **/
-    public inline function isResolved(): Bool {
+    public inline function isResolved() : Bool
         return _resolved;
-    }
 
 
     /**
       Utility function to determine if a Promise value has been rejected.
      **/
-    public inline function isFulfilled(): Bool {
+    public inline function isFulfilled(): Bool
         return _fulfilled;
-    }
 
     /**
-      Utility function to determine if a Promise value has been rejected.
+      Utility function to determine if a Promise value is in the process of
+      fulfilling.
      **/
-    public inline function isFulfilling(): Bool {
+    public inline function isFulfilling() : Bool
         return _fulfilling;
-    }
 
     /**
       Resolves the given value for processing on any waiting functions.
      **/
-    public function resolve(val : T): Void  _resolve(val);
+    public function resolve(val : T) : Void  _resolve(val);
 
     /**
       Resolves the given value for processing on any waiting functions.
      **/
-    private function _resolve(val : T, ?cb : Void->Void) : Void {
-        _val = val;
+    private function _resolve(val : T, ?cleanup : Void->Void) : Void {
+
+        // this async is in the process of fulfilling another value, move the
+        // resolve to the next loop
+        if (_fulfilling)
+            return EventQueue.enqueue(_resolve.bind(val, cleanup));
+
+        // point of no return, this async has now been resolved at least once.
         _resolved = true;
+
+        // we are now in the act of fulfilling the async... which typically
+        // involves waiting for the next enqueued loop
         _fulfilling = true;
-#if (js || flash) EventQueue.setImmediate(function(){ #end
+
+        // the loop handler, which may not even be used
+#if (js || flash) EventQueue.enqueue(function(){ #end
         for (f in _update){
-            try f(_val)
+            try f(val)
             catch (e:Dynamic) handleError(e);
         }
-        _fulfilling = false;
-        _fulfilled = true;
-        if (cb != null) cb();
+        _val = val; // save the value
+        _fulfilled = true; // we're in a fulfilled state
+        _fulfilling = false; // we're done fulfilling for this resolve
+        if (cleanup != null) cleanup(); // we can cleanup if necessary
 #if (js || flash) }); #end
     }
 
     /**
       Handle errors
      **/
-    private function handleError(d : Dynamic) {
+    private function handleError(d : Dynamic) : Void {
         if (_error.length == 0) throw d
         else for (ef in _error) ef(d);
         return null;
     }
 
-
+    /**
+      This function returns a new AsyncBase.  When this instance resolves,
+      it will resolve the new AsyncBase with the function callback argument.
+     **/
     public function then<A>(f : T->A) : AsyncBase<A> {
         var ret = new AsyncBase<A>();
-        thenBuilder(this, f, ret);
+        link(this, ret, f);
         return ret;
     }
 
-    inline static public function pipeBuilder<T,A>
-        ( current : AsyncBase<T>, f : T->AsyncBase<A>, ret : AsyncBase<A>){
-        current.error(ret.handleError).then(function(x) {
-            f(x).error(ret.handleError).then(ret.resolve);
-            return ret;
-        });
+
+
+    /**
+      This is the base "link" method for wiring up the "current" async to
+      the "next" one via the transform defined by the f argument.
+     **/
+    inline public static function link<T,A>
+        (current : AsyncBase<T>, next: AsyncBase<A>, f : T->A) : Void
+    {
+        // the function wrapper for the callback, which will resolve the return
+        // if current is not resolved, or will resolve next loop, push to
+        // update queues.
+        if (!current.isResolved() || current.isFulfilling()){
+            current._error.push(next.handleError);
+            current._update.push(function(x){
+                next.resolve(f(x));
+            });
+        } else {
+            // we can go ahead and resolve this.
+            try next.resolve(f(current._val))
+                catch (e:Dynamic) next.handleError(e);
+        }
     }
+
+    inline public static function allLink<T,A>
+        (current : Iterable<AsyncBase<T>>, next: AsyncBase<Array<T>>) : Void
+    {
+        // a helper callback function.  This will be called for each Stream in
+        // the iterable argument.  The "arr" argument will be all of the Streams
+        // *except* the one currently resolving.  If there's only one Stream
+        // in the iterable, it will always resolve.
+        var cthen = function(arr:Array<AsyncBase<T>>, v){
+            if (arr.length == 0 || AsyncBase.allFulfilled(arr)){
+                next.resolve([for (v in current) v._val]);
+            }
+        };
+        for (p in current){
+            p._update.push(cthen.bind([for (i in current) if (i != p) i], _));
+            p._error.push(next.handleError);
+        }
+        if (AsyncBase.allFulfilled(current)) {
+            next.resolve([for (v in current) v._val]);
+        }
+
+    }
+
+    /**
+      Similar to the link function, except the [f] function must return an
+      AsyncBase instance.
+     **/
+    inline static public function pipeLink<T,A>
+        ( current : AsyncBase<T>, ret : AsyncBase<A>, f : T->AsyncBase<A> ) : Void
+        current.then(function(x) f(x).then(ret.resolve));
 
     /**
       Utility function to determine if all Promise values are set.
      **/
-    public static function allResolved(as : Iterable<AsyncBase<Dynamic>>): Bool {
+    public static function allResolved
+        (as : Iterable<AsyncBase<Dynamic>>) : Bool
+    {
         var atLeastOneAsyncBase = false;
         for (a in as) {
             if (!a.isResolved()) return false;
+            else atLeastOneAsyncBase = true;
+        }
+        return atLeastOneAsyncBase;
+    }
+
+    /**
+      Utility function to determine if all Promise values are resolved and
+      not in in the process of fulfilling.
+     **/
+    static function allFulfilled
+        (as : Iterable<AsyncBase<Dynamic>>) : Bool
+    {
+        var atLeastOneAsyncBase = false;
+        for (a in as) {
+            if (!a.isFulfilled()) return false;
             else atLeastOneAsyncBase = true;
         }
 
         return atLeastOneAsyncBase;
     }
 
-    public static function bind<A,B>(from:AsyncBase<A>, to:AsyncBase<B>, f:  A->B ) {
-        from.error(to.handleError).then(function(x) to.resolve(f(x)) );
-    }
-
-    inline public static function thenBuilder<T,A>(current : AsyncBase<T>, f : T->A, ret: AsyncBase<A>) : Void{
-        // the function wrapper for the callback, which will resolve the return
-        if(current.isResolved()) {
-            try ret.resolve(f(current._val))
-                catch(e:Dynamic) ret.handleError(e);
-        }else {
-            current._error.push(ret.handleError);
-            current._update.push(function(x) ret.resolve(f(x)));
+    /**
+      Utility function to determine if all Promise values are resolved and
+      not in in the process of fulfilling.
+     **/
+    static function anyFulfilling
+        (as : Iterable<AsyncBase<Dynamic>>) : Bool
+    {
+        var atLeastOneAsyncBase = false;
+        for (a in as) {
+            if (a.isFulfilling()) return true;
         }
+
+        return atLeastOneAsyncBase;
     }
 }

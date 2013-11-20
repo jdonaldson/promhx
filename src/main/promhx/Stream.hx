@@ -82,23 +82,8 @@ class Stream<T> extends AsyncBase<T>{
       to an array of values.
      **/
     public static function wheneverAll<T>(itb : Iterable<Stream<T>>) : Stream<Array<T>> {
-        var ret : Stream<Array<T>> = new Stream();
-        var idx = 0;
-        var arr = [for (i in itb) i];
-        var cthen = function(v){
-            while(idx < arr.length){
-                if (!arr[idx].isResolved()) return;
-                idx+=1;
-            }
-            ret.resolve([for (v in arr) v._val]);
-        };
-
-        if (AsyncBase.allResolved(arr)) cthen(null);
-        else for (p in arr) {
-            p._update.push(cthen);
-            p._error.push(ret.handleError);
-        }
-
+        var ret = new Stream<Array<T>>();
+        AsyncBase.allLink(itb, ret);
         return ret;
     }
 
@@ -108,6 +93,11 @@ class Stream<T> extends AsyncBase<T>{
         if (!_end) _resolve(val);
     }
 
+    public function pipe<A>(f : T->Stream<A>) : Stream<A> {
+        var ret = new Stream<A>();
+        AsyncBase.pipeLink(this, ret, f);
+        return ret;
+    }
 
     public function end(){
         _end = true;

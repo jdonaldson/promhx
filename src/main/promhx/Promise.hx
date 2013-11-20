@@ -97,22 +97,7 @@ class Promise<T> extends AsyncBase<T>{
      **/
     public static function whenAll<T>(itb : Iterable<Promise<T>>) : Promise<Array<T>> {
         var ret : Promise<Array<T>> = new Promise();
-        var idx = 0;
-        var arr = [for (i in itb) i];
-        var cthen = function(v){
-            while(idx < arr.length){
-                if (!arr[idx].isResolved()) return;
-                idx+=1;
-            }
-            if (!ret.isResolved()) ret.resolve([for (v in arr) v._val]);
-        };
-
-        if (AsyncBase.allResolved(arr)) cthen(null);
-        else for (p in arr) {
-            p._update.push(cthen);
-            p._error.push(ret.reject);
-        }
-
+        AsyncBase.allLink(itb, ret);
         return ret;
     }
 
@@ -130,14 +115,14 @@ class Promise<T> extends AsyncBase<T>{
       add a wait function directly to the AsyncBase instance.
      **/
     override public function then<A>(f : T->A): Promise<A> {
-        var ret  = new Promise<A>(); 
-        AsyncBase.thenBuilder(this, f , ret);
+        var ret  = new Promise<A>();
+        AsyncBase.link(this, ret, f);
         return ret;
     }
 
     public function pipe<A>(f : T->Promise<A>) : Promise<A> {
         var ret = new Promise<A>();
-        AsyncBase.pipeBuilder(this, f, ret);
+        AsyncBase.pipeLink(this, ret, f);
         return ret;
     }
 
