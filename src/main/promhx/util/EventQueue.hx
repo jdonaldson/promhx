@@ -1,8 +1,7 @@
 package promhx.util;
-import de.polygonal.ds.ArrayedQueue;
 
 class EventQueue {
-    static var queue = new ArrayedQueue<Void->Void>(10);
+    static var queue : List<Void->Void> = new List();
 
 #if (js && !nodejs && !noEmbedJs && !noEmbedSetImmediate)
     static function __init__() untyped {
@@ -15,13 +14,13 @@ class EventQueue {
 #end
 
     public static inline function enqueue(eqf:Void->Void)  {
-        queue.enqueue(eqf);
+        queue.add(eqf);
         continueOnNextLoop();
     }
     static function continueOnNextLoop(){
         var f = function(){
-            if (queue.size() > 0) {
-                queue.dequeue()();
+            if (queue.length > 0) {
+                queue.pop()();
                 continueOnNextLoop();
             }
         }

@@ -18,7 +18,6 @@ before_script:
   - haxelib install hxjava                             # install hxjava to test C++ target
   - haxelib install monax                              # dependency
   - haxelib install nodejs                             # dependency
-  - haxelib install polygonal-ds                       # dependency
  
 # Run the test!
 script:

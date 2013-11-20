@@ -118,11 +118,11 @@ class AsyncBase<T>{
 
         // the loop handler, which may not even be used
 #if (js || flash) EventQueue.enqueue(function(){ #end
+        _val = val; // save the value
         for (f in _update){
             try f(val)
             catch (e:Dynamic) handleError(e);
         }
-        _val = val; // save the value
         _fulfilled = true; // we're in a fulfilled state
         _fulfilling = false; // we're done fulfilling for this resolve
         if (cleanup != null) cleanup(); // we can cleanup if necessary
@@ -135,7 +135,6 @@ class AsyncBase<T>{
     private function handleError(d : Dynamic) : Void {
         if (_error.length == 0) throw d
         else for (ef in _error) ef(d);
-        return null;
     }
 
     /**
@@ -160,12 +159,11 @@ class AsyncBase<T>{
         // the function wrapper for the callback, which will resolve the return
         // if current is not resolved, or will resolve next loop, push to
         // update queues.
-        if (!current.isResolved() || current.isFulfilling()){
-            current._error.push(next.handleError);
-            current._update.push(function(x){
-                next.resolve(f(x));
-            });
-        } else {
+        current._error.push(next.handleError);
+        current._update.push(function(x){
+            next.resolve(f(x));
+        });
+        if (current.isResolved() && !current.isFulfilling()){
             // we can go ahead and resolve this.
             try next.resolve(f(current._val))
                 catch (e:Dynamic) next.handleError(e);
@@ -173,25 +171,25 @@ class AsyncBase<T>{
     }
 
     inline public static function allLink<T,A>
-        (current : Iterable<AsyncBase<T>>, next: AsyncBase<Array<T>>) : Void
+        (all : Iterable<AsyncBase<T>>, next: AsyncBase<Array<T>>) : Void
     {
         // a helper callback function.  This will be called for each Stream in
         // the iterable argument.  The "arr" argument will be all of the Streams
         // *except* the one currently resolving.  If there's only one Stream
         // in the iterable, it will always resolve.
-        var cthen = function(arr:Array<AsyncBase<T>>, v){
+        var cthen = function(arr:Array<AsyncBase<T>>, current:AsyncBase<T>,  v){
             if (arr.length == 0 || AsyncBase.allFulfilled(arr)){
-                next.resolve([for (v in current) v._val]);
+                var vals = [for (a in all) a == current ? v : a._val];
+                next.resolve(vals);
             }
         };
-        for (p in current){
-            p._update.push(cthen.bind([for (i in current) if (i != p) i], _));
-            p._error.push(next.handleError);
+        for (a in all){
+            a._update.push(cthen.bind([for (a2 in all) if (a2 != a) a2], a, _));
+            a._error.push(next.handleError);
         }
-        if (AsyncBase.allFulfilled(current)) {
-            next.resolve([for (v in current) v._val]);
+        if (AsyncBase.allFulfilled(all)) {
+            next.resolve([for (a in all) a._val]);
         }
-
     }
 
     /**
