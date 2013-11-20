@@ -7,6 +7,23 @@ import utest.Assert;
 class TestStream {
     public function new(){}
 
+    public function testSimpleFilter(){
+        var s1 = new Stream<Int>();
+        var expected = 1;
+        var actual:Int = 0;
+        var async = Assert.createAsync(function(){
+            Assert.equals(expected, actual);
+        });
+        Stream.whenever(s1)
+            .then(function(x) return x + 1)
+            .filter(function(x) return x == 1)
+            .then(function(x){
+                actual = x;
+                async();
+            });
+        s1.resolve(0);
+    }
+
     public function testSimpleThen(){
         var s1 = new Stream<Int>();
         var expected = 1;
