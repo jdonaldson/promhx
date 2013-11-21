@@ -1,0 +1,8 @@
+-cp ./src/demo
+-cp ./src/main
+-main Demo
+-js ./demo/demo.js
+-lib monax
+-cmd echo "--------------------------------------JS--------------------------------------"
+# -cmd node ./demo/demo.js
+# -cmd open ./demo/index.html
