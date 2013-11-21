@@ -97,7 +97,7 @@ class Promise<T> extends AsyncBase<T>{
      **/
     public static function whenAll<T>(itb : Iterable<Promise<T>>) : Promise<Array<T>> {
         var ret : Promise<Array<T>> = new Promise();
-        AsyncBase.allLink(itb, ret);
+        AsyncBase.linkAll(itb, ret);
         return ret;
     }
 

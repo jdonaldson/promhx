@@ -83,7 +83,7 @@ class Stream<T> extends AsyncBase<T>{
      **/
     public static function wheneverAll<T>(itb : Iterable<Stream<T>>) : Stream<Array<T>> {
         var ret = new Stream<Array<T>>();
-        AsyncBase.allLink(itb, ret);
+        AsyncBase.linkAll(itb, ret);
         return ret;
     }
 

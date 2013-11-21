@@ -35,13 +35,12 @@ import haxe.macro.Expr;
 import haxe.macro.Type;
 import haxe.macro.Context;
 #end
-import com.mindrocks.monads.Monad;
 import promhx.util.EventLoop;
 import promhx.Thenable;
 
 class AsyncBase<T>{
-    public var id         : Int;
     static var _idctr = 0;
+    public var id   : Int;
     var _val        : T;
     var _resolved   : Bool;
     var _fulfilled  : Bool;
@@ -55,7 +54,7 @@ class AsyncBase<T>{
      **/
     public function new(?errorf : Dynamic->Void) {
 
-        id = _idctr; _idctr+=1;
+        id          = _idctr += 1;
         _resolved   = false;
         _fulfilling = false;
         _fulfilled  = false;
@@ -170,7 +169,7 @@ class AsyncBase<T>{
         }
     }
 
-    inline public static function allLink<T,A>
+    inline public static function linkAll<T,A>
         (all : Iterable<AsyncBase<T>>, next: AsyncBase<Array<T>>) : Void
     {
         // a helper callback function.  This will be called for each Stream in
@@ -216,7 +215,7 @@ class AsyncBase<T>{
 
     /**
       Utility function to determine if all Promise values are resolved and
-      not in in the process of fulfilling.
+      are currently fulfilled (not in the process of fulfilling).
      **/
     static function allFulfilled
         (as : Iterable<AsyncBase<Dynamic>>) : Bool
@@ -226,22 +225,7 @@ class AsyncBase<T>{
             if (!a.isFulfilled()) return false;
             else atLeastOneAsyncBase = true;
         }
-
         return atLeastOneAsyncBase;
     }
 
-    /**
-      Utility function to determine if all Promise values are resolved and
-      not in in the process of fulfilling.
-     **/
-    static function anyFulfilling
-        (as : Iterable<AsyncBase<Dynamic>>) : Bool
-    {
-        var atLeastOneAsyncBase = false;
-        for (a in as) {
-            if (a.isFulfilling()) return true;
-        }
-
-        return atLeastOneAsyncBase;
-    }
 }
