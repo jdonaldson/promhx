@@ -86,6 +86,15 @@ class Stream<T> extends AsyncBase<T>{
         AsyncBase.linkAll(itb, ret);
         return ret;
     }
+    
+    /**
+      Returns a Promise that will resolve only for the first stream update.
+     **/
+    public inline function first() : Promise<T> {
+        var s = new Promise<T>();
+        this.then(function(x) if (!s.isResolved()) s.resolve(x));
+        return s;
+    }
 
     public inline function update(val : T) resolve(val);
 
