@@ -152,13 +152,10 @@ p1.resolve(1);
 p2.resolve(2);
 p3.resolve('hi');
 
-// You can "resolve" a stream as well since they share a base class, but the
-// method "update" is provided as a clearer alias as well:
+// You can "resolve" a stream as well since they share a base class, but an 
+// alias called "update" is provided to make this a bit clearer:
 s1.resolve(1);
 s1.update(1);
 s2.update(2);
-
-// arguments that are all resolved will only trigger once
-Promise.when(p1,p2).then(function(x,y) trace(x + ", " + y));
 
 ```
