@@ -13,24 +13,24 @@ the values do become available.
 A typical case is to specify a callback for a given promise once the value
 becomes available:
 
-```js
+```haxe
 promise.then(function(p1) trace("do something with promise's value"));
 ```
 
 Alternatively, you can specify a callback on multiple promise instances using
 the static method "when":
 
-```js
+```haxe
 Promise.when(promise1, promise2).then(function(p1,p2) trace("do something with the promise values"));
 ```
 
 Streams work more or less the same:
 
-```js
-stream.then(function(s1) trace("do something with stream's value"));
+```haxe
+stream.then(function(s1) trace("do something with the stream's value"));
 ```
 
-```js
+```haxe
 Stream.whenever(stream1, stream2).then(function(s1,s2) trace("do something with the stream values"));
 ```
 
@@ -42,13 +42,17 @@ managing events.
 Promhx has a number of powerful features:
 
 * Fully cross-platform for php, c#, c++, java, js (nodejs and browser js), neko,
-   and flash.
+  and flash.
 * Very efficient code that ranks among the fastest promise libraries for js.
 * Type safety without requiring excessive boilerplate.
 * Staggered promise/stream updates occur once per event loop, preventing
-excessive blocking of io in single threaded contexts (e.g. js).
+  excessive blocking of io in single threaded contexts (e.g. js).
+* Event loop callbacks are provided where they make sense (js through
+  setTimeout/setImmediate, flash through setTimeout).  You can also provide
+  your own event loop callback for other platforms. See the "Event Loop" section
+  for more details.
 * Run time errors are propagated to subsequent promise/streams, and can be
-managed where appropriate.
+  managed where appropriate.
 
 Promises have the following behavior:
 
@@ -57,12 +61,12 @@ Promises have the following behavior:
   error.
 
 Streams have the following behavior:
-* If a stream is updated more than once in a single loop, the updates will be
-staggered in subsequent loops.
+* If a stream is updated more than once in a single loop, the updates will
+  happen once per loop in subsequent loops.
 * Promises will remember their resolved value, and any functions specified
   afterwards by "then()" will get their result synchronously.
 
-```js
+```haxe
 // Declare a promised value
 var p1 = new Promise<Int>();
 
@@ -158,4 +162,18 @@ s1.resolve(1);
 s1.update(1);
 s2.update(2);
 
+Event Loop Management
+=====================
+
+When a promise or stream resolves, it can trigger a large amount of activity,
+including the resolution of other promises and streams.  For single
+threaded contexts, this can block other operations that require timely
+execution (e.g.  IO/interaction functionality).  Promhx staggers the
+resolution of promises and streams so that only one promise/stream will be
+resolved per event loop.  However, *all* updates for a single promise/stream
+will be executed in a given loop in order to ensure that all updates have
+a consistent value.  If blocking continues to be a problem, consider using
+more promises and streams to break the update operation up across multiple 
+event loops.
 ```
+

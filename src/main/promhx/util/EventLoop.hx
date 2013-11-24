@@ -2,6 +2,7 @@ package promhx.util;
 
 class EventLoop {
     static var queue : List<Void->Void> = new List();
+    public static var nextLoop(default, set) : (Void->Void)-> Void;
 
 #if (js && !nodejs && !noEmbedJs && !noEmbedSetImmediate)
     static function __init__() untyped {
@@ -17,6 +18,13 @@ class EventLoop {
         queue.add(eqf);
         continueOnNextLoop();
     }
+
+    static function set_nextLoop(f : (Void->Void)->Void) : (Void->Void)->Void{
+        if (nextLoop != null) throw "nextLoop has already been set";
+        else nextLoop = f;
+        return nextLoop;
+    }
+
     static function continueOnNextLoop(){
         var f = function(){
             if (queue.length > 0) {
@@ -24,16 +32,20 @@ class EventLoop {
                 continueOnNextLoop();
             }
         }
+        if (nextLoop != null) nextLoop(f);
+        else {
+
 #if flash
-        haxe.Timer.delay(f,0);
+            haxe.Timer.delay(f,0);
 #elseif (js && (noEmbedJs || noEmbedSetImmediate) && !nodejs)
-        // fallback to setTimeout
-        untyped __js__("(typeof setImmediate === 'function' ? setImmediate : setTimeout)")(f);
+            // fallback to setTimeout
+            untyped __js__("(typeof setImmediate === 'function' ? setImmediate : setTimeout)")(f);
 #elseif js
-        // use polyfill or native node
-        untyped __js__("setImmediate")(f);
+            // use polyfill or native node
+            untyped __js__("setImmediate")(f);
 #else
-        f();
+            f();
 #end
+        }
     }
 }
