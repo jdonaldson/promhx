@@ -2,12 +2,20 @@
 -cp src/main
 -cp src/test
 -lib monax
--lib nodejs
 -main TestAll
 -cp ./lib/utest/src
 -js bin/test_node.js
--cmd echo "--------------------------------------NODE--------------------------------------"
--cmd node bin/test_node.js
+-cmd echo "------------------------------------BROWSERJS-------------------------------------"
+
+# -cp src/main
+# -cp src/test
+# -lib monax
+# -lib nodejs
+# -main TestAll
+# -cp ./lib/utest/src
+# -js bin/test_node.js
+# -cmd echo "--------------------------------------NODE--------------------------------------"
+# -cmd node bin/test_node.js
 
 # --next
 # -cp src/main
