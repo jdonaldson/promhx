@@ -27,8 +27,8 @@ import haxe.macro.Expr;
 import haxe.macro.Type;
 import haxe.macro.Context;
 #end
-import promhx.util.EventLoop;
-import promhx.util.AsyncBase;
+import promhx.base.EventLoop;
+import promhx.base.AsyncBase;
 
 @:expose
 class Stream<T> extends AsyncBase<T>{
