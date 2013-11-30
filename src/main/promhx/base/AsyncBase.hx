@@ -28,14 +28,14 @@
  **/
 
 
-package promhx.util;
+package promhx.base;
 
 #if macro
 import haxe.macro.Expr;
 import haxe.macro.Type;
 import haxe.macro.Context;
 #end
-import promhx.util.EventLoop;
+import promhx.base.EventLoop;
 import promhx.Thenable;
 
 class AsyncBase<T>{

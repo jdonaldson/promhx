@@ -1,4 +1,4 @@
-package promhx.util;
+package promhx.base;
 
 class EventLoop {
     static var queue : List<Void->Void> = new List();
