@@ -160,6 +160,7 @@ p3.resolve('hi');
 s1.resolve(1);
 s1.update(1);
 s2.update(2);
+```
 
 # Event Loop Management
 
