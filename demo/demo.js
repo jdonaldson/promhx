@@ -6,40 +6,20 @@ function $extend(from, fields) {
 	return proto;
 }
 var Demo = function() { }
+Demo.__name__ = true;
 Demo.main = function() {
-	var target1 = new js.JQuery("#target1"), target2 = new js.JQuery("#target2"), s1 = js.promhx.JQueryTools.clickStream(target1), s2 = js.promhx.JQueryTools.clickStream(target2), markclicked = function(id,x) {
-		x.currentTarget.innerHTML = "target " + id + " clicked";
-	};
-	s1.then((function(f,id1) {
-		return function(x) {
-			return f(id1,x);
-		};
-	})(markclicked,1));
-	s2.then((function(f1,id2) {
-		return function(x) {
-			return f1(id2,x);
-		};
-	})(markclicked,2));
-	var status = new js.JQuery("#status");
-	var s3 = ((function($this) {
-		var $r;
-		var varargf = function(f2) {
-			var ret = new promhx.Stream();
-			var p = promhx.Stream.wheneverAll([s1,s2]);
-			p._update.push(function(x) {
-				ret.resolve(f2(s1._val,s2._val));
-			});
-			p._error.push($bind(ret,ret.handleError));
-			return ret;
-		};
-		$r = { then : varargf};
-		return $r;
-	}(this))).then(function(x,y) {
-		console.log("hi");
-		status.html("clicked target 1 on " + x.timeStamp + " \n                and  clicked target 2 on " + y.timeStamp);
+	var j = js.promhx.JQueryTools.eventStream(new js.JQuery("#status"),"focus");
+	var h = new promhx.haxe.Http("test.txt");
+	h.then(function(x) {
+		console.log(x);
+	});
+	h.request();
+	j.then(function(x) {
+		console.log(x);
 	});
 }
 var HxOverrides = function() { }
+HxOverrides.__name__ = true;
 HxOverrides.iter = function(a) {
 	return { cur : 0, arr : a, hasNext : function() {
 		return this.cur < this.arr.length;
@@ -50,6 +30,7 @@ HxOverrides.iter = function(a) {
 var List = function() {
 	this.length = 0;
 };
+List.__name__ = true;
 List.prototype = {
 	pop: function() {
 		if(this.h == null) return null;
@@ -65,24 +46,230 @@ List.prototype = {
 		this.q = x;
 		this.length++;
 	}
+	,__class__: List
+}
+var IMap = function() { }
+IMap.__name__ = true;
+var StringTools = function() { }
+StringTools.__name__ = true;
+StringTools.urlEncode = function(s) {
+	return encodeURIComponent(s);
+}
+var haxe = {}
+haxe.Http = function(url) {
+	this.url = url;
+	this.headers = new haxe.ds.StringMap();
+	this.params = new haxe.ds.StringMap();
+	this.async = true;
+};
+haxe.Http.__name__ = true;
+haxe.Http.prototype = {
+	onStatus: function(status) {
+	}
+	,onError: function(msg) {
+	}
+	,onData: function(data) {
+	}
+	,request: function(post) {
+		var me = this;
+		me.responseData = null;
+		var r = js.Browser.createXMLHttpRequest();
+		var onreadystatechange = function(_) {
+			if(r.readyState != 4) return;
+			var s = (function($this) {
+				var $r;
+				try {
+					$r = r.status;
+				} catch( e ) {
+					$r = null;
+				}
+				return $r;
+			}(this));
+			if(s == undefined) s = null;
+			if(s != null) me.onStatus(s);
+			if(s != null && s >= 200 && s < 400) me.onData(me.responseData = r.responseText); else if(s == null) me.onError("Failed to connect or resolve host"); else switch(s) {
+			case 12029:
+				me.onError("Failed to connect to host");
+				break;
+			case 12007:
+				me.onError("Unknown host");
+				break;
+			default:
+				me.responseData = r.responseText;
+				me.onError("Http Error #" + r.status);
+			}
+		};
+		if(this.async) r.onreadystatechange = onreadystatechange;
+		var uri = this.postData;
+		if(uri != null) post = true; else {
+			var $it0 = this.params.keys();
+			while( $it0.hasNext() ) {
+				var p = $it0.next();
+				if(uri == null) uri = ""; else uri += "&";
+				uri += StringTools.urlEncode(p) + "=" + StringTools.urlEncode(this.params.get(p));
+			}
+		}
+		try {
+			if(post) r.open("POST",this.url,this.async); else if(uri != null) {
+				var question = this.url.split("?").length <= 1;
+				r.open("GET",this.url + (question?"?":"&") + uri,this.async);
+				uri = null;
+			} else r.open("GET",this.url,this.async);
+		} catch( e ) {
+			this.onError(e.toString());
+			return;
+		}
+		if(this.headers.get("Content-Type") == null && post && this.postData == null) r.setRequestHeader("Content-Type","application/x-www-form-urlencoded");
+		var $it1 = this.headers.keys();
+		while( $it1.hasNext() ) {
+			var h = $it1.next();
+			r.setRequestHeader(h,this.headers.get(h));
+		}
+		r.send(uri);
+		if(!this.async) onreadystatechange(null);
+	}
+	,setPostData: function(data) {
+		this.postData = data;
+		return this;
+	}
+	,setParameter: function(param,value) {
+		this.params.set(param,value);
+		return this;
+	}
+	,setHeader: function(header,value) {
+		this.headers.set(header,value);
+		return this;
+	}
+	,__class__: haxe.Http
+}
+haxe.ds = {}
+haxe.ds.StringMap = function() {
+	this.h = { };
+};
+haxe.ds.StringMap.__name__ = true;
+haxe.ds.StringMap.__interfaces__ = [IMap];
+haxe.ds.StringMap.prototype = {
+	keys: function() {
+		var a = [];
+		for( var key in this.h ) {
+		if(this.h.hasOwnProperty(key)) a.push(key.substr(1));
+		}
+		return HxOverrides.iter(a);
+	}
+	,get: function(key) {
+		return this.h["$" + key];
+	}
+	,set: function(key,value) {
+		this.h["$" + key] = value;
+	}
+	,__class__: haxe.ds.StringMap
 }
 var js = {}
+js.Boot = function() { }
+js.Boot.__name__ = true;
+js.Boot.__interfLoop = function(cc,cl) {
+	if(cc == null) return false;
+	if(cc == cl) return true;
+	var intf = cc.__interfaces__;
+	if(intf != null) {
+		var _g1 = 0, _g = intf.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			var i1 = intf[i];
+			if(i1 == cl || js.Boot.__interfLoop(i1,cl)) return true;
+		}
+	}
+	return js.Boot.__interfLoop(cc.__super__,cl);
+}
+js.Boot.__instanceof = function(o,cl) {
+	if(cl == null) return false;
+	switch(cl) {
+	case Int:
+		return (o|0) === o;
+	case Float:
+		return typeof(o) == "number";
+	case Bool:
+		return typeof(o) == "boolean";
+	case String:
+		return typeof(o) == "string";
+	case Dynamic:
+		return true;
+	default:
+		if(o != null) {
+			if(typeof(cl) == "function") {
+				if(o instanceof cl) {
+					if(cl == Array) return o.__enum__ == null;
+					return true;
+				}
+				if(js.Boot.__interfLoop(o.__class__,cl)) return true;
+			}
+		} else return false;
+		if(cl == Class && o.__name__ != null) return true;
+		if(cl == Enum && o.__ename__ != null) return true;
+		return o.__enum__ == cl;
+	}
+}
+js.Browser = function() { }
+js.Browser.__name__ = true;
+js.Browser.createXMLHttpRequest = function() {
+	if(typeof XMLHttpRequest != "undefined") return new XMLHttpRequest();
+	if(typeof ActiveXObject != "undefined") return new ActiveXObject("Microsoft.XMLHTTP");
+	throw "Unable to create XMLHttpRequest object.";
+}
 js.promhx = {}
 js.promhx.JQueryTools = function() { }
+js.promhx.JQueryTools.__name__ = true;
+js.promhx.JQueryTools.bindStream = function(f) {
+	var str = new promhx.Stream();
+	f($bind(str,str.update));
+	return str;
+}
 js.promhx.JQueryTools.eventStream = function(jq,events) {
-	var s = new promhx.Stream();
-	jq.on(events,$bind(s,s.update));
-	return s;
+	var str = new promhx.Stream();
+	jq.on(events,$bind(str,str.update));
+	return str;
+}
+js.promhx.JQueryTools.loadPromise = function(jq,url,data) {
+	var pro = new promhx.Promise();
+	jq.load(url,data,function(responseText,textStatus) {
+		pro.resolve({ responseText : responseText, textStatus : textStatus});
+	});
+	return pro;
+}
+js.promhx.JQueryTools.buildEventStream = function(jq,events,stream) {
+	jq.on(events,$bind(stream,stream.update));
+	return stream;
 }
 js.promhx.JQueryTools.clickStream = function(jq) {
-	var s = new promhx.Stream();
-	jq.on("click",$bind(s,s.update));
-	return s;
+	return js.promhx.JQueryTools.buildEventStream(jq,"click",new promhx.Stream());
+}
+js.promhx.JQueryTools.dblclickStream = function(jq) {
+	return js.promhx.JQueryTools.buildEventStream(jq,"dblclick",new promhx.Stream());
+}
+js.promhx.JQueryTools.mousedownStream = function(jq) {
+	return js.promhx.JQueryTools.buildEventStream(jq,"mousedown",new promhx.Stream());
+}
+js.promhx.JQueryTools.mouseenterStream = function(jq) {
+	return js.promhx.JQueryTools.buildEventStream(jq,"mouseenter",new promhx.Stream());
+}
+js.promhx.JQueryTools.mouseleaveStream = function(jq) {
+	return js.promhx.JQueryTools.buildEventStream(jq,"mouseleave",new promhx.Stream());
+}
+js.promhx.JQueryTools.mouseoutStream = function(jq) {
+	return js.promhx.JQueryTools.buildEventStream(jq,"mouseout",new promhx.Stream());
+}
+js.promhx.JQueryTools.mouseoverStream = function(jq) {
+	return js.promhx.JQueryTools.buildEventStream(jq,"mouseover",new promhx.Stream());
+}
+js.promhx.JQueryTools.mousemoveStream = function(jq) {
+	return js.promhx.JQueryTools.buildEventStream(jq,"mousemove",new promhx.Stream());
+}
+js.promhx.JQueryTools.mouseupStream = function(jq) {
+	return js.promhx.JQueryTools.buildEventStream(jq,"mouseup",new promhx.Stream());
 }
 var promhx = {}
-promhx.util = {}
-promhx.util.AsyncBase = function(errorf) {
-	this.id = promhx.util.AsyncBase._idctr += 1;
+promhx.base = {}
+promhx.base.AsyncBase = function(errorf) {
 	this._resolved = false;
 	this._fulfilling = false;
 	this._fulfilled = false;
@@ -90,7 +277,8 @@ promhx.util.AsyncBase = function(errorf) {
 	this._error = new Array();
 	if(errorf != null) this._error.push(errorf);
 };
-promhx.util.AsyncBase.link = function(current,next,f) {
+promhx.base.AsyncBase.__name__ = true;
+promhx.base.AsyncBase.link = function(current,next,f) {
 	current._error.push($bind(next,next.handleError));
 	current._update.push(function(x) {
 		next.resolve(f(x));
@@ -101,9 +289,9 @@ promhx.util.AsyncBase.link = function(current,next,f) {
 		next.handleError(e);
 	}
 }
-promhx.util.AsyncBase.linkAll = function(all,next) {
+promhx.base.AsyncBase.linkAll = function(all,next) {
 	var cthen = function(arr,current,v) {
-		if(arr.length == 0 || promhx.util.AsyncBase.allFulfilled(arr)) {
+		if(arr.length == 0 || promhx.base.AsyncBase.allFulfilled(arr)) {
 			var vals = (function($this) {
 				var $r;
 				var _g = [];
@@ -138,7 +326,7 @@ promhx.util.AsyncBase.linkAll = function(all,next) {
 		}(this)),a));
 		a._error.push($bind(next,next.handleError));
 	}
-	if(promhx.util.AsyncBase.allFulfilled(all)) next.resolve((function($this) {
+	if(promhx.base.AsyncBase.allFulfilled(all)) next.resolve((function($this) {
 		var $r;
 		var _g = [];
 		var $it3 = $iterator(all)();
@@ -150,12 +338,12 @@ promhx.util.AsyncBase.linkAll = function(all,next) {
 		return $r;
 	}(this)));
 }
-promhx.util.AsyncBase.pipeLink = function(current,ret,f) {
+promhx.base.AsyncBase.pipeLink = function(current,ret,f) {
 	current.then(function(x) {
 		f(x).then($bind(ret,ret.resolve));
 	});
 }
-promhx.util.AsyncBase.allResolved = function($as) {
+promhx.base.AsyncBase.allResolved = function($as) {
 	var atLeastOneAsyncBase = false;
 	var $it0 = $iterator($as)();
 	while( $it0.hasNext() ) {
@@ -164,7 +352,7 @@ promhx.util.AsyncBase.allResolved = function($as) {
 	}
 	return atLeastOneAsyncBase;
 }
-promhx.util.AsyncBase.allFulfilled = function($as) {
+promhx.base.AsyncBase.allFulfilled = function($as) {
 	var atLeastOneAsyncBase = false;
 	var $it0 = $iterator($as)();
 	while( $it0.hasNext() ) {
@@ -173,10 +361,10 @@ promhx.util.AsyncBase.allFulfilled = function($as) {
 	}
 	return atLeastOneAsyncBase;
 }
-promhx.util.AsyncBase.prototype = {
+promhx.base.AsyncBase.prototype = {
 	then: function(f) {
-		var ret = new promhx.util.AsyncBase();
-		promhx.util.AsyncBase.link(this,ret,f);
+		var ret = new promhx.base.AsyncBase();
+		promhx.base.AsyncBase.link(this,ret,f);
 		return ret;
 	}
 	,handleError: function(d) {
@@ -193,17 +381,17 @@ promhx.util.AsyncBase.prototype = {
 		var _g = this;
 		if(this._fulfilling) return (function($this) {
 			var $r;
-			promhx.util.EventLoop.queue.add((function(f,a1,a2) {
+			promhx.base.EventLoop.queue.add((function(f,a1,a2) {
 				return function() {
 					return f(a1,a2);
 				};
 			})($bind($this,$this._resolve),val,cleanup));
-			$r = promhx.util.EventLoop.continueOnNextLoop();
+			$r = promhx.base.EventLoop.continueOnNextLoop();
 			return $r;
 		}(this));
 		this._resolved = true;
 		this._fulfilling = true;
-		promhx.util.EventLoop.queue.add(function() {
+		promhx.base.EventLoop.queue.add(function() {
 			_g._val = val;
 			var _g1 = 0, _g2 = _g._update;
 			while(_g1 < _g2.length) {
@@ -219,7 +407,7 @@ promhx.util.AsyncBase.prototype = {
 			_g._fulfilling = false;
 			if(cleanup != null) cleanup();
 		});
-		promhx.util.EventLoop.continueOnNextLoop();
+		promhx.base.EventLoop.continueOnNextLoop();
 	}
 	,resolve: function(val) {
 		this._resolve(val);
@@ -237,16 +425,62 @@ promhx.util.AsyncBase.prototype = {
 		this._error.push(f);
 		return this;
 	}
+	,__class__: promhx.base.AsyncBase
 }
+promhx.Promise = function(errorf) {
+	promhx.base.AsyncBase.call(this,errorf);
+	this._rejected = false;
+};
+$hxExpose(promhx.Promise, "promhx.Promise");
+promhx.Promise.__name__ = true;
+promhx.Promise.whenAll = function(itb) {
+	var ret = new promhx.Promise();
+	promhx.base.AsyncBase.linkAll(itb,ret);
+	return ret;
+}
+promhx.Promise.promise = function(_val,errorf) {
+	var ret = new promhx.Promise(errorf);
+	ret.resolve(_val);
+	return ret;
+}
+promhx.Promise.__super__ = promhx.base.AsyncBase;
+promhx.Promise.prototype = $extend(promhx.base.AsyncBase.prototype,{
+	pipe: function(f) {
+		var ret = new promhx.Promise();
+		promhx.base.AsyncBase.pipeLink(this,ret,f);
+		return ret;
+	}
+	,then: function(f) {
+		var ret = new promhx.Promise();
+		promhx.base.AsyncBase.link(this,ret,f);
+		return ret;
+	}
+	,resolve: function(val) {
+		var _g = this;
+		if(this._resolved) throw "Promise has already been resolved";
+		this._resolve(val,function() {
+			_g._update = new Array();
+		});
+	}
+	,reject: function(e) {
+		this._update = new Array();
+		this.handleError(e);
+	}
+	,isRejected: function() {
+		return this._rejected;
+	}
+	,__class__: promhx.Promise
+});
 promhx.Stream = function(errorf) {
-	promhx.util.AsyncBase.call(this,errorf);
+	promhx.base.AsyncBase.call(this,errorf);
 	this._end = false;
 	this._onend = [];
 };
 $hxExpose(promhx.Stream, "promhx.Stream");
+promhx.Stream.__name__ = true;
 promhx.Stream.wheneverAll = function(itb) {
 	var ret = new promhx.Stream();
-	promhx.util.AsyncBase.linkAll(itb,ret);
+	promhx.base.AsyncBase.linkAll(itb,ret);
 	return ret;
 }
 promhx.Stream.stream = function(_val,errorf) {
@@ -254,8 +488,8 @@ promhx.Stream.stream = function(_val,errorf) {
 	ret.resolve(_val);
 	return ret;
 }
-promhx.Stream.__super__ = promhx.util.AsyncBase;
-promhx.Stream.prototype = $extend(promhx.util.AsyncBase.prototype,{
+promhx.Stream.__super__ = promhx.base.AsyncBase;
+promhx.Stream.prototype = $extend(promhx.base.AsyncBase.prototype,{
 	merge: function(s) {
 		var ret = new promhx.Stream();
 		this._update.push($bind(ret,ret.update));
@@ -299,7 +533,7 @@ promhx.Stream.prototype = $extend(promhx.util.AsyncBase.prototype,{
 	}
 	,pipe: function(f) {
 		var ret = new promhx.Stream();
-		promhx.util.AsyncBase.pipeLink(this,ret,f);
+		promhx.base.AsyncBase.pipeLink(this,ret,f);
 		return ret;
 	}
 	,resolve: function(val) {
@@ -308,24 +542,90 @@ promhx.Stream.prototype = $extend(promhx.util.AsyncBase.prototype,{
 	,update: function(val) {
 		this.resolve(val);
 	}
+	,first: function() {
+		var s = new promhx.Promise();
+		this.then(function(x) {
+			if(!s._resolved) s.resolve(x);
+		});
+		return s;
+	}
+	,__class__: promhx.Stream
 });
-promhx.util.EventLoop = function() { }
-promhx.util.EventLoop.enqueue = function(eqf) {
-	promhx.util.EventLoop.queue.add(eqf);
-	promhx.util.EventLoop.continueOnNextLoop();
+promhx.base.EventLoop = function() { }
+promhx.base.EventLoop.__name__ = true;
+promhx.base.EventLoop.enqueue = function(eqf) {
+	promhx.base.EventLoop.queue.add(eqf);
+	promhx.base.EventLoop.continueOnNextLoop();
 }
-promhx.util.EventLoop.continueOnNextLoop = function() {
+promhx.base.EventLoop.set_nextLoop = function(f) {
+	if(promhx.base.EventLoop.nextLoop != null) throw "nextLoop has already been set"; else promhx.base.EventLoop.nextLoop = f;
+	return promhx.base.EventLoop.nextLoop;
+}
+promhx.base.EventLoop.continueOnNextLoop = function() {
 	var f = function() {
-		if(promhx.util.EventLoop.queue.length > 0) {
-			(promhx.util.EventLoop.queue.pop())();
-			promhx.util.EventLoop.continueOnNextLoop();
+		if(promhx.base.EventLoop.queue.length > 0) {
+			(promhx.base.EventLoop.queue.pop())();
+			promhx.base.EventLoop.continueOnNextLoop();
 		}
 	};
-	setImmediate(f);
+	if(promhx.base.EventLoop.nextLoop != null) promhx.base.EventLoop.nextLoop(f); else setImmediate(f);
 }
+promhx.haxe = {}
+promhx.haxe.EventTools = function() { }
+promhx.haxe.EventTools.__name__ = true;
+promhx.haxe.EventTools.eventStream = function(el,event,useCapture) {
+	var str = new promhx.Stream();
+	el.addEventListener(event,$bind(str,str.update),useCapture);
+	return str;
+}
+promhx.haxe.Http = function(url) {
+	promhx.Promise.call(this);
+	this._http = new haxe.Http(url);
+	this._http.onData = $bind(this,this.resolve);
+	this._http.onError = $bind(this,this.reject);
+};
+promhx.haxe.Http.__name__ = true;
+promhx.haxe.Http.__super__ = promhx.Promise;
+promhx.haxe.Http.prototype = $extend(promhx.Promise.prototype,{
+	request: function(post) {
+		this._http.request(post);
+	}
+	,setPostData: function(data) {
+		this._http.setPostData(data);
+		return this;
+	}
+	,setParameter: function(param,value) {
+		this._http.setParameter(param,value);
+		return this;
+	}
+	,setHeader: function(header,value) {
+		this._http.setHeader(header,value);
+		return this;
+	}
+	,get_status: function() {
+		if(this._status == null) {
+			this._status = new promhx.Stream();
+			this._http.onStatus = ($_=this._status,$bind($_,$_.update));
+		}
+		return this._status;
+	}
+	,__class__: promhx.haxe.Http
+});
 function $iterator(o) { if( o instanceof Array ) return function() { return HxOverrides.iter(o); }; return typeof(o.iterator) == 'function' ? $bind(o,o.iterator) : o.iterator; };
 var $_, $fid = 0;
 function $bind(o,m) { if( m == null ) return null; if( m.__id__ == null ) m.__id__ = $fid++; var f; if( o.hx__closures__ == null ) o.hx__closures__ = {}; else f = o.hx__closures__[m.__id__]; if( f == null ) { f = function(){ return f.method.apply(f.scope, arguments); }; f.scope = o; f.method = m; o.hx__closures__[m.__id__] = f; } return f; };
+String.prototype.__class__ = String;
+String.__name__ = true;
+Array.prototype.__class__ = Array;
+Array.__name__ = true;
+var Int = { __name__ : ["Int"]};
+var Dynamic = { __name__ : ["Dynamic"]};
+var Float = Number;
+Float.__name__ = ["Float"];
+var Bool = Boolean;
+Bool.__ename__ = ["Bool"];
+var Class = { __name__ : ["Class"]};
+var Enum = { };
 var q = window.jQuery;
 js.JQuery = q;
 var global = window;
@@ -548,8 +848,7 @@ var global = window;
     }
 }(typeof global === "object" && global ? global : this));
 ;
-promhx.util.AsyncBase._idctr = 0;
-promhx.util.EventLoop.queue = new List();
+promhx.base.EventLoop.queue = new List();
 Demo.main();
 function $hxExpose(src, path) {
 	var o = typeof window != "undefined" ? window : exports;

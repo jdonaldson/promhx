@@ -2,7 +2,7 @@
 .DS_Store
 tags
 package/
-demo/
+demo/*
 promhx.zip
 haxelib
 

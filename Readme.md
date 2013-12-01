@@ -156,7 +156,7 @@ p1.resolve(1);
 p2.resolve(2);
 p3.resolve('hi');
 
-// You can "resolve" a stream as well since they share a base class, but an 
+// You can "resolve" a stream as well since they share a base class, but an
 // alias called "update" is provided to make this a bit clearer:
 s1.resolve(1);
 s1.update(1);
@@ -173,7 +173,48 @@ resolution of promises and streams so that only one promise/stream will be
 resolved per event loop.  However, *all* updates for a single promise/stream
 will be executed in a given loop in order to ensure that all updates have
 a consistent value.  If blocking continues to be a problem, consider using
-more promises and streams to break the update operation up across multiple 
+more promises and streams to break the update operation up across multiple
 event loops.
+
+
+Promhx Http Class
+=================
+Promhx provides a promise-based Http class that is very similar to the
+haxe.Http class in the base haxe library.  Note that you cannot change the url
+to re-send the same request to different target urls (as in the original
+haxe.Http class).
+
+```haxe
+   var h = new promhx.haxe.Http("somefile.txt");
+   h.then(function(x){
+      trace(x); // this will be the text content from somefile.txt
+   });
+   h.request(); // initialize request.
 ```
+EventTools
+==========
+Promhx provides some tools for adapting existing event systems into Streams and
+Promises. To do so, it is recommended to import the ```promhx.haxe.EventTools```
+class via "using":
+
+```haxe
+  using promhx.haxe.EventTools;
+  [...]
+
+  var click_stream = element.eventStream("click");
+  // click_stream type is Stream<Dynamic>;
+```
+
+JQueryTools
+===========
+Promhx has some JQuery-specific tools, also intended to be used via "using".
+
+```haxe
+   using js.promhx.JQueryTools;
+   [...]
+
+   var target_click_stream = new JQuery("#target").eventStream('click');
+   // target_click_stream is now a Stream<JqEvent>.
+```
+
 
