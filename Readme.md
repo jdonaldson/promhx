@@ -1,5 +1,4 @@
-Promhx
-========
+# Promhx
 
 [![Build Status](https://travis-ci.org/jdonaldson/promhx.png)]
 (https://travis-ci.org/jdonaldson/promhx)
@@ -162,8 +161,7 @@ s1.resolve(1);
 s1.update(1);
 s2.update(2);
 
-Event Loop Management
-=====================
+# Event Loop Management
 
 When a promise or stream resolves, it can trigger a large amount of activity,
 including the resolution of other promises and streams.  For single
@@ -177,8 +175,7 @@ more promises and streams to break the update operation up across multiple
 event loops.
 
 
-Promhx Http Class
-=================
+# Promhx Http Class
 Promhx provides a promise-based Http class that is very similar to the
 haxe.Http class in the base haxe library.  Note that you cannot change the url
 to re-send the same request to different target urls (as in the original
@@ -191,8 +188,7 @@ haxe.Http class).
    });
    h.request(); // initialize request.
 ```
-EventTools
-==========
+# EventTools
 Promhx provides some tools for adapting existing event systems into Streams and
 Promises. To do so, it is recommended to import the ```promhx.haxe.EventTools```
 class via "using":
@@ -205,8 +201,7 @@ class via "using":
   // click_stream type is Stream<Dynamic>;
 ```
 
-JQueryTools
-===========
+# JQueryTools
 Promhx has some JQuery-specific tools, also intended to be used via "using".
 
 ```haxe
