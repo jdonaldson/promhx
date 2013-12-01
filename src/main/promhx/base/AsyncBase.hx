@@ -39,8 +39,6 @@ import promhx.base.EventLoop;
 import promhx.Thenable;
 
 class AsyncBase<T>{
-    static var _idctr = 0;
-    public var id   : Int;
     var _val        : T;
     var _resolved   : Bool;
     var _fulfilled  : Bool;
@@ -53,8 +51,6 @@ class AsyncBase<T>{
       a callback to the error handler chain.
      **/
     public function new(?errorf : Dynamic->Void) {
-
-        id          = _idctr += 1;
         _resolved   = false;
         _fulfilling = false;
         _fulfilled  = false;
