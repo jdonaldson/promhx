@@ -22,7 +22,7 @@
 * 
 ****/
 
-package promhx;
+package promhx.mdo;
 import haxe.macro.Expr;
 import haxe.macro.Context;
 import com.mindrocks.monads.Monad;
