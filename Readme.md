@@ -12,24 +12,24 @@ the values do become available.
 A typical case is to specify a callback for a given promise once the value
 becomes available:
 
-```haxe
+```as3
 promise.then(function(p1) trace("do something with promise's value"));
 ```
 
 Alternatively, you can specify a callback on multiple promise instances using
 the static method "when":
 
-```haxe
+```as3
 Promise.when(promise1, promise2).then(function(p1,p2) trace("do something with the promise values"));
 ```
 
 Streams work more or less the same:
 
-```haxe
+```as3
 stream.then(function(s1) trace("do something with the stream's value"));
 ```
 
-```haxe
+```as3
 Stream.whenever(stream1, stream2).then(function(s1,s2) trace("do something with the stream values"));
 ```
 
@@ -65,7 +65,7 @@ Streams have the following behavior:
 * Promises will remember their resolved value, and any functions specified
   afterwards by "then()" will get their result synchronously.
 
-```haxe
+```as3
 // Declare a promised value
 var p1 = new Promise<Int>();
 
@@ -182,7 +182,7 @@ haxe.Http class in the base haxe library.  Note that you cannot change the url
 to re-send the same request to different target urls (as in the original
 haxe.Http class).
 
-```haxe
+```as3
    var h = new promhx.haxe.Http("somefile.txt");
    h.then(function(x){
       trace(x); // this will be the text content from somefile.txt
@@ -194,7 +194,7 @@ Promhx provides some tools for adapting existing event systems into Streams and
 Promises. To do so, it is recommended to import the ```promhx.haxe.EventTools```
 class via "using":
 
-```haxe
+```as3
   using promhx.haxe.EventTools;
   [...]
 
@@ -205,7 +205,7 @@ class via "using":
 # JQueryTools
 Promhx has some JQuery-specific tools, also intended to be used via "using".
 
-```haxe
+```as3
    using js.promhx.JQueryTools;
    [...]
 
