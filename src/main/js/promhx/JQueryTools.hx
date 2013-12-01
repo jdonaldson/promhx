@@ -58,30 +58,4 @@ class JQueryTools {
             return pro;
         }
 
-    static function buildEventStream<T>(jq:JQuery, events:Dynamic, stream : Stream<T>){
-        jq.on(events, cast stream.update);
-        return stream;
-    }
-
-    public static function clickStream( jq : JQuery )
-        return buildEventStream(jq, 'click', new Stream<MouseEvent>());
-
-    public static function dblclickStream( jq : JQuery )
-        return buildEventStream(jq, 'dblclick', new Stream<MouseEvent>());
-
-    public static function mousedownStream( jq : JQuery )
-        return buildEventStream(jq, 'mousedown', new Stream<MouseEvent>());
-    public static function mouseenterStream( jq : JQuery )
-        return buildEventStream(jq, 'mouseenter', new Stream<MouseEvent>());
-    public static function mouseleaveStream( jq : JQuery )
-        return buildEventStream(jq, 'mouseleave', new Stream<MouseEvent>());
-    public static function mouseoutStream( jq : JQuery )
-        return buildEventStream(jq, 'mouseout', new Stream<MouseEvent>());
-    public static function mouseoverStream( jq : JQuery )
-        return buildEventStream(jq, 'mouseover', new Stream<MouseEvent>());
-    public static function mousemoveStream( jq : JQuery )
-        return buildEventStream(jq, 'mousemove', new Stream<MouseEvent>());
-    public static function mouseupStream( jq : JQuery )
-        return buildEventStream(jq, 'mouseup', new Stream<MouseEvent>());
-
 }
