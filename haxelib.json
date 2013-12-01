@@ -6,7 +6,7 @@
   "description": "Promhx is a promise library for Haxe. Promises contain values that are not immediately available. However, you can specify callback functions that will trigger when the values do become available. ",
   "releasenote": "Add Stream class, Http class, and EventTools",
   "version": "0.2.7",
-  "contributors": ["jdonaldson"]
+  "contributors": ["jdonaldson"],
   "dependencies": {"monax":""}
 }
 
