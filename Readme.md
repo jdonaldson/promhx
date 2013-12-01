@@ -213,4 +213,27 @@ Promhx has some JQuery-specific tools, also intended to be used via "using".
    // target_click_stream is now a Stream<JqEvent>.
 ```
 
+# Macro do-notation
+Promhx has the ability to "compose" promise and streams using classes in the
+promhx "mdo" module, and the [monax](https://github.com/sledorze/monax) library.
+These macro functions
+can be used as follows:
+
+```as3
+   import promhx.mdo.StreamM;
+   [...]
+   var s1 = new Stream<Int>();
+   var s2 = new Stream<Int>();
+   var s3 = StreamM.dO({
+         val1 <= s1;
+         val2 <= s2;
+         ret({val1: val1, val2: val2});
+   });
+   s3.then(function(x){
+      trace(x.val1);
+      trace(x.val2);
+   });
+
+```
+
 
