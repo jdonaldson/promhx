@@ -24,6 +24,26 @@ class TestStream {
         s1.resolve(0);
     }
 
+    public function testFrancoAlwaysFindsABug() {
+        var si = new Stream<Int>(),
+            ss = new Stream<String>(),
+            initial = "Ice-Stream",
+            expected = "Ice",
+            actual = "";
+
+        var async = Assert.createAsync(function(){
+            Assert.equals(expected, actual);
+        });
+
+        Stream.whenever(si, ss)
+            .then(function(i : Int, s : String){
+                actual = s.substring(0,i);
+                async();
+            });
+        si.resolve(3);
+        ss.resolve(initial);
+    }
+
     public function testSimpleThen(){
         var s1 = new Stream<Int>();
         var expected = 1;
