@@ -81,8 +81,8 @@ class Stream<T> extends AsyncBase<T>{
       Transforms an iterable of streams into a single stream which resolves
       to an array of values.
      **/
-    public static function wheneverAll<T>(itb : Iterable<Stream<T>>) : Stream<Array<T>> {
-        var ret = new Stream<Array<T>>();
+    public static function wheneverAll(itb : Iterable<Stream<Dynamic>>) : Stream<Array<Dynamic>> {
+        var ret = new Stream<Array<Dynamic>>();
         AsyncBase.linkAll(itb, ret);
         return ret;
     }

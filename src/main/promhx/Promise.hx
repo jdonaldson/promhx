@@ -95,8 +95,8 @@ class Promise<T> extends AsyncBase<T>{
       Transforms an iterable of promises into a single promise which resolves
       to an array of values.
      **/
-    public static function whenAll<T>(itb : Iterable<Promise<T>>) : Promise<Array<T>> {
-        var ret : Promise<Array<T>> = new Promise();
+    public static function whenAll(itb : Iterable<Promise<Dynamic>>) : Promise<Array<Dynamic>> {
+        var ret : Promise<Array<Dynamic>> = new Promise();
         AsyncBase.linkAll(itb, ret);
         return ret;
     }
