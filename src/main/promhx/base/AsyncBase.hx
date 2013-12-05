@@ -1,4 +1,3 @@
-
 /****  Copyright (c) 2013 Justin Donaldson
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -201,12 +200,10 @@ class AsyncBase<T>{
     public static function allResolved
         (as : Iterable<AsyncBase<Dynamic>>) : Bool
     {
-        var atLeastOneAsyncBase = false;
         for (a in as) {
             if (!a.isResolved()) return false;
-            else atLeastOneAsyncBase = true;
         }
-        return atLeastOneAsyncBase;
+        return true;
     }
 
     /**
@@ -216,12 +213,10 @@ class AsyncBase<T>{
     static function allFulfilled
         (as : Iterable<AsyncBase<Dynamic>>) : Bool
     {
-        var atLeastOneAsyncBase = false;
         for (a in as) {
             if (!a.isFulfilled()) return false;
-            else atLeastOneAsyncBase = true;
         }
-        return atLeastOneAsyncBase;
+        return true;
     }
 
 }
