@@ -47,20 +47,11 @@ class TestPromise {
         Assert.isTrue(p1.isResolved());
     }
 
-#if (js || flash)
     public function testAsynchronousResolving(){
         var p1 = new Promise<Int>();
         p1.resolve(0);
         Assert.isTrue(p1.isFulfilling(), "p1 was not resolving, should be asynchronous");
     }
-
-#else
-    public function testSynchronousResolving(){
-        var p1 = new Promise<Int>();
-        p1.resolve(0);
-        Assert.isTrue(!p1.isFulfilling(),  "p1 was resolving, should be synchronous");
-    }
-#end
 
 
     public function testSimpleWhen(){

@@ -1,7 +1,6 @@
-
-
 package promhx;
 import promhx.Stream;
+import promhx.base.EventLoop;
 import utest.Assert;
 
 class TestStream {
@@ -30,11 +29,9 @@ class TestStream {
             initial = "Ice-Stream",
             expected = "Ice",
             actual = "";
-
         var async = Assert.createAsync(function(){
             Assert.equals(expected, actual);
         });
-
         Stream.whenever(si, ss)
             .then(function(i : Int, s : String){
                 actual = s.substring(0,i);
@@ -42,6 +39,24 @@ class TestStream {
             });
         si.resolve(3);
         ss.resolve(initial);
+    }
+
+    public function testDelayedErrorHandler(){
+        var s = new Stream<Int>();
+        var expected = 'foo';
+        var actual = '';
+        var async = Assert.createAsync(function(){
+            Assert.equals(expected, actual);
+        });
+        s.then(function(x){
+            throw expected;
+            return 1;
+        });
+        s.error(function(x){
+           actual = expected;
+           async();
+        });
+        s.resolve(1);
     }
 
     public function testSimpleThen(){
@@ -65,20 +80,12 @@ class TestStream {
         Assert.isTrue(s1.isResolved());
     }
 
-#if (js || flash)
     public function testAsynchronousResolving(){
         var s1 = new Stream<Int>();
         s1.resolve(0);
-        Assert.isTrue(s1.isFulfilling(), "s1 was not resolving, should be asynchronous");
+        Assert.isTrue(s1.isFulfilling(), "s1 was not fulfilling;, should be asynchronous");
     }
 
-#else
-    public function testSynchronousResolving(){
-        var s1 = new Stream<Int>();
-        s1.resolve(0);
-        Assert.isTrue(!s1.isFulfilling(),  "s1 was resolving, should be synchronous");
-    }
-#end
 
 
     public function testMultipleStream(){

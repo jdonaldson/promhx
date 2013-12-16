@@ -8,12 +8,15 @@ import promhx.TestPromiseM;
 import promhx.Stream;
 
 class TestAll {
-	static function main() {
-		var r = new Runner();
+    public static function main() start();
+
+	public static function start(?precheck:Void->Void) {
+        var r = new Runner();
 		r.addCase(new TestPromise());
 		r.addCase(new TestStream());
 		r.addCase(new TestPromiseM());
 		Report.create(r);
+		if (precheck != null) r.onPrecheck.add(function(x) precheck());
 		r.run();
-	}
+    }
 }

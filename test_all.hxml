@@ -22,10 +22,11 @@
 
 --next
 
+# display completions
 -cp src/main
 -cp src/test
 -lib monax
--main TestAll
+-main TestAllQueue
 -cp ./lib/utest/src
 -cmd echo "--------------------------------------NEKO--------------------------------------"
 -x bin/test
@@ -36,30 +37,31 @@
 -cp src/main
 -cp src/test
 -lib monax
--main TestAll
+-main TestAllQueue
 -cp ./lib/utest/src
 -cpp bin/testcpp
 -cmd echo "--------------------------------------CPP---------------------------------------"
--cmd ./bin/testcpp/TestAll
+-cmd ./bin/testcpp/TestAllQueue
 
 --next
 
 -cp src/main
 -cp src/test
 -lib monax
--main TestAll
+-main TestAllQueue
 -cp ./lib/utest/src
 -java bin/testjava
 -cmd echo "--------------------------------------JAVA--------------------------------------"
 -cmd java -jar bin/testjava/testjava.jar
 
---next
 
--cp src/main
--cp src/test
--lib monax
--main TestAll
--cp ./lib/utest/src
--php bin/testphp
--cmd echo "--------------------------------------PHP---------------------------------------"
--cmd php bin/testphp/index.php
+# TODO - figure out what is happening with php
+
+# -cp src/main
+# -cp src/test
+# -lib monax
+# -main TestAllQueue
+# -cp ./lib/utest/src
+# -php bin/testphp
+# -cmd echo "--------------------------------------PHP---------------------------------------"
+# -cmd php bin/testphp/index.php

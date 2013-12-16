@@ -1,13 +1,14 @@
 
--cp src/main
--cp src/test
--lib monax
--main TestAll
--cp ./lib/utest/src
--js bin/test_node.js
--cmd echo "------------------------------------BROWSERJS-------------------------------------"
+# -cp src/main
+# -cp src/test
+# -lib monax
+# -main TestAll
+# -cp ./lib/utest/src
+# -js bin/test_node.js
+# -cmd echo "------------------------------------BROWSERJS-------------------------------------"
 
 # -cp src/main
+# -D debug
 # -cp src/test
 # -lib monax
 # -lib nodejs
@@ -17,11 +18,37 @@
 # -cmd echo "--------------------------------------NODE--------------------------------------"
 # -cmd node bin/test_node.js
 
-# --next
 # -cp src/main
 # -cp src/test
 # -lib monax
-# -main TestAll
+# -main TestAllQueue
 # -cp ./lib/utest/src
 # -cmd echo "--------------------------------------NEKO--------------------------------------"
 # -x bin/test
+
+# -cp src/main
+# -cp src/test
+# -lib monax
+# -main TestAllQueue
+# -cp ./lib/utest/src
+# -php bin/testphp
+# -cmd echo "--------------------------------------PHP---------------------------------------"
+# -cmd php bin/testphp/index.php
+
+-cp src/main
+-cp src/test
+-lib monax
+-main TestAllQueue
+-cp ./lib/utest/src
+-java bin/testjava
+-cmd echo "--------------------------------------JAVA--------------------------------------"
+-cmd java -jar bin/testjava/testjava.jar
+
+# -cp src/main
+# -cp src/test
+# -lib monax
+# -main TestAllQueue
+# -cp ./lib/utest/src
+# -cpp bin/testcpp
+# -cmd echo "--------------------------------------CPP---------------------------------------"
+# -cmd ./bin/testcpp/TestAllQueue
