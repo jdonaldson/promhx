@@ -2,7 +2,8 @@ package promhx.base;
 
 class EventLoop {
     static var queue : List<Void->Void> = new List();
-    public static var nextLoop(default, set) : (Void->Void)-> Void;
+    // public static var nextLoop(default, set) : (Void->Void)-> Void;
+    public static var nextLoop : (Void->Void)-> Void;
 
 #if (js && !nodejs && !noEmbedJs && !noEmbedSetImmediate)
     static function __init__() untyped {
@@ -18,11 +19,36 @@ class EventLoop {
         queue.add(eqf);
         continueOnNextLoop();
     }
-
     static function set_nextLoop(f : (Void->Void)->Void) : (Void->Void)->Void{
         if (nextLoop != null) throw "nextLoop has already been set";
         else nextLoop = f;
         return nextLoop;
+    }
+
+    /**
+      Retrieve the current length of the queue.
+     **/
+    public static function queueLength() {
+        return queue.length;
+    }
+
+    /**
+      Attempt to finish the remaining loops in the queue.  Returns true
+      if all loops are finished.  If [max_iterations] pass, then exit and
+      return false.
+     **/
+    public static function finish(max_iterations = 1000){
+        while (queue.length > 0 && max_iterations-- > 0){
+            queue.pop()();
+        }
+        return queue.length == 0;
+    }
+
+    /**
+      Clear the existing event loop queue.
+     **/
+    public static function clear(){
+        queue = new List();
     }
 
     static function continueOnNextLoop(){

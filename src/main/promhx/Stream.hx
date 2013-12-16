@@ -67,8 +67,10 @@ class Stream<T> extends AsyncBase<T>{
                 // on "f" that provides arity and types for the resolved stream values.
                 var ret = new Stream();
                 var p = Stream.wheneverAll($eargs);
-                p._update.push(function(x) ret.resolve(f($a{epargs})));
-                p._error.push(ret.handleError);
+                p._update.push({
+                    async: ret,
+                    linkf: function(x) ret.resolve(f($a{epargs}))
+                });
                 return ret;
             };
 
@@ -117,7 +119,10 @@ class Stream<T> extends AsyncBase<T>{
 
     public function filter(f : T->Bool) : Stream<T>{
         var ret = new Stream<T>();
-        _update.push(function(x) if (f(x)) ret.update(x));
+        _update.push({
+            async : ret,
+            linkf : function(x) if (f(x)) ret.update(x)
+        });
         _error.push(ret.handleError);
         return ret;
     }
@@ -125,10 +130,16 @@ class Stream<T> extends AsyncBase<T>{
     public function concat(s : Stream<T>) : Stream<T> {
         var ret = new Stream<T>();
         _onend.push(function(){
-            ret._update.push(s.update);
+            ret._update.push({
+                async : ret,
+                linkf : s.update
+            });
             ret._error.push(s.handleError);
         });
-        _update.push(ret.update);
+        _update.push({
+            async : ret,
+            linkf : ret.update
+        });
         _error.push(ret.handleError);
         return ret;
     }
@@ -138,9 +149,15 @@ class Stream<T> extends AsyncBase<T>{
      **/
     public function merge(s : Stream<T>) : Stream<T> {
         var ret = new Stream<T>();
-        _update.push(ret.update);
+        _update.push({
+            async : ret,
+            linkf : ret.update
+        });
         _error.push(ret.handleError);
-        s._update.push(ret.update);
+        s._update.push({
+            async : ret,
+            linkf : ret.update
+        });
         s._error.push(ret.handleError);
         return ret;
     }

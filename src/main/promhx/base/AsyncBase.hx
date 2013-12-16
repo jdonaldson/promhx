@@ -38,12 +38,23 @@ import haxe.macro.Context;
 import promhx.base.EventLoop;
 import promhx.Thenable;
 
+typedef AsyncLink<T> = {
+    async : AsyncBase<Dynamic>,
+    linkf : T->Void
+}
+
+
 class AsyncBase<T>{
+#if debug
+    // add ids to the async instances so they are easier to track
+    static var id_ctr  = 0;
+    var id          : Int;
+#end
     var _val        : T;
     var _resolved   : Bool;
     var _fulfilled  : Bool;
     var _fulfilling : Bool;
-    var _update     : Array<T->Void>;
+    var _update     : Array<AsyncLink<T>>;
     var _error      : Array<Dynamic->Void>;
 
     /**
@@ -51,11 +62,13 @@ class AsyncBase<T>{
       a callback to the error handler chain.
      **/
     public function new(?errorf : Dynamic->Void) {
+#if debug id = id_ctr +=1; #end
+
         _resolved   = false;
         _fulfilling = false;
         _fulfilled  = false;
-        _update     = new Array<T->Void>();
-        _error      = new Array<Dynamic->Void>();
+        _update     = [];
+        _error      = [];
 
         if (errorf != null) _error.push(errorf);
     }
@@ -97,7 +110,7 @@ class AsyncBase<T>{
     /**
       Resolves the given value for processing on any waiting functions.
      **/
-    private function _resolve(val : T, ?cleanup : Void->Void) : Void {
+    function _resolve(val : T, ?cleanup : Void->Void) : Void {
 
         // this async is in the process of fulfilling another value, move the
         // resolve to the next loop
@@ -107,29 +120,32 @@ class AsyncBase<T>{
         // point of no return, this async has now been resolved at least once.
         _resolved = true;
 
-        // we are now in the act of fulfilling the async... which typically
+        // we are now in the act of fulfilling the async... which
         // involves waiting for the next enqueued loop
         _fulfilling = true;
 
         // the loop handler, which may not even be used
-#if (js || flash) EventLoop.enqueue(function(){ #end
-        _val = val; // save the value
-        for (f in _update){
-            try f(val)
-            catch (e:Dynamic) handleError(e);
-        }
-        _fulfilled = true; // we're in a fulfilled state
-        _fulfilling = false; // we're done fulfilling for this resolve
-        if (cleanup != null) cleanup(); // we can cleanup if necessary
-#if (js || flash) }); #end
+        EventLoop.enqueue(function(){
+            _val = val; // save the value
+            for (f in _update){
+                try f.linkf(val)
+                catch (e:Dynamic) handleError(e);
+            }
+            _fulfilled = true; // we're in a fulfilled state
+            _fulfilling = false; // we're done fulfilling for this resolve
+            if (cleanup != null) cleanup(); // we can cleanup if necessary
+        });
     }
 
     /**
       Handle errors
      **/
-    private function handleError(d : Dynamic) : Void {
-        if (_error.length == 0) throw d
-        else for (ef in _error) ef(d);
+    function handleError(e : Dynamic) : Void {
+        EventLoop.enqueue(function(){
+            if (_error.length > 0) for (ef in _error) ef(e);
+            else if (_update.length > 0) for (up in _update) up.async.handleError(e);
+            else throw e;
+        });
     }
 
     /**
@@ -154,9 +170,11 @@ class AsyncBase<T>{
         // the function wrapper for the callback, which will resolve the return
         // if current is not resolved, or will resolve next loop, push to
         // update queues.
-        current._error.push(next.handleError);
-        current._update.push(function(x){
-            next.resolve(f(x));
+        current._update.push({
+            async : next,
+            linkf : function(x){
+                next.resolve(f(x));
+            }
         });
         if (current.isResolved() && !current.isFulfilling()){
             // we can go ahead and resolve this.
@@ -177,11 +195,15 @@ class AsyncBase<T>{
                 var vals = [for (a in all) a == current ? v : a._val];
                 next.resolve(vals);
             }
+            return null;
         };
         for (a in all){
-            a._update.push(cthen.bind([for (a2 in all) if (a2 != a) a2], a, _));
-            a._error.push(next.handleError);
+            a._update.push({
+                async : next,
+                linkf: cthen.bind([for (a2 in all) if (a2 != a) a2], a, _)
+            });
         }
+
         if (AsyncBase.allFulfilled(all)) {
             next.resolve([for (a in all) a._val]);
         }

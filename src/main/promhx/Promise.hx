@@ -66,8 +66,10 @@ class Promise<T> extends AsyncBase<T>{
                 // on "f" that provides arity and types for the resolved promise values.
                 var ret = new Promise();
                 var p = Promise.whenAll($eargs);
-                p._update.push(function(x) ret.resolve(f($a{epargs})));
-                p._error.push(ret.handleError);
+                p._update.push({
+                    async : ret,
+                    linkf : function(x) ret.resolve(f($a{epargs}))
+                });
                 return ret;
             };
 
@@ -87,7 +89,7 @@ class Promise<T> extends AsyncBase<T>{
       Rejects the promise, throwing an error.
      **/
     public function reject(e : Dynamic): Void {
-        _update = new Array<T->Void>();
+        this._rejected = true;
         handleError(e);
     }
 
@@ -106,9 +108,7 @@ class Promise<T> extends AsyncBase<T>{
      **/
     override public function resolve(val : T): Void {
         if (_resolved) throw("Promise has already been resolved");
-        _resolve(val, function(){
-            _update = new Array<T->Void>();
-        });
+        _resolve(val);
     }
 
     /**
