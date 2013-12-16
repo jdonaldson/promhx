@@ -26,6 +26,18 @@ class TestPromise {
         p1.resolve(0);
     }
 
+    public function testEmptyWhenAll(){
+        var expected = 0;
+        var actual = 1;
+        var async = Assert.createAsync(function(){
+            Assert.equals(expected, actual);
+        });
+        Promise.whenAll([]).then(function(x){
+            actual = x.length;
+            async();
+        });
+    }
+
     public function testSimpleThen(){
         var p1 = new Promise<Int>();
         var expected = 1;
