@@ -214,7 +214,10 @@ class AsyncBase<T>{
      **/
     inline static public function pipeLink<T,A>
         ( current : AsyncBase<T>, ret : AsyncBase<A>, f : T->AsyncBase<A> ) : Void
+    {
         current.then(function(x) f(x).then(ret.resolve));
+        current._error.push(ret.handleError);
+    }
 
     /**
       Utility function to determine if all Promise values are set.
