@@ -23,6 +23,22 @@ class TestStream {
         s1.resolve(0);
     }
 
+    public function testStreamEnd(){
+        var s = new Stream<Int>();
+        var expected = 1;
+        var actual = 0;
+        var async = Assert.createAsync(function(){
+            Assert.equals(expected, actual);
+        });
+        s.then(function(x){
+            actual = x;
+            async();
+
+        });
+        s.update(1);
+        s.end();
+    }
+
     public function testFrancoAlwaysFindsABug() {
         var si = new Stream<Int>(),
             ss = new Stream<String>(),

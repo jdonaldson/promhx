@@ -111,10 +111,12 @@ class Stream<T> extends AsyncBase<T>{
     }
 
     public function end(){
-        _end = true;
-        for (f in _onend) try f() catch(e:Dynamic) handleError(e);
-        _update = [];
-        _error = [];
+        EventLoop.enqueue(function(){
+            _end = true;
+            for (f in _onend) try f() catch(e:Dynamic) handleError(e);
+            _update = [];
+            _error = [];
+        });
     }
 
     public function filter(f : T->Bool) : Stream<T>{
