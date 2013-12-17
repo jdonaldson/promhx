@@ -143,7 +143,7 @@ class AsyncBase<T>{
         EventLoop.enqueue(function(){
             if (_error.length > 0) for (ef in _error) ef(e);
             else if (_update.length > 0) for (up in _update) up.async.handleError(e);
-            else throw e;
+            else  throw e; 
         });
     }
 
@@ -175,11 +175,18 @@ class AsyncBase<T>{
                 next.resolve(f(x));
             }
         });
+        immediateLinkUpdate(current, next, f);
+    }
+
+    static function immediateLinkUpdate<A,B>
+        (current : AsyncBase<A>, next : AsyncBase<B>, f : A->B) : Void
+    {
         if (current.isResolved() && !current.isFulfilling()){
             // we can go ahead and resolve this.
             try next.resolve(f(current._val))
-                catch (e:Dynamic) next.handleError(e);
+            catch (e:Dynamic) current.handleError(e);
         }
+
     }
 
     inline public static function linkAll<T,A>
@@ -215,8 +222,28 @@ class AsyncBase<T>{
     inline static public function pipeLink<T,A>
         ( current : AsyncBase<T>, ret : AsyncBase<A>, f : T->AsyncBase<A> ) : Void
     {
-        current.then(function(x) f(x).then(ret.resolve));
-        current._error.push(ret.handleError);
+        var linked = false;
+        var linkf = function(x){ // updates go to pipe function.
+                if (!linked){ // but only once
+                    linked = true; // the piped async doesn't actually respond to updates from current
+                    var pipe_ret = f(x); // it just needs to be created
+                    pipe_ret._update.push({  // and to be linked to ret
+                        async : ret, // errors go to ret
+                        linkf : ret.resolve // updates go directly to ret
+                    });
+                    immediateLinkUpdate(pipe_ret, ret, function(x) return x );
+                }
+            }
+
+        current._update.push({
+            async : ret, // errors go to ret
+            linkf : linkf
+        });
+
+        if (current.isResolved() && !current.isFulfilling()){
+            try linkf(current._val)
+            catch (e:Dynamic) current.handleError(e);
+        }
     }
 
     /**

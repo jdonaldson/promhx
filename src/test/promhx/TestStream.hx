@@ -41,6 +41,31 @@ class TestStream {
         ss.resolve(initial);
     }
 
+    public function testPipeLinkError(){
+        var expected = 'a pipe link error';
+        var actual = '';
+        var s1 = new Stream<Int>();
+        var s2 = new Stream<Int>();
+        var async = Assert.createAsync(function(){
+            Assert.equals(expected, actual);
+        });
+        var s3 = s1.pipe(function(x){
+            return s2;
+        });
+        s2.then(function(x){
+            throw 'a pipe link error';
+        }).error(function(e){
+            // we need to catch an error here too, but we want to test for the
+            // other case.
+        });
+        s3.error(function(x){
+            actual = x;
+            async();
+        });
+        s1.resolve(1);
+        s2.resolve(1);
+    }
+
     public function testDelayedErrorHandler(){
         var s = new Stream<Int>();
         var expected = 'foo';

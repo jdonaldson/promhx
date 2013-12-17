@@ -7,16 +7,16 @@
 # -js bin/test_node.js
 # -cmd echo "------------------------------------BROWSERJS-------------------------------------"
 
-# -cp src/main
-# -D debug
-# -cp src/test
-# -lib monax
-# -lib nodejs
-# -main TestAll
-# -cp ./lib/utest/src
-# -js bin/test_node.js
-# -cmd echo "--------------------------------------NODE--------------------------------------"
-# -cmd node bin/test_node.js
+-cp src/main
+-D debug
+-cp src/test
+-lib monax
+-lib nodejs
+-main TestAll
+-cp ./lib/utest/src
+-js bin/test_node.js
+-cmd echo "--------------------------------------NODE--------------------------------------"
+-cmd node bin/test_node.js
 
 # -cp src/main
 # -cp src/test
@@ -35,14 +35,14 @@
 # -cmd echo "--------------------------------------PHP---------------------------------------"
 # -cmd php bin/testphp/index.php
 
--cp src/main
--cp src/test
--lib monax
--main TestAllQueue
--cp ./lib/utest/src
--java bin/testjava
--cmd echo "--------------------------------------JAVA--------------------------------------"
--cmd java -jar bin/testjava/testjava.jar
+# -cp src/main
+# -cp src/test
+# -lib monax
+# -main TestAllQueue
+# -cp ./lib/utest/src
+# -java bin/testjava
+# -cmd echo "--------------------------------------JAVA--------------------------------------"
+# -cmd java -jar bin/testjava/testjava.jar
 
 # -cp src/main
 # -cp src/test
