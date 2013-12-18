@@ -126,9 +126,9 @@ class AsyncBase<T>{
         // the loop handler, which may not even be used
         EventLoop.enqueue(function(){
             _val = val; // save the value
-            for (f in _update){
-                try f.linkf(val)
-                catch (e:Dynamic) handleError(e);
+            for (up in _update){
+                try up.linkf(val)
+                catch (e:Dynamic) up.async.handleError(e);
             }
             _fulfilled = true; // we're in a fulfilled state
             _fulfilling = false; // we're done fulfilling for this resolve
@@ -184,7 +184,7 @@ class AsyncBase<T>{
         if (current.isResolved() && !current.isFulfilling()){
             // we can go ahead and resolve this.
             try next.resolve(f(current._val))
-            catch (e:Dynamic) current.handleError(e);
+            catch (e:Dynamic) next.handleError(e);
         }
 
     }
@@ -242,7 +242,7 @@ class AsyncBase<T>{
 
         if (current.isResolved() && !current.isFulfilling()){
             try linkf(current._val)
-            catch (e:Dynamic) current.handleError(e);
+            catch (e:Dynamic) ret.handleError(e);
         }
     }
 

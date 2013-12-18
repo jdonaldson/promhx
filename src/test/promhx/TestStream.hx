@@ -62,22 +62,24 @@ class TestStream {
         var actual = '';
         var s1 = new Stream<Int>();
         var s2 = new Stream<Int>();
+
         var async = Assert.createAsync(function(){
             Assert.equals(expected, actual);
         });
+
         var s3 = s1.pipe(function(x){
             return s2;
         });
-        s2.then(function(x){
+
+        var s4 = s2.then(function(x){
             throw 'a pipe link error';
-        }).error(function(e){
-            // we need to catch an error here too, but we want to test for the
-            // other case.
         });
-        s3.error(function(x){
-            actual = x;
+
+        s4.error(function(e){
+            actual = e;
             async();
         });
+
         s1.resolve(1);
         s2.resolve(1);
     }
@@ -89,11 +91,11 @@ class TestStream {
         var async = Assert.createAsync(function(){
             Assert.equals(expected, actual);
         });
-        s.then(function(x){
+        var s2 = s.then(function(x){
             throw expected;
             return 1;
         });
-        s.error(function(x){
+        s2.error(function(x){
            actual = expected;
            async();
         });
