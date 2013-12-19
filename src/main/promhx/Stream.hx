@@ -148,24 +148,43 @@ class Stream<T> extends AsyncBase<T>{
             async : ret,
             linkf : function(x) if (f(x)) ret.update(x)
         });
-        _error.push(ret.handleError);
+        AsyncBase.immediateLinkUpdate(this, ret, function(x) return x);
         return ret;
     }
 
+    /**
+      Creates a new stream that updates with the values from the current
+      stream until the stream ends, and then takes values from the next stream
+      [s] until that stream ends.
+     **/
     public function concat(s : Stream<T>) : Stream<T> {
         var ret = new Stream<T>();
-        _onend.push(function(){
-            ret._update.push({
+        var concat_arg_to_ret = function(){
+            if (s._end) ret.end();
+            else{
+                s._update.push({
+                    async : ret,
+                    linkf : ret.resolve
+                });
+                AsyncBase.immediateLinkUpdate(s, ret, function(x) return x);
+
+                s._on_end.push({
+                    async : ret,
+                    linkf : function(x) ret.end()
+                });
+            }
+        }
+        if (_end){
+            concat_arg_to_ret();
+        } else {
+            _update.push({
                 async : ret,
-                linkf : s.update
+                linkf : function(x){
+                   concat_arg_to_ret();
+                }
             });
-            ret._error.push(s.handleError);
-        });
-        _update.push({
-            async : ret,
-            linkf : ret.update
-        });
-        _error.push(ret.handleError);
+
+        }
         return ret;
     }
 
@@ -178,12 +197,12 @@ class Stream<T> extends AsyncBase<T>{
             async : ret,
             linkf : ret.update
         });
-        _error.push(ret.handleError);
         s._update.push({
             async : ret,
             linkf : ret.update
         });
-        s._error.push(ret.handleError);
+        AsyncBase.immediateLinkUpdate(this, ret, function(x) return x);
+        AsyncBase.immediateLinkUpdate(s, ret, function(x) return x);
         return ret;
     }
 
@@ -197,3 +216,4 @@ class Stream<T> extends AsyncBase<T>{
     }
 
 }
+
