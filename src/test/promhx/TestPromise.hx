@@ -101,6 +101,26 @@ class TestPromise {
         p2.resolve(0);
     }
 
+    public function errorThen(){
+        var p1 = new Promise<Int>();
+        var expected = 1;
+        var actual = 0;
+        var async = Assert.createAsync(function(){
+            Assert.equals(expected, actual);
+        });
+        p1.then(function(x){
+            throw true;
+            return 2;
+        }).errorThen(function(x){
+            return 1;
+        }).then(function(x){
+            actual = x;
+            async();
+            return 2;
+        });
+        p1.resolve(1);
+    }
+
     public function testSimpleWhenReject(){
         var p1        = new Promise<Int>();
         var p2        = new Promise<Int>();

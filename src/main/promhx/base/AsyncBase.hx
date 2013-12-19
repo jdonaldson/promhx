@@ -55,6 +55,7 @@ class AsyncBase<T>{
     var _fulfilling : Bool;
     var _update     : Array<AsyncLink<T>>;
     var _error      : Array<Dynamic->Void>;
+    var _errorMap   : Dynamic->T;
 
     /**
       Constructor argument can take optional function argument, which adds
@@ -80,6 +81,13 @@ class AsyncBase<T>{
         return this;
     }
 
+    /**
+      Map errors back to the expected type, and continue as normal.
+     **/
+    public function errorThen( f : Dynamic -> T){
+        _errorMap = f;
+        return this;
+    }
 
     /**
       Utility function to determine if a Promise value has been resolved.
@@ -139,11 +147,19 @@ class AsyncBase<T>{
     /**
       Handle errors
      **/
-    function handleError(e : Dynamic) : Void {
-        EventLoop.enqueue(function(){
+    function handleError(error : Dynamic) : Void {
+        var update_errors = function(e:Dynamic){
             if (_error.length > 0) for (ef in _error) ef(e);
             else if (_update.length > 0) for (up in _update) up.async.handleError(e);
-            else  throw e; 
+            else throw e;
+        }
+        EventLoop.enqueue(function(){
+            if (_errorMap != null){
+                try this.resolve(_errorMap(error))
+                catch (e : Dynamic) update_errors(e);
+            } else {
+                update_errors(error);
+            }
         });
     }
 
