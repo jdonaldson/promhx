@@ -33,15 +33,17 @@ import promhx.base.AsyncBase;
 @:expose
 class Stream<T> extends AsyncBase<T>{
     var _end : Bool;
-    var _onend : Array<Void->Void>;
+    var _on_end : Array<AsyncLink<Dynamic>>;
+
     public function new(?errorf : Dynamic->Dynamic){
         super(errorf);
         _end = false;
-        _onend = [];
+        _on_end = [];
     }
+
     /**
       Macro method that binds the stream arguments to a single function
-      callback that is triggered when all streams are resolved.
+      callback that is triggered when all streams are updated.
       Note: You may call this function on as many stream arguments as you
       like.
      **/
@@ -130,13 +132,14 @@ class Stream<T> extends AsyncBase<T>{
         return ret;
     }
 
-    public function end(){
+    public function end<T>(){
         EventLoop.enqueue(function(){
             _end = true;
-            for (f in _onend) try f() catch(e:Dynamic) handleError(e);
+            for (f in _on_end) try f.linkf(null) catch(e:Dynamic) f.async.handleError(e);
             _update = [];
             _error = [];
         });
+        return this;
     }
 
     public function filter(f : T->Bool) : Stream<T>{
