@@ -32,12 +32,14 @@ import promhx.base.AsyncBase;
 
 @:expose
 class Stream<T> extends AsyncBase<T>{
+    var _pause : Bool;
     var _end : Bool;
     var _on_end : Array<Void->Void>;
 
     public function new(?errorf : Dynamic->Dynamic){
         super(errorf);
         _end = false;
+        _pause = false;
         _on_end = [];
     }
 
@@ -123,7 +125,16 @@ class Stream<T> extends AsyncBase<T>{
     public inline function update(val : T) resolve(val);
 
     override public function resolve(val : T) : Void {
-        if (!_end) _resolve(val);
+        if (!_end && !_pause) _resolve(val);
+    }
+
+    /**
+      Momentarily disable updates for the stream.  Set the pause state with 
+      the argument.  Call it without the argument to toggle the current state.
+     **/
+    public function pause(?set : Bool){
+        if (set == null) set == !_pause;
+        _pause = set;
     }
 
     public function pipe<A>(f : T->Stream<A>) : Stream<A> {
