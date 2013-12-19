@@ -38,6 +38,26 @@ class TestStream {
         s.update(1);
         s.end();
     }
+    public function testConcat(){
+        var s1 = new Stream<Int>();
+        var s2 = new Stream<Int>();
+        var expected = [1,2] + '';
+        var arr = [];
+        var async = Assert.createAsync(function(){
+            Assert.equals(expected, arr + '');
+        });
+        var s3 = s1.concat(s2);
+        s3.then(function(x){
+            arr.push(x);
+        });
+        s3.finish(function(){
+            async();
+        });
+        s2.update(2);
+        s1.update(1);
+        s2.end();
+        s1.end();
+    }
 
     public function testFrancoAlwaysFindsABug() {
         var si = new Stream<Int>(),

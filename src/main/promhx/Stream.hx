@@ -33,7 +33,7 @@ import promhx.base.AsyncBase;
 @:expose
 class Stream<T> extends AsyncBase<T>{
     var _end : Bool;
-    var _on_end : Array<AsyncLink<Dynamic>>;
+    var _on_end : Array<Void->Void>;
 
     public function new(?errorf : Dynamic->Dynamic){
         super(errorf);
@@ -132,10 +132,18 @@ class Stream<T> extends AsyncBase<T>{
         return ret;
     }
 
+    public function finish(f : Void->Void){
+        EventLoop.enqueue(function(){
+            if (_end) f();
+            else {
+                _on_end.push(f);
+            }
+        });
+    }
     public function end<T>(){
         EventLoop.enqueue(function(){
             _end = true;
-            for (f in _on_end) try f.linkf(null) catch(e:Dynamic) f.async.handleError(e);
+            for (f in _on_end) try f() catch(e:Dynamic) handleError(e);
             _update = [];
             _error = [];
         });
@@ -159,32 +167,18 @@ class Stream<T> extends AsyncBase<T>{
      **/
     public function concat(s : Stream<T>) : Stream<T> {
         var ret = new Stream<T>();
-        var concat_arg_to_ret = function(){
-            if (s._end) ret.end();
-            else{
-                s._update.push({
-                    async : ret,
-                    linkf : ret.resolve
-                });
-                AsyncBase.immediateLinkUpdate(s, ret, function(x) return x);
-
-                s._on_end.push({
-                    async : ret,
-                    linkf : function(x) ret.end()
-                });
-            }
-        }
-        if (_end){
-            concat_arg_to_ret();
-        } else {
-            _update.push({
-                async : ret,
-                linkf : function(x){
-                   concat_arg_to_ret();
-                }
+        _update.push({
+            async : ret,
+            linkf : ret.update
+        });
+        AsyncBase.immediateLinkUpdate(this, ret, function(x) return x);
+        finish(function(){
+            s.pipe(function(x){
+                ret.resolve(x);
+                return ret;
             });
-
-        }
+            s.finish(ret.end);
+        });
         return ret;
     }
 
