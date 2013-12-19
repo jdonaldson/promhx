@@ -88,7 +88,27 @@ class Stream<T> extends AsyncBase<T>{
         AsyncBase.linkAll(itb, ret);
         return ret;
     }
-    
+
+    /**
+      Concatenates all the streams in the iterable argument to a single stream.  See
+      the [concat] instance method.
+     **/
+    public static function concatAll(itb : Iterable<Stream<Dynamic>>) : Stream<Dynamic> {
+        var ret = new Stream<Dynamic>();
+        for (i in itb) ret.concat(i);
+        return ret;
+    }
+
+    /**
+      Merges all the streams in the iterable argument to a single stream.  See
+      the [merge] instance method.
+     **/
+    public static function mergeAll(itb : Iterable<Stream<Dynamic>>) : Stream<Dynamic> {
+        var ret = new Stream<Dynamic>();
+        for (i in itb) ret.merge(i);
+        return ret;
+    }
+
     /**
       Returns a Promise that will resolve only for the first stream update.
      **/
