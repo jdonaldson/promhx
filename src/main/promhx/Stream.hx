@@ -161,18 +161,26 @@ class Stream<T> extends AsyncBase<T>{
     public function finish(f : Void->Void){
         EventLoop.enqueue(function(){
             if (_end) f();
-            else {
-                _on_end.push(f);
-            }
+            else _on_end.push(f);
         });
     }
-    public function end<T>(){
-        EventLoop.enqueue(function(){
+
+    /**
+      I need this a a private function to call recursively.
+     **/
+    function doFinish(){
+        // If the async is still fulfilling, check on the next loop.
+        if (this.isFulfilling()) EventLoop.enqueue(doFinish);
+        else {
             _end = true;
             for (f in _on_end) try f() catch(e:Dynamic) handleError(e);
             _update = [];
             _error = [];
-        });
+        }
+    }
+
+    public function end<T>(){
+        EventLoop.enqueue(doFinish);
         return this;
     }
 
