@@ -38,6 +38,20 @@ class TestStream {
         s.update(1);
         s.end();
     }
+
+    public function testForeach(){
+        var expected = [1,2,3];
+        var actual = [];
+        var async = Assert.createAsync(function(){
+            Assert.equals( expected +'', actual+'');
+        });
+        var s = Stream.foreach(expected);
+        s.then(actual.push);
+        s.finish(async);
+    }
+
+
+
     public function testConcat(){
         var s1 = new Stream<Int>();
         var s2 = new Stream<Int>();
