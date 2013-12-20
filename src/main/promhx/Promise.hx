@@ -112,7 +112,7 @@ class Promise<T> extends AsyncBase<T>{
     }
 
     /**
-      add a wait function directly to the AsyncBase instance.
+      add a wait function directly to the Promise instance.
      **/
     override public function then<A>(f : T->A): Promise<A> {
         var ret  = new Promise<A>();
