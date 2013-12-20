@@ -82,6 +82,21 @@ class Stream<T> extends AsyncBase<T>{
             { then : varargf };
         }
     }
+    public static function foreach<T>(itb : Iterable<T>) : Stream<T>{
+        var s = new Stream<T>();
+        for (i in itb) s.update(i);
+        s.end();
+        return s;
+    }
+
+    /**
+      add a wait function directly to the Stream instance.
+     **/
+    override public function then<A>(f : T->A): Stream<A> {
+        var ret  = new Stream<A>();
+        AsyncBase.link(this, ret, f);
+        return ret;
+    }
 
     /**
       Transforms an iterable of streams into a single stream which resolves
