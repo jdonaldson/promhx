@@ -70,7 +70,8 @@ class Stream<T> extends AsyncBase<T>{
                 // this new stream resolves via a macro-defined function expression
                 // on "f" that provides arity and types for the resolved stream values.
                 var ret = new Stream();
-                var p = Stream.wheneverAll($eargs);
+                var arr : Array<Stream<Dynamic>> = $eargs;
+                var p = Stream.wheneverAll(arr);
                 p._update.push({
                     async: ret,
                     linkf: function(x) ret.resolve(f($a{epargs}))
@@ -102,8 +103,8 @@ class Stream<T> extends AsyncBase<T>{
       Transforms an iterable of streams into a single stream which resolves
       to an array of values.
      **/
-    public static function wheneverAll(itb : Iterable<Stream<Dynamic>>) : Stream<Array<Dynamic>> {
-        var ret = new Stream<Array<Dynamic>>();
+    public static function wheneverAll<T>(itb : Iterable<Stream<T>>) : Stream<Array<T>> {
+        var ret = new Stream<Array<T>>();
         AsyncBase.linkAll(itb, ret);
         return ret;
     }
@@ -112,8 +113,8 @@ class Stream<T> extends AsyncBase<T>{
       Concatenates all the streams in the iterable argument to a single stream.  See
       the [concat] instance method.
      **/
-    public static function concatAll(itb : Iterable<Stream<Dynamic>>) : Stream<Dynamic> {
-        var ret = new Stream<Dynamic>();
+    public static function concatAll<T>(itb : Iterable<Stream<T>>) : Stream<T> {
+        var ret = new Stream<T>();
         for (i in itb) ret.concat(i);
         return ret;
     }
@@ -122,8 +123,8 @@ class Stream<T> extends AsyncBase<T>{
       Merges all the streams in the iterable argument to a single stream.  See
       the [merge] instance method.
      **/
-    public static function mergeAll(itb : Iterable<Stream<Dynamic>>) : Stream<Dynamic> {
-        var ret = new Stream<Dynamic>();
+    public static function mergeAll<T>(itb : Iterable<Stream<T>>) : Stream<T> {
+        var ret = new Stream<T>();
         for (i in itb) ret.merge(i);
         return ret;
     }
@@ -184,6 +185,10 @@ class Stream<T> extends AsyncBase<T>{
         return this;
     }
 
+    /**
+      Creates a new stream linked to the current instance that only updates
+      if the [f] argument is true.
+     **/
     public function filter(f : T->Bool) : Stream<T>{
         var ret = new Stream<T>();
         _update.push({
