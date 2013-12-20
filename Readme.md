@@ -135,11 +135,11 @@ Promise.when(p1,p2).then(function(x,y) {throw('an error'); return 'hi';})
 // as resolve() returns.
 trace(p1.isResolved());
 
-// Check to see if a promise is in the process of fulfilling.
+// Check to see if a promise is pending operations on the next loop.
 // In some cases promises are not completely resolved.  This can happen if
 // the promise is delaying execution (on flash, js), or is updating other
 // promises.
-trace(p1.isFulfilling());
+trace(p1.isPending());
 
 // Check to see if the promise has completed fulfilling its updates.
 trace(p1.isFulfilled());

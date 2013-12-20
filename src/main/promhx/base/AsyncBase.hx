@@ -52,7 +52,7 @@ class AsyncBase<T>{
     var _val        : T;
     var _resolved   : Bool;
     var _fulfilled  : Bool;
-    var _fulfilling : Bool;
+    var _pending    : Bool;
     var _update     : Array<AsyncLink<T>>;
     var _error      : Array<Dynamic->Void>;
     var _errorMap   : Dynamic->T;
@@ -65,7 +65,7 @@ class AsyncBase<T>{
 #if debug id = id_ctr +=1; #end
 
         _resolved   = false;
-        _fulfilling = false;
+        _pending = false;
         _fulfilled  = false;
         _update     = [];
         _error      = [];
@@ -103,11 +103,11 @@ class AsyncBase<T>{
         return _fulfilled;
 
     /**
-      Utility function to determine if a Promise value is in the process of
-      fulfilling.
+      Utility function to determine if a Promise value is pending operations
+      on the next loop.
      **/
-    public inline function isFulfilling() : Bool
-        return _fulfilling;
+    public inline function isPending() : Bool
+        return _pending;
 
     /**
       Resolves the given value for processing on any waiting functions.
@@ -119,9 +119,9 @@ class AsyncBase<T>{
      **/
     function _resolve(val : T, ?cleanup : Void->Void) : Void {
 
-        // this async is in the process of fulfilling another value, move the
-        // resolve to the next loop
-        if (_fulfilling)
+        // this async is pending an update on the next loop, move the
+        // resolve to the loop after that.
+        if (_pending)
             return EventLoop.enqueue(_resolve.bind(val, cleanup));
 
         // point of no return, this async has now been resolved at least once.
@@ -129,7 +129,7 @@ class AsyncBase<T>{
 
         // we are now in the act of fulfilling the async... which
         // involves waiting for the next enqueued loop
-        _fulfilling = true;
+        _pending = true;
 
         // the loop handler, which may not even be used
         EventLoop.enqueue(function(){
@@ -139,7 +139,7 @@ class AsyncBase<T>{
                 catch (e:Dynamic) up.async.handleError(e);
             }
             _fulfilled = true; // we're in a fulfilled state
-            _fulfilling = false; // we're done fulfilling for this resolve
+            _pending = false; // we're done fulfilling for this resolve
             if (cleanup != null) cleanup(); // we can cleanup if necessary
         });
     }
@@ -197,7 +197,7 @@ class AsyncBase<T>{
     static function immediateLinkUpdate<A,B>
         (current : AsyncBase<A>, next : AsyncBase<B>, f : A->B) : Void
     {
-        if (current.isResolved() && !current.isFulfilling()){
+        if (current.isResolved() && !current.isPending()){
             // we can go ahead and resolve this.
             try next.resolve(f(current._val))
             catch (e:Dynamic) next.handleError(e);
@@ -256,7 +256,7 @@ class AsyncBase<T>{
             linkf : linkf
         });
 
-        if (current.isResolved() && !current.isFulfilling()){
+        if (current.isResolved() && !current.isPending()){
             try linkf(current._val)
             catch (e:Dynamic) ret.handleError(e);
         }

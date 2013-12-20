@@ -169,8 +169,8 @@ class Stream<T> extends AsyncBase<T>{
       I need this a a private function to call recursively.
      **/
     function doFinish(){
-        // If the async is still fulfilling, check on the next loop.
-        if (this.isFulfilling()) EventLoop.enqueue(doFinish);
+        // If the async is still pending, check on the next loop.
+        if (this.isPending()) EventLoop.enqueue(doFinish);
         else {
             _end = true;
             for (f in _on_end) try f() catch(e:Dynamic) handleError(e);

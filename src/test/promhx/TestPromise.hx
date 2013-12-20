@@ -62,7 +62,7 @@ class TestPromise {
     public function testAsynchronousResolving(){
         var p1 = new Promise<Int>();
         p1.resolve(0);
-        Assert.isTrue(p1.isFulfilling(), "p1 was not resolving, should be asynchronous");
+        Assert.isTrue(p1.isPending(), "p1 was not resolving, should be asynchronous");
     }
 
 

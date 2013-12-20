@@ -160,7 +160,7 @@ class TestStream {
     public function testAsynchronousResolving(){
         var s1 = new Stream<Int>();
         s1.resolve(0);
-        Assert.isTrue(s1.isFulfilling(), "s1 was not fulfilling;, should be asynchronous");
+        Assert.isTrue(s1.isPending(), "s1 was not pending, should be asynchronous");
     }
 
 
