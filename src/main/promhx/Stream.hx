@@ -144,7 +144,7 @@ class Stream<T> extends AsyncBase<T>{
     }
 
     /**
-      Momentarily disable updates for the stream.  Set the pause state with 
+      Momentarily disable updates for the stream.  Set the pause state with
       the argument.  Call it without the argument to toggle the current state.
      **/
     public function pause(?set : Bool){
