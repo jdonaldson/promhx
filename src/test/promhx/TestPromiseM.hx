@@ -30,4 +30,19 @@ class TestPromiseM {
         p1.resolve(10);
         p2.resolve('foo');
     }
+
+    public function testError() {
+        var expected = "Test Error";
+        var actual = "";
+        var async = Assert.createAsync(function(){
+            Assert.equals(actual, expected);
+        });
+        PromiseM.dO({
+            throw expected;
+        }).error(function(err){
+            actual = err;
+            async();
+        });
+    }
+
 }

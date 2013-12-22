@@ -29,7 +29,12 @@ import com.mindrocks.monads.Monad;
 class PromiseM {
 
     macro public static function dO(body : Expr)  // the function to trigger the Monad macro.
-        return Monad._dO("promhx.mdo.PromiseM", body, Context);
+    {
+        // wrap the monad chain in a promise, to catch initialization errors.
+        return macro Promise.promise(null).pipe(function(_){
+            return ${Monad._dO("promhx.mdo.PromiseM", body, Context)};
+        });
+    }
 
     inline public static function ret<A>(x : A) // creates an element
         return Promise.promise(x);

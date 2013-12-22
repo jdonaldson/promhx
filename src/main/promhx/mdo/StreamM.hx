@@ -30,7 +30,12 @@ import com.mindrocks.monads.Monad;
 class StreamM {
 
     macro public static function dO(body : Expr)  // the function to trigger the Monad macro.
-        return Monad._dO("promhx.StreamM", body, Context);
+    {
+        // wrap the monad chain in a promise, to catch initialization errors.
+        return macro Stream.stream(null).pipe(function(_){
+            return ${Monad._dO("promhx.StreamM", body, Context)};
+        });
+    }
 
     inline public static function ret<A>(x : A) // creates an element
         return Stream.stream(x);
