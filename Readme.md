@@ -235,5 +235,7 @@ can be used as follows:
    });
 
 ```
+# Acknowledgements
 
+* [Laurent Bédubourg](https://github.com/labe-me) for pull requests and implementation discussions.
 

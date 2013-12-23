@@ -29,18 +29,19 @@ import haxe.macro.Context;
 #end
 import promhx.base.EventLoop;
 import promhx.base.AsyncBase;
+import haxe.ds.Option;
 
 @:expose
 class Stream<T> extends AsyncBase<T>{
     var _pause : Bool;
     var _end : Bool;
-    var _on_end : Array<Void->Void>;
+    var _end_promise : Promise<Option<T>>;
 
     public function new(?errorf : Dynamic->Dynamic){
         super(errorf);
         _end = false;
         _pause = false;
-        _on_end = [];
+        _end_promise = new Promise();
     }
 
     /**
@@ -96,6 +97,7 @@ class Stream<T> extends AsyncBase<T>{
     override public function then<A>(f : T->A): Stream<A> {
         var ret  = new Stream<A>();
         AsyncBase.link(this, ret, f);
+        _end_promise.then(function(x) ret.end());
         return ret;
     }
 
@@ -156,33 +158,33 @@ class Stream<T> extends AsyncBase<T>{
     public function pipe<A>(f : T->Stream<A>) : Stream<A> {
         var ret = new Stream<A>();
         AsyncBase.pipeLink(this, ret, f);
+        _end_promise.then(function(x) ret.end());
         return ret;
-    }
-
-    public function finish(f : Void->Void){
-        EventLoop.enqueue(function(){
-            if (_end) f();
-            else _on_end.push(f);
-        });
     }
 
     /**
       I need this a a private function to call recursively.
      **/
-    function doFinish(){
+    function handleEnd(){
         // If the async is still pending, check on the next loop.
-        if (this.isPending()) EventLoop.enqueue(doFinish);
+        if (this.isPending()) EventLoop.enqueue(handleEnd);
+        else if (_end_promise.isResolved()) return;
         else {
             _end = true;
-            for (f in _on_end) try f() catch(e:Dynamic) handleError(e);
+            var o = isResolved() ? Some(_val) : None;
+            _end_promise.resolve(o);
             _update = [];
             _error = [];
         }
     }
 
-    public function end<T>(){
-        EventLoop.enqueue(doFinish);
+    public function end(){
+        EventLoop.enqueue(handleEnd);
         return this;
+    }
+
+    inline public function endThen<A>(f : Option<T>->A) : Promise<A>{
+       return _end_promise.then(f);
     }
 
     /**
@@ -211,12 +213,14 @@ class Stream<T> extends AsyncBase<T>{
             linkf : ret.update
         });
         AsyncBase.immediateLinkUpdate(this, ret, function(x) return x);
-        finish(function(){
+        endThen(function(_){
             s.pipe(function(x){
                 ret.resolve(x);
                 return ret;
             });
-            s.finish(ret.end);
+            s.endThen(function(_){
+                ret.end();
+            });
         });
         return ret;
     }

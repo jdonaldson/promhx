@@ -33,7 +33,6 @@ class TestStream {
         s.then(function(x){
             actual = x;
             async();
-
         });
         s.update(1);
         s.end();
@@ -43,11 +42,11 @@ class TestStream {
         var expected = [1,2,3];
         var actual = [];
         var async = Assert.createAsync(function(){
-            Assert.equals( expected +'', actual+'');
+            Assert.equals( expected + '', actual + '');
         });
-        var s = Stream.foreach(expected);
-        s.then(actual.push);
-        s.finish(async);
+        var s = Stream.foreach(expected).then(function(x) actual.push(x))
+            .end()
+            .endThen(function(_) async());
     }
 
 
@@ -64,7 +63,7 @@ class TestStream {
         s3.then(function(x){
             arr.push(x);
         });
-        s3.finish(function(){
+        s3.endThen(function(_){
             async();
         });
         s2.update(2);
