@@ -163,7 +163,7 @@ class Stream<T> extends AsyncBase<T>{
     }
 
     /**
-      I need this a a private function to call recursively.
+      I need this as a private function to call recursively.
      **/
     function handleEnd(){
         // If the async is still pending, check on the next loop.

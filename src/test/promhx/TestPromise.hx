@@ -93,7 +93,7 @@ class TestPromise {
         });
         Promise.when(p1, p2).then(function(x, y){
             throw "an error";
-        }).error(function(e){
+        }).catchError(function(e){
             error = true;
             async();
         });
@@ -130,7 +130,7 @@ class TestPromise {
         });
         Promise.when(p1,p2).then(function(x,y){
             Assert.isTrue(false, "The 'then' method should not trigger"); //or whatever make the test fail
-        }).error(function(e){
+        }).catchError(function(e){
             error = true;
             async();
         });

@@ -39,7 +39,7 @@ class TestPromiseM {
         });
         PromiseM.dO({
             throw expected;
-        }).error(function(err){
+        }).catchError(function(err){
             actual = err;
             async();
         });

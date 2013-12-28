@@ -106,14 +106,14 @@ Promise.when(p1,p2).then(function(x,y) return x+y)
 
 // You can easily catch errors by specifying a callback.
 Promise.when(p1,p2).then(function(x,y) throw('an error'))
-    .error(function(x) trace(x));
+    .catchError(function(x) trace(x));
 
 // Errors are propagated through the promise chain.
 // You can rethrow errors to use Haxe's try/catch feature.
 // Stream works the same here too.
 Promise.when(p1,p2).then(function(x,y) {throw('an error'); return 'hi';})
     .then(function(x) return 'a value')
-    .error(function(x) {
+    .catchError(function(x) {
         try {
             throw(x); // rethrow the error value to do standard error handling
         } catch(e:String){

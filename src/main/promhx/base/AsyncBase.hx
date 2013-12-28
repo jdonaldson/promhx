@@ -74,9 +74,11 @@ class AsyncBase<T>{
     }
 
     /**
-      Specify an error handling function
+      Catch error, effectively halting the current update chain.
+      This will prevent downstream async objects from receiving 
+      the error message.
      **/
-    public function error(f : Dynamic->Void) : AsyncBase<T> {
+    public function catchError(f : Dynamic->Void) : AsyncBase<T> {
         _error.push(f);
         return this;
     }

@@ -108,7 +108,7 @@ class TestStream {
             throw 'a pipe link error';
         });
 
-        s4.error(function(e){
+        s4.catchError(function(e){
             actual = e;
             async();
         });
@@ -128,7 +128,7 @@ class TestStream {
             throw expected;
             return 1;
         });
-        s2.error(function(x){
+        s2.catchError(function(x){
            actual = expected;
            async();
         });
@@ -207,7 +207,7 @@ class TestStream {
         });
         Stream.whenever(s1,s2).then(function(x,y){
             throw "an error";
-        }).error(function(e){
+        }).catchError(function(e){
             error = true;
             async();
         });
