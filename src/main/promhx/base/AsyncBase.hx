@@ -158,8 +158,8 @@ class AsyncBase<T>{
       This is the base "link" method for wiring up the "current" async to
       the "next" one via the transform defined by the f argument.
      **/
-    inline public static function link<T,A>
-        (current : AsyncBase<T>, next: AsyncBase<A>, f : T->A) : Void
+    inline public static function link<A,B>
+        (current : AsyncBase<A>, next: AsyncBase<B>, f : A->B) : Void
     {
         // the function wrapper for the callback, which will resolve the return
         // if current is not resolved, or will resolve next loop, push to
@@ -184,7 +184,7 @@ class AsyncBase<T>{
 
     }
 
-    inline public static function linkAll<T,A>
+    inline public static function linkAll<T>
         (all : Iterable<AsyncBase<T>>, next: AsyncBase<Array<T>>) : Void
     {
         // a helper callback function.  This will be called for each Stream in
@@ -214,8 +214,8 @@ class AsyncBase<T>{
       Similar to the link function, except the [f] function must return an
       AsyncBase instance.
      **/
-    inline static public function pipeLink<T,A>
-        ( current : AsyncBase<T>, ret : AsyncBase<A>, f : T->AsyncBase<A> ) : Void
+    inline static public function pipeLink<A,B>
+        ( current : AsyncBase<A>, ret : AsyncBase<B>, f : A->AsyncBase<B> ) : Void
     {
         var linked = false;
         var linkf = function(x){ // updates go to pipe function.
