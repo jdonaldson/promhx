@@ -26,6 +26,23 @@ class TestPromise {
         p1.resolve(0);
     }
 
+    public function testPromiseUnlinkError(){
+        var p = new Promise<Int>();
+        var p2 = p.then(function(x){
+            return x + 1;
+        });
+        var expected = true;
+        var actual = false;
+        var async = Assert.createAsync(function(){
+            Assert.equals(expected,actual);
+        });
+        p.unlink(p2);
+        p.catchError(function(x){
+            actual = true;
+            async();
+        });
+    }
+
     public function testEmptyWhenAll(){
         var expected = 0;
         var actual = 1;

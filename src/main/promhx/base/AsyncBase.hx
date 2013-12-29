@@ -158,6 +158,24 @@ class AsyncBase<T>{
         return ret;
     }
 
+    /**
+      Remove an Async that is updated from this Async.  This action is
+      performed on the next event loop.
+     **/
+    public function unlink( to : AsyncBase<Dynamic>) {
+        EventLoop.enqueue(function(){
+            _update =  _update.filter(function(x) return x.async != to);
+        });
+    }
+
+    /**
+      Determine if an Async is updated from this Async.
+     **/
+    public function isLinked( to : AsyncBase<Dynamic>) : Bool {
+        var updated = false;
+        for (u in _update) if (u.async == to) return true;
+        return updated;
+    }
 
 
     /**

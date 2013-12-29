@@ -23,6 +23,33 @@ class TestStream {
         s1.resolve(0);
     }
 
+    public function testStreamUnlink(){
+        var s = new Stream<Int>();
+        var expected = 1;
+        var actual = 0;
+        var async = Assert.createAsync(function(){
+            Assert.equals(expected, actual);
+        });
+        var s2 = s.then(function(x){
+            actual = x;
+        });
+        s.update(1);
+        s.unlink(s2);
+        s.update(2);
+        s.end();
+        s.endThen(function(x){
+            async();
+        });
+    }
+
+    public function testStreamIsLinked(){
+        var s = new Stream<Int>();
+        var s2 = s.then(function(x){
+            return x + 1;
+        });
+        Assert.isTrue(s.isLinked(s2));
+    }
+
     public function testStreamEnd(){
         var s = new Stream<Int>();
         var expected = 1;

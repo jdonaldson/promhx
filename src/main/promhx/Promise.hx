@@ -99,6 +99,15 @@ class Promise<T> extends AsyncBase<T>{
         return ret;
     }
 
+    override public function unlink( to : AsyncBase<Dynamic>) {
+        EventLoop.enqueue(function(){
+            if (!isFulfilled()) handleError("Downstream Promise is not fullfilled");
+            else{
+                _update =  _update.filter(function(x) return x.async != to);
+            }
+        });
+    }
+
     public function pipe<A>(f : T->Promise<A>) : Promise<A> {
         var ret = new Promise<A>();
         AsyncBase.pipeLink(this, ret, f);
