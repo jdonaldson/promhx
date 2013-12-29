@@ -130,7 +130,13 @@ class AsyncBase<T>{
         var update_errors = function(e:Dynamic){
             if (_error.length > 0) for (ef in _error) ef(e);
             else if (_update.length > 0) for (up in _update) up.async.handleError(e);
-            else throw e;
+            else {
+#if (js && nodejs)
+                // Node sometimes doesn't produce helpful stack information on thrown errors.
+                trace('Call Stack: ' + haxe.CallStack.toString(haxe.CallStack.callStack()));
+#end
+                throw e;
+            }
         }
         EventLoop.enqueue(function(){
             if (_errorMap != null){
