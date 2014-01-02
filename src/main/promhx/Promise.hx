@@ -86,7 +86,10 @@ class Promise<T> extends AsyncBase<T>{
       Resolves the given value for processing on any waiting functions.
      **/
     override public function resolve(val : T): Void {
-        if (_resolved) throw("Promise has already been resolved");
+        if (_resolved) {
+            var msg = "Promise has already been resolved"
+            throw(AlreadyResolved(msg));
+        }
         _resolve(val);
     }
 
@@ -101,7 +104,10 @@ class Promise<T> extends AsyncBase<T>{
 
     override public function unlink( to : AsyncBase<Dynamic>) {
         EventLoop.enqueue(function(){
-            if (!isFulfilled()) handleError("Downstream Promise is not fullfilled");
+            if (!isFulfilled()) {
+                var msg = "Downstream Promise is not fullfilled";
+                handleError(DownstreamNotFullfilled(msg));
+            }
             else{
                 _update =  _update.filter(function(x) return x.async != to);
             }
