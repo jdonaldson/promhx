@@ -7,6 +7,7 @@ import haxe.macro.Context;
 #end
 import promhx.base.EventLoop;
 import promhx.base.AsyncBase;
+import promhx.error.PromiseError;
 
 @:expose
 class Promise<T> extends AsyncBase<T>{
@@ -87,7 +88,7 @@ class Promise<T> extends AsyncBase<T>{
      **/
     override public function resolve(val : T): Void {
         if (_resolved) {
-            var msg = "Promise has already been resolved"
+            var msg = "Promise has already been resolved";
             throw(AlreadyResolved(msg));
         }
         _resolve(val);
