@@ -12,24 +12,24 @@ the values do become available.
 A typical case is to specify a callback for a given promise once the value
 becomes available:
 
-```as3
+```haxe
 promise.then(function(p1) trace("do something with promise's value"));
 ```
 
 Alternatively, you can specify a callback on multiple promise instances using
 the static method "when":
 
-```as3
+```haxe
 Promise.when(promise1, promise2).then(function(p1,p2) trace("do something with the promise values"));
 ```
 
 Streams work more or less the same:
 
-```as3
+```haxe
 stream.then(function(s1) trace("do something with the stream's value"));
 ```
 
-```as3
+```haxe
 Stream.whenever(stream1, stream2).then(function(s1,s2) trace("do something with the stream values"));
 ```
 
@@ -62,10 +62,13 @@ Promises have the following behavior:
 Streams have the following behavior:
 * If a stream is updated more than once in a single loop, the updates will
   happen once per loop in subsequent loops.
-* Promises will remember their resolved value, and any functions specified
+
+Both have the following behavior:
+* Both will remember their resolved value, and any functions specified
   afterwards by "then()" will get their result synchronously.
 
-```as3
+
+```haxe
 // Declare a promised value
 var p1 = new Promise<Int>();
 
@@ -182,7 +185,7 @@ haxe.Http class in the base haxe library.  Note that you cannot change the url
 to re-send the same request to different target urls (as in the original
 haxe.Http class).
 
-```as3
+```haxe
    var h = new promhx.haxe.Http("somefile.txt");
    h.then(function(x){
       trace(x); // this will be the text content from somefile.txt
@@ -194,7 +197,7 @@ Promhx provides some tools for adapting existing event systems into Streams and
 Promises. To do so, it is recommended to import the ```promhx.haxe.EventTools```
 class via "using":
 
-```as3
+```haxe
   using promhx.haxe.EventTools;
   [...]
 
@@ -205,7 +208,7 @@ class via "using":
 # JQueryTools
 Promhx has some JQuery-specific tools, also intended to be used via "using".
 
-```as3
+```haxe
    using js.promhx.JQueryTools;
    [...]
 
@@ -219,7 +222,7 @@ promhx "mdo" module, and the [monax](https://github.com/sledorze/monax) library.
 These macro functions
 can be used as follows:
 
-```as3
+```haxe
    import promhx.mdo.StreamM;
    [...]
    var s1 = new Stream<Int>();
