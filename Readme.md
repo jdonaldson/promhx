@@ -165,6 +165,16 @@ s1.update(1);
 s2.update(2);
 ```
 
+# Error management
+Promhx provides numerous run-time methods for managing errors, including the
+```catchError```, which halts the error propagation, and the ```errorThen```
+function which grants the ability to transform an error back into a normal
+chainable type.  It's also possible to prevent Promhx from handling errors at 
+all by using the ```-D PromhxExposeErrors``` flag.  This will remove the
+try/catch notation from all promise resolvers, enabling the original error 
+behavior to take place.  This can be useful while debugging basic promise
+behavior.
+
 # Event Loop Management
 
 When a promise or stream resolves, it can trigger a large amount of activity,

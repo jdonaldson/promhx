@@ -114,8 +114,12 @@ class AsyncBase<T>{
         EventLoop.enqueue(function(){
             _val = val; // save the value
             for (up in _update){
+#if PromhxExposeErrors
+                up.linkf(val);
+#else
                 try up.linkf(val)
                 catch (e:Dynamic) up.async.handleError(e);
+#end
             }
             _fulfilled = true; // we're in a fulfilled state
             _pending = false; // we're done fulfilling for this resolve
@@ -140,8 +144,12 @@ class AsyncBase<T>{
         }
         EventLoop.enqueue(function(){
             if (_errorMap != null){
+#if PromhxExposeErrors
+                this.resolve(_errorMap(error));
+#else
                 try this.resolve(_errorMap(error))
                 catch (e : Dynamic) update_errors(e);
+#end
             } else {
                 update_errors(error);
             }
@@ -202,8 +210,12 @@ class AsyncBase<T>{
     {
         if (current.isResolved() && !current.isPending()){
             // we can go ahead and resolve this.
+#if PromhxExposeErrors
+            next.resolve(f(current._val));
+#else
             try next.resolve(f(current._val))
             catch (e:Dynamic) next.handleError(e);
+#end
         }
 
     }
@@ -260,8 +272,12 @@ class AsyncBase<T>{
         });
 
         if (current.isResolved() && !current.isPending()){
+#if PromhxExposeErrors
+            linkf(current._val);
+#else
             try linkf(current._val)
             catch (e:Dynamic) ret.handleError(e);
+#end
         }
     }
 
