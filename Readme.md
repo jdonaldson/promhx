@@ -4,10 +4,11 @@
 (https://travis-ci.org/jdonaldson/promhx)
 
 Promhx is a [promise](http://en.wikipedia.org/wiki/Futures_and_promises) and
-[functional reactive programming](TODO) library for [Haxe](http://www.haxe.org).
-The "promise" and "stream" variables contain values that are not immediately
-available. However, you can specify callback functions that will trigger when
-the values do become available.
+[functional reactive
+programming](http://en.wikipedia.org/wiki/Functional_reactive_programming)
+library for [Haxe](http://www.haxe.org).  The "promise" and "stream" variables
+contain values that are not immediately available. However, you can specify
+callback functions that will trigger when the values do become available.
 
 A typical case is to specify a callback for a given promise once the value
 becomes available:
