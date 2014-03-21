@@ -100,31 +100,34 @@ class AsyncBase<T>{
 
         // this async is pending an update on the next loop, move the
         // resolve to the loop after that.
-        if (_pending)
-            return EventLoop.enqueue(_resolve.bind(val, cleanup));
+        if (_pending){
+            EventLoop.enqueue(_resolve.bind(val, cleanup));
+        } else {
 
-        // point of no return, this async has now been resolved at least once.
-        _resolved = true;
+            // point of no return, this async has now been resolved at least once.
+            _resolved = true;
 
-        // we are now in the act of fulfilling the async... which
-        // involves waiting for the next enqueued loop
-        _pending = true;
+            // we are now in the act of fulfilling the async... which
+            // involves waiting for the next enqueued loop
+            _pending = true;
 
-        // the loop handler, which may not even be used
-        EventLoop.enqueue(function(){
-            _val = val; // save the value
-            for (up in _update){
+            // the loop handler, which may not even be used
+            EventLoop.enqueue(function(){
+                _val = val; // save the value
+                for (up in _update){
 #if PromhxExposeErrors
-                up.linkf(val);
+                    up.linkf(val);
 #else
-                try up.linkf(val)
+                    try up.linkf(val)
                 catch (e:Dynamic) up.async.handleError(e);
 #end
-            }
-            _fulfilled = true; // we're in a fulfilled state
-            _pending = false; // we're done fulfilling for this resolve
-            if (cleanup != null) cleanup(); // we can cleanup if necessary
-        });
+                }
+                _fulfilled = true; // we're in a fulfilled state
+                _pending = false; // we're done fulfilling for this resolve
+                if (cleanup != null) cleanup(); // we can cleanup if necessary
+            });
+        }
+
     }
 
     /**
