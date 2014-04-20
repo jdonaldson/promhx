@@ -1,0 +1,9 @@
+
+-cp src/main
+-cp src/test
+-lib monax
+-main TestAllQueue
+-cp ./lib/utest/src
+-php bin/testphp
+-cmd echo "--------------------------------------PHP---------------------------------------"
+-cmd php bin/testphp/index.php

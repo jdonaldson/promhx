@@ -1,0 +1,9 @@
+
+# display completions
+-cp src/main
+-cp src/test
+-lib monax
+-main TestAllQueue
+-cp ./lib/utest/src
+-cmd echo "--------------------------------------NEKO--------------------------------------"
+-x bin/test

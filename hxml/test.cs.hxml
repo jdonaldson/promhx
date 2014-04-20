@@ -1,0 +1,9 @@
+
+-cp src/main
+-cp src/test
+-lib monax
+-main TestAllQueue
+-cp ./lib/utest/src
+-cs bin/testcs
+-cmd echo "---------------------------------------C#---------------------------------------"
+# -cmd java -jar bin/testjava/testjava.jar
