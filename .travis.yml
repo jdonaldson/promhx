@@ -2,7 +2,22 @@
 # It dosen't quite matter for Haxe, just choose one of the targets our project support (e.g. PHP),
 # and than apt-get install the others (e.g. Neko, C++).
 # For more info, see http://about.travis-ci.org/docs/user/ci-environment/
-language: php
+language: php 
+
+env:
+    matrix:
+    - TARGET=cpp
+    - TARGET=cs
+    - TARGET=java
+    - TARGET=neko
+    - TARGET=node
+    - TARGET=php
+
+matrix:
+  fast_finish: true
+  allow_failures:
+    - env: TARGET=cs
+
  
 # Install Haxe before running the test.
 before_script:
@@ -21,7 +36,7 @@ before_script:
  
 # Run the test!
 script:
-  - haxe test_all.hxml
+  - haxe test.${TARGET}.hxml
 
 branches:
       only:
