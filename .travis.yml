@@ -18,20 +18,9 @@ matrix:
   allow_failures:
     - env: TARGET=cs
     - env: TARGET=php
-  include: 
-      - TARGET: cpp
-        before_script:
-            - sudo apt-get install gcc-multilib g++-multilib -y  # VM is 64bit but hxcpp builds 32bit
-            - haxelib install hxcpp         # install hxcpp to test C++ target
-      - TARGET: java
-        before_script:
-            - haxelib install hxjava        # install hxjava to test java target
-      - TARGET: node 
-        before_script:
-            - haxelib install nodejs        # install nodejs for node target 
 
  
-# Install Haxe before running the test.
+# Install Haxe and dependencies before running the test.
 before_script:
   - git submodule update --init --recursive            # update utest
   - sudo add-apt-repository ppa:eyecreate/haxe -y      # add the ubuntu ppa that contains haxe
@@ -40,6 +29,10 @@ before_script:
   - mkdir ~/haxelib                                    # create a folder for installing haxelib
   - haxelib setup ~/haxelib
   - haxelib install monax                              # dependency
+  - sh -c "if [ '$TARGET' = 'cpp' ]; then sudo apt-get install gcc-multilib g++-multilib -y; fi"
+  - sh -c "if [ '$TARGET' = 'cpp' ]; haxelib install hxcpp; fi"
+  - sh -c "if [ '$TARGET' = 'java' ]; haxelib install hxjava; fi"
+  - sh -c "if [ '$TARGET' = 'node' ]; haxelib install nodejs; fi"
  
 # Run the test!
 script:
