@@ -6,6 +6,4 @@
 -cp ./lib/utest/src
 -java bin/testjava
 -cmd echo "--------------------------------------JAVA--------------------------------------"
--cmd ls -l bin
--cmd ls -l bin/testjava
--cmd java -jar bin/testjava/testjava.jar
+-cmd java -jar bin/testjava/TestAllQueue.jar
