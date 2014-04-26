@@ -36,7 +36,7 @@ before_script:
  
 # Run the test!
 script:
-  - haxe test.${TARGET}.hxml
+  - haxe hxml/test.${TARGET}.hxml
 
 branches:
       only:
