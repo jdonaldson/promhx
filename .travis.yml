@@ -30,9 +30,9 @@ before_script:
   - haxelib setup ~/haxelib
   - haxelib install monax                              # dependency
   - sh -c "if [ '$TARGET' = 'cpp' ]; then sudo apt-get install gcc-multilib g++-multilib -y; fi"
-  - sh -c "if [ '$TARGET' = 'cpp' ]; haxelib install hxcpp; fi"
-  - sh -c "if [ '$TARGET' = 'java' ]; haxelib install hxjava; fi"
-  - sh -c "if [ '$TARGET' = 'node' ]; haxelib install nodejs; fi"
+  - sh -c "if [ '$TARGET' = 'cpp' ]; then haxelib install hxcpp; fi"
+  - sh -c "if [ '$TARGET' = 'java' ]; then haxelib install hxjava; fi"
+  - sh -c "if [ '$TARGET' = 'node' ]; then haxelib install nodejs; fi"
  
 # Run the test!
 script:
