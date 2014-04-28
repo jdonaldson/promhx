@@ -3,8 +3,9 @@
 [![Build Status][travis-ci]]
 [travis-ci 2]
 
-Promhx is a [promise][wikipedia] and [functional reactive programming][wikipedia
-2] library for [Haxe][haxe].  The "promise" and "stream" variables contain
+Promhx is a [promise][wikipedia] and 
+[functional reactive programming][wikipedia 2] 
+library for [Haxe][haxe].  The "promise" and "stream" variables contain
 values that are not immediately available. However, you can specify callback
 functions that will trigger when the values do become available.
 
