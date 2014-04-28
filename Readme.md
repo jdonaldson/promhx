@@ -235,7 +235,7 @@ be used as follows:
 
 ```haxe
    import promhx.mdo.StreamM;
-   \\ [...]
+   // ...
    var s1 = new Stream<Int>();
    var s2 = new Stream<Int>();
    var s3 = StreamM.dO({
