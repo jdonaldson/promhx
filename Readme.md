@@ -235,7 +235,7 @@ be used as follows:
 
 ```haxe
    import promhx.mdo.StreamM;
-   [...]
+   \\ [...]
    var s1 = new Stream<Int>();
    var s2 = new Stream<Int>();
    var s3 = StreamM.dO({
@@ -247,6 +247,7 @@ be used as follows:
       trace(x.val1);
       trace(x.val2);
    });
+```
 
 # Detaching Streams
 If it's no longer necessary for one stream to get updated by another, it's
