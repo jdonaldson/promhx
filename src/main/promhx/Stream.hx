@@ -78,11 +78,22 @@ class Stream<T> extends AsyncBase<T>{
     /**
       add a wait function directly to the Stream instance.
      **/
-    override public function then<A>(f : T->A): Stream<A> {
+    override public function then<A>(f : T->A) : Stream<A> {
         var ret  = new Stream<A>();
         AsyncBase.link(this, ret, f);
         _end_promise.then(function(x) ret.end());
         return ret;
+    }
+
+    public function detachStream(str : Stream<Dynamic>) : Bool {
+        var filtered = [];
+        var removed = false;
+        for (u in this._update){
+            if (u.async == str)  removed = true;
+            else filtered.push(u);
+        }
+        this._update = filtered;
+        return removed;
     }
 
     /**

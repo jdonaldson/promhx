@@ -50,6 +50,26 @@ class TestStream {
         Assert.isTrue(s.isLinked(s2));
     }
 
+    public function testDetachStream(){
+        var s = new Stream<Int>();
+        var expected = 0;
+        var actual = 0;
+        var async = Assert.createAsync(function(){
+            Assert.equals(expected, actual);
+        });
+        var s2 = s.then(function(x){
+            Assert.fail("this stream should be detached");
+        });
+        s.then(function(x){
+            async();
+        });
+
+        Assert.isTrue(s.detachStream(s2), "detach should return true");
+        trace(untyped s._update.length);
+        s.resolve(1);
+
+    }
+
     public function testStreamEnd(){
         var s = new Stream<Int>();
         var expected = 1;

@@ -1,14 +1,12 @@
 # Promhx
 
-[![Build Status](https://travis-ci.org/jdonaldson/promhx.png)]
-(https://travis-ci.org/jdonaldson/promhx)
+[![Build Status][travis-ci]]
+[travis-ci 2]
 
-Promhx is a [promise](http://en.wikipedia.org/wiki/Futures_and_promises) and
-[functional reactive
-programming](http://en.wikipedia.org/wiki/Functional_reactive_programming)
-library for [Haxe](http://www.haxe.org).  The "promise" and "stream" variables
-contain values that are not immediately available. However, you can specify
-callback functions that will trigger when the values do become available.
+Promhx is a [promise][wikipedia] and [functional reactive programming][wikipedia
+2] library for [Haxe][haxe].  The "promise" and "stream" variables contain
+values that are not immediately available. However, you can specify callback
+functions that will trigger when the values do become available.
 
 A typical case is to specify a callback for a given promise once the value
 becomes available:
@@ -42,7 +40,8 @@ managing events.
 Promhx has a number of powerful features:
 
 * Fully cross-platform for php, c#, c++, java, js (nodejs and browser js), neko,
-  and flash.
+  and flash.  Check the [travis-ci build matrix][travis-ci 2]
+  for the status of different targets.
 * Very efficient code that ranks among the fastest promise libraries for js.
 * Type safety without requiring excessive boilerplate.
 * Staggered promise/stream updates occur once per event loop, preventing
@@ -228,10 +227,10 @@ Promhx has some JQuery-specific tools, also intended to be used via "using".
 ```
 
 # Macro do-notation
+
 Promhx has the ability to "compose" promise and streams using classes in the
-promhx "mdo" module, and the [monax](https://github.com/sledorze/monax) library.
-These macro functions
-can be used as follows:
+promhx "mdo" module, and the [monax][github] library.  These macro functions can
+be used as follows:
 
 ```haxe
    import promhx.mdo.StreamM;
@@ -248,8 +247,34 @@ can be used as follows:
       trace(x.val2);
    });
 
+# Detaching Streams
+If it's no longer necessary for one stream to get updated by another, it's
+possible to detach them so that updates are no longer received.  In order
+to detach a stream, you must save a reference to it.
+
+```haxe
+var s = new Stream<Int>();
+var s2 = s.then(function(x){
+      trace("won't get called since this will be detached");
+      });
+
+s.detachStream(s2);
+s.update(1);
+
 ```
+By saving the stream created as a result of the ```then``` function, we can 
+detach it later.  Only streams that are directly updated by the parent stream
+are detachable.  
+
+
 # Acknowledgements
 
-* [Laurent Bédubourg](https://github.com/labe-me) for pull requests and implementation discussions.
+* [Laurent Bédubourg][github 2] for pull requests and implementation discussions.
 
+[github]: https://github.com/sledorze/monax
+[github 2]: https://github.com/labe-me
+[haxe]: http://www.haxe.org
+[travis-ci]: https://travis-ci.org/jdonaldson/promhx.png
+[travis-ci 2]: https://travis-ci.org/jdonaldson/promhx
+[wikipedia]: http://en.wikipedia.org/wiki/Futures_and_promises
+[wikipedia 2]: http://en.wikipedia.org/wiki/Functional_reactive_programming
