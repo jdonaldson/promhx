@@ -1,10 +1,16 @@
 package promhx;
 
+@:expose
 class Deferred<T> {
     var _update : Array<{func: T->Dynamic, error: Dynamic->Void}>;
+
     public function new(){
         this._update = [];
     }
+
+    /**
+      The public write interface
+     **/
     public function resolve(val:T){
         for (u in _update) {
             if (u.error != null){
@@ -17,6 +23,9 @@ class Deferred<T> {
         }
     }
 
+    /**
+      Register callbacks directly to a Deferred instance. 
+     **/
     public function then<X>(func : T->X, ?error : Dynamic->Void){
         _update.push({func : func, error: error});
     }
