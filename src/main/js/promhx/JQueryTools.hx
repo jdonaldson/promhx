@@ -2,6 +2,7 @@ package js.promhx;
 
 import promhx.Stream;
 import promhx.Promise;
+import promhx.Deferred;
 import js.JQuery;
 import js.JQuery.JqEvent;
 import js.html.MouseEvent;
@@ -24,8 +25,9 @@ class JQueryTools {
     public static function bindStream
         (f:(JqEvent->Void)->JQuery) : Stream<JqEvent>
         {
-            var str = new Stream<JqEvent>();
-            f(str.update);
+            var def = new Deferred<JqEvent>();
+            var str = new Stream(def);
+            f(def.resolve);
             return str;
         }
 
@@ -36,8 +38,9 @@ class JQueryTools {
     public static function eventStream
         ( jq : JQuery, events : String) : Stream<JqEvent>
         {
-            var str = new Stream<JqEvent>();
-            jq.on(events, str.update);
+            var def = new Deferred<JqEvent>();
+            var str = new Stream(def);
+            jq.on(events, def.resolve);
             return str;
         }
 
@@ -49,9 +52,10 @@ class JQueryTools {
     public static function loadPromise
         ( jq : JQuery, url : String, ?data : {} ) : Promise<LoadResponse>
         {
-            var pro = new Promise<LoadResponse>();
+            var def = new Deferred<LoadResponse>();
+            var pro = new Promise(def);
             jq.load(url, data, function(responseText, textStatus){
-                pro.resolve({
+                def.resolve({
                     responseText  : responseText,
                     textStatus    : textStatus
                 });

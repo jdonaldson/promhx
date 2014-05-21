@@ -22,13 +22,15 @@ class Http extends Promise<Null<String>>{
     public function new(url : String){
         super();
         _http = new haxe.Http(url);
-        _http.onData = resolve;
+        _http.onData = handleResolve;
         _http.onError = reject;
     }
+
     function get_status() : Stream<Dynamic> {
         if (_status == null){
-            _status = new Stream<Dynamic>();
-            _http.onStatus = _status.update;
+            var def = new Deferred<Dynamic>();
+            _http.onStatus = def.resolve;
+            _status = def.stream();
         }
         return _status;
     }

@@ -10,16 +10,14 @@ import promhx.base.AsyncBase;
 import haxe.ds.Option;
 
 @:expose
-class Stream<T> extends AsyncBase<T>{
+class Stream<T> extends AsyncBase<T> {
+    var deferred : Deferred<T>;
     var _pause : Bool;
     var _end : Bool;
     var _end_promise : Promise<Option<T>>;
 
-    public function new(?errorf : Dynamic->Dynamic){
-        super(errorf);
-        _end = false;
-        _pause = false;
-        _end_promise = new Promise();
+    public function new(?d : Deferred<T>){
+        super(d);
     }
 
     /**
@@ -53,7 +51,7 @@ class Stream<T> extends AsyncBase<T>{
                 var p = Stream.wheneverAll(arr);
                 p._update.push({
                     async: ret,
-                    linkf: function(x) ret.resolve(f($a{epargs}))
+                    linkf: function(x) ret.handleResolve(f($a{epargs}))
                 });
                 return ret;
             };
@@ -69,7 +67,7 @@ class Stream<T> extends AsyncBase<T>{
      **/
     public static function foreach<T>(itb : Iterable<T>) : Stream<T> {
         var s = new Stream<T>();
-        for (i in itb) s.update(i);
+        for (i in itb) s.handleResolve(i);
         s.end();
         return s;
     }
@@ -131,13 +129,11 @@ class Stream<T> extends AsyncBase<T>{
      **/
     public inline function first() : Promise<T> {
         var s = new Promise<T>();
-        this.then(function(x) if (!s.isResolved()) s.resolve(x));
+        this.then(function(x) if (!s.isResolved()) s.handleResolve(x));
         return s;
     }
 
-    public inline function update(val : T) resolve(val);
-
-    override public function resolve(val : T) : Void {
+    override function handleResolve(val : T) : Void {
         if (!_end && !_pause) _resolve(val);
     }
 
@@ -167,7 +163,7 @@ class Stream<T> extends AsyncBase<T>{
         else {
             _end = true;
             var o = isResolved() ? Some(_val) : None;
-            _end_promise.resolve(o);
+            _end_promise.handleResolve(o);
             _update = [];
             _error = [];
         }
@@ -190,7 +186,7 @@ class Stream<T> extends AsyncBase<T>{
         var ret = new Stream<T>();
         _update.push({
             async : ret,
-            linkf : function(x) if (f(x)) ret.update(x)
+            linkf : function(x) if (f(x)) ret.handleResolve(x)
         });
         AsyncBase.immediateLinkUpdate(this, ret, function(x) return x);
         return ret;
@@ -205,12 +201,12 @@ class Stream<T> extends AsyncBase<T>{
         var ret = new Stream<T>();
         _update.push({
             async : ret,
-            linkf : ret.update
+            linkf : ret.handleResolve
         });
         AsyncBase.immediateLinkUpdate(this, ret, function(x) return x);
         endThen(function(_){
             s.pipe(function(x){
-                ret.resolve(x);
+                ret.handleResolve(x);
                 return ret;
             });
             s.endThen(function(_){
@@ -227,11 +223,11 @@ class Stream<T> extends AsyncBase<T>{
         var ret = new Stream<T>();
         _update.push({
             async : ret,
-            linkf : ret.update
+            linkf : ret.handleResolve
         });
         s._update.push({
             async : ret,
-            linkf : ret.update
+            linkf : ret.handleResolve
         });
         AsyncBase.immediateLinkUpdate(this, ret, function(x) return x);
         AsyncBase.immediateLinkUpdate(s, ret, function(x) return x);
@@ -241,9 +237,9 @@ class Stream<T> extends AsyncBase<T>{
     /**
       Converts any value to a resolved Stream
      **/
-    public static function stream<A>(_val : A, ?errorf : Dynamic->Dynamic): Stream<A> {
-        var ret = new Stream<A>(errorf);
-        ret.resolve(_val);
+    public static function stream<A>(_val : A): Stream<A> {
+        var ret = new Stream<A>();
+        ret.handleResolve(_val);
         return ret;
     }
 
