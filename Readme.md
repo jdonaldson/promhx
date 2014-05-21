@@ -285,6 +285,9 @@ By saving the stream created as a result of the ```then``` function, we can
 detach it later.  Only streams that are directly updated by the parent stream
 are detachable.  
 
+#Node.js 
+Promhx supports Node.js but becuase there is no node.js compile target you must pass `-D nodejs` and `-lib nodejs` to the compiler.
+
 
 # Acknowledgements
 
