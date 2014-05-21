@@ -3,8 +3,9 @@
 [![Build Status][travis-ci]]
 [travis-ci 2]
 
-Promhx is a [promise][wikipedia] and [functional reactive programming][wikipedia
-2] library for [Haxe][haxe].  The "promise" and "stream" variables contain
+Promhx is a [promise][wikipedia] and 
+[functional reactive programming][wikipedia 2] 
+library for [Haxe][haxe].  The "promise" and "stream" variables contain
 values that are not immediately available. However, you can specify callback
 functions that will trigger when the values do become available.
 
@@ -234,7 +235,7 @@ be used as follows:
 
 ```haxe
    import promhx.mdo.StreamM;
-   [...]
+   // ...
    var s1 = new Stream<Int>();
    var s2 = new Stream<Int>();
    var s3 = StreamM.dO({
@@ -246,6 +247,7 @@ be used as follows:
       trace(x.val1);
       trace(x.val2);
    });
+```
 
 # Detaching Streams
 If it's no longer necessary for one stream to get updated by another, it's
