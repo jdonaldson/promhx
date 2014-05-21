@@ -10,20 +10,22 @@ class TestPromise {
     public function testSimplePipe(){
         var expected = 1;
         var actual = 0;
-        var p1 = new Promise<Int>();
-        var p2 = new Promise<Int>();
+        var d1 = new Deferred<Int>();
+        var d2 = new Deferred<Int>();
+        var p1 = d1.promise(); 
+        var p2 = d2.promise(); 
         var async = Assert.createAsync(function(){
             Assert.equals(expected,actual);
         });
         p1.pipe(function(x) {
-            p2.resolve(expected);
+            d2.resolve(expected);
             return p2;
         });
         p2.then(function(x){
             actual = x;
             async();
         });
-        p1.resolve(0);
+        d1.resolve(0);
     }
 
     public function testPromiseUnlinkError(){
@@ -56,7 +58,8 @@ class TestPromise {
     }
 
     public function testSimpleThen(){
-        var p1 = new Promise<Int>();
+        var d1 = new Deferred<Int>();
+        var p1 = d1.promise();
         var expected = 1;
         var actual:Int = 0;
         var async = Assert.createAsync(function(){
@@ -66,19 +69,21 @@ class TestPromise {
             actual = x;
             async();
         });
-        p1.resolve(expected);
+        d1.resolve(expected);
     }
 
 
     public function testResolved(){
-        var p1 = new Promise<Int>();
-        p1.resolve(0);
+        var d1 = new Deferred<Int>();
+        var p1 = d1.promise();
+        d1.resolve(0);
         Assert.isTrue(p1.isResolved());
     }
 
     public function testAsynchronousResolving(){
-        var p1 = new Promise<Int>();
-        p1.resolve(0);
+        var d1 = new Deferred<Int>();
+        var p1 = d1.promise();
+        d1.resolve(0);
         Assert.isTrue(p1.isPending(), "p1 was not resolving, should be asynchronous");
     }
 
@@ -86,10 +91,12 @@ class TestPromise {
     public function testSimpleWhen(){
         var expected1 = 4;
         var expected2 = 5;
-        var p1        = new Promise<Int>();
-        var p2        = new Promise<Int>();
-        var expected = expected1 + expected2;
-        var actual = 0;
+        var d1        = new Deferred<Int>();
+        var d2        = new Deferred<Int>();
+        var p1        = d1.promise();
+        var p2        = d2.promise();
+        var expected  = expected1 + expected2;
+        var actual    = 0;
         var async = Assert.createAsync(function(){
             Assert.equals(expected, actual);
         });
@@ -97,13 +104,15 @@ class TestPromise {
             actual = x + y;
             async();
         });
-        p1.resolve(expected1);
-        p2.resolve(expected2);
+        d1.resolve(expected1);
+        d2.resolve(expected2);
     }
 
     public function testSimpleWhenError(){
-        var p1        = new Promise<Int>();
-        var p2        = new Promise<Int>();
+        var d1        = new Deferred<Int>();
+        var d2        = new Deferred<Int>();
+        var p1        = d1.promise(); 
+        var p2        = d2.promise(); 
         var error = false;
         var async = Assert.createAsync(function(){
             Assert.isTrue(error);
@@ -114,11 +123,12 @@ class TestPromise {
             error = true;
             async();
         });
-        p1.resolve(0);
-        p2.resolve(0);
+        d1.resolve(0);
+        d2.resolve(0);
     }
 
     public function errorThen(){
+        var d1        = new Deferred<Int>();
         var p1 = new Promise<Int>();
         var expected = 1;
         var actual = 0;
@@ -135,12 +145,14 @@ class TestPromise {
             async();
             return 2;
         });
-        p1.resolve(1);
+        d1.resolve(1);
     }
 
     public function testSimpleWhenReject(){
-        var p1        = new Promise<Int>();
-        var p2        = new Promise<Int>();
+        var d1        = new Deferred<Int>();
+        var d2        = new Deferred<Int>();
+        var p1        = d1.promise();
+        var p2        = d2.promise();
         var error = false;
         var async = Assert.createAsync(function(){
             Assert.isTrue(error);
@@ -152,13 +164,14 @@ class TestPromise {
             async();
         });
         p1.reject("error");
-        p2.resolve(0);
+        d2.resolve(0);
     }
 
     public function testChainedThen(){
         var resolved1 = 1;
         var resolved2 = 2;
-        var p1        = new Promise<Int>();
+        var d1        = new Deferred<Int>();
+        var p1        = d1.promise(); 
         var p2        = p1.then(function(x){
             return resolved2;
         });
@@ -171,7 +184,7 @@ class TestPromise {
             actual = x;
             async();
         });
-        p1.resolve(resolved1);
+        d1.resolve(resolved1);
     }
 
 

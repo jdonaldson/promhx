@@ -69,9 +69,22 @@ Both have the following behavior:
   afterwards by "then()" will get their result synchronously.
 
 
+Promise and Streams both have *private* interfaces for resolving their values as
+of version 1.0.  Both types accept a new Deferred instance as an argument.  The
+Deferred instance acts as the writable interface, allowing developers to protect
+Streams and Promises from write activity in parts of code that they don't
+control.
+
+There is also a PublicStream class that provides public write access, if that is
+necessary.
+
 ```haxe
-// Declare a promised value
-var p1 = new Promise<Int>();
+// Declare a deferred, which is the writable interface.
+var dp1 = new Deferred<Int>();
+
+// Declare a promised value, using the deferred
+var p1 = new Promise<Int>(d1);
+// var p1 = dp1.promise(); // alternate form
 
 // Simple: deliver promise when value is available. Stream works the same.
 p1.then(function(x) trace("delivered " + x));
@@ -79,15 +92,18 @@ p1.then(function(x) trace("delivered " + x));
 // Deliver multiple promises when they are all available.
 // the "then" function must match the types and arity of the contained values
 // from the arguments to "when".
-var p2 = new Promise<Int>();
+var dp2 = new Deferred<Int>();
+var p2 = dp2.promise();
 Promise.when(p1,p2).then(function(x,y)trace(x+y));
 
 
 // Stream has its own "when" based method, called "whenever".  Note that
 // the returned stream value will resolve whenver *any one* of the stream
 // arguments changes.
-var s1 = new Stream<Int>();
-var s2 = new Stream<Int>();
+var ds1 = new Deferred<Int>();
+var ds2 = new Deferred<Int>();
+var s1 = ds1.stream(); 
+var s2 = ds2.stream(); 
 Stream.whenever(s1,s2).then(function(x,y)trace(x+y));
 
 
@@ -98,7 +114,8 @@ Stream.whenever(s1,p1).then(function(x,y)trace(x+y));
 Promise.when(p1,p2).then(function(x,y) return x+y)
     .then(function(x) trace(x+1));
 
-var p3 = new Promise<String>();
+var dp3 = new Deferred<String>();
+var p3 = dp3.promise(); 
 
 // The pipe method lets you manually specify a new Promise to chain
 // to.  It can be pre-existing, or created by the method itself.  Stream
@@ -155,15 +172,14 @@ trace(p1.isRejected());
 
 // finally, resolve the promise values, which will start the
 // evaluation of all promises.
-p1.resolve(1);
-p2.resolve(2);
-p3.resolve('hi');
+dp1.resolve(1);
+dp2.resolve(2);
+dp3.resolve('hi');
 
-// You can "resolve" a stream as well since they share a base class, but an
-// alias called "update" is provided to make this a bit clearer:
-s1.resolve(1);
-s1.update(1);
-s2.update(2);
+// You can "resolve" a stream as well
+ds1.resolve(1);
+ds1.update(1);
+ds2.update(2);
 ```
 
 # Error management
@@ -255,13 +271,14 @@ possible to detach them so that updates are no longer received.  In order
 to detach a stream, you must save a reference to it.
 
 ```haxe
-var s = new Stream<Int>();
+var ds = new Deferred<Int>();
+var s = ds.stream();
 var s2 = s.then(function(x){
       trace("won't get called since this will be detached");
       });
 
 s.detachStream(s2);
-s.update(1);
+ds.resolve(1);
 
 ```
 By saving the stream created as a result of the ```then``` function, we can 

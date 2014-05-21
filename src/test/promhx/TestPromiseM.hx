@@ -10,8 +10,10 @@ class TestPromiseM {
         var expected2 = 'foo';
         var actual1 = 0;
         var actual2 = 'bar';
-        var p1 = new Promise<Int>();
-        var p2 = new Promise<String>();
+        var d1 = new Deferred<Int>();
+        var d2 = new Deferred<String>();
+        var p1 = d1.promise(); 
+        var p2 = d2.promise(); 
         var val2 = null;
         var p3 = PromiseM.dO({
             val1 <= p1;
@@ -27,8 +29,8 @@ class TestPromiseM {
             actual2 = y.val2;
             async();
         });
-        p1.resolve(10);
-        p2.resolve('foo');
+        d1.resolve(10);
+        d2.resolve('foo');
     }
 
     public function testError() {
