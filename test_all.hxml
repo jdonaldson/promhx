@@ -24,7 +24,7 @@ hxml/test.java.hxml
 
 --next
 # TODO - figure out what is happening with php
-# hxml/test.java.hxml
+# hxml/test.php.hxml
 
 --next
 hxml/test.cs.hxml

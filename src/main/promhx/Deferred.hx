@@ -36,10 +36,18 @@ class Deferred<T> {
     public function promise(){
         return new Promise(this);
     }
+
     /**
       Returns a stream based on the current deferred instance
      **/
     public function stream(){
         return new Stream(this);
+    }
+
+    /**
+      Returns a stream based on the current deferred instance
+     **/
+    public function publicStream(){
+        return new PublicStream(this);
     }
 }
