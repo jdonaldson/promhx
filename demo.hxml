@@ -1,5 +1,6 @@
 -cp ./src/demo
 -cp ./src/main
+-D debug
 -main Demo
 # -swf ./demo/demo.swf
 -js ./demo/demo.js
