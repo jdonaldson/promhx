@@ -5,8 +5,8 @@
   "classPath": "src/main",
   "tags": ["asynchronous", "async"],
   "description": "Promhx is a promise library for Haxe. Promises contain values that are not immediately available. However, you can specify callback functions that will trigger when the values do become available. ",
-  "releasenote": "Add missing publicStream method",
-  "version": "1.0.1",
+  "releasenote": "Add a cancel method for promhx.haxe.http",
+  "version": "1.0.2",
   "contributors": ["jdonaldson"],
   "dependencies": {"monax":""}
 }
