@@ -38,8 +38,11 @@ class AsyncBase<T>{
       Constructor argument can take optional function argument, which adds
       a callback to the error handler chain.
      **/
-    public function new(?errorf : Dynamic->Void) {
+    public function new(?d:Deferred<T>) {
 #if debug id = id_ctr +=1; #end
+        if (d != null){ 
+            d.then(handleResolve, handleError ); 
+        }
 
         _resolved   = false;
         _pending = false;
@@ -47,7 +50,6 @@ class AsyncBase<T>{
         _update     = [];
         _error      = [];
 
-        if (errorf != null) _error.push(errorf);
     }
 
     /**
@@ -88,20 +90,19 @@ class AsyncBase<T>{
     public inline function isPending() : Bool
         return _pending;
 
-    /**
-      Resolves the given value for processing on any waiting functions.
-     **/
-    public function resolve(val : T) : Void  _resolve(val);
 
+    function handleResolve(val:T) : Void {
+        _resolve(val);
+    }
     /**
       Resolves the given value for processing on any waiting functions.
      **/
-    function _resolve(val : T, ?cleanup : Void->Void) : Void {
+    function _resolve(val : T) : Void {
 
         // this async is pending an update on the next loop, move the
         // resolve to the loop after that.
         if (_pending){
-            EventLoop.enqueue(_resolve.bind(val, cleanup));
+            EventLoop.enqueue(_resolve.bind(val));
         } else {
 
             // point of no return, this async has now been resolved at least once.
@@ -124,7 +125,6 @@ class AsyncBase<T>{
                 }
                 _fulfilled = true; // we're in a fulfilled state
                 _pending = false; // we're done fulfilling for this resolve
-                if (cleanup != null) cleanup(); // we can cleanup if necessary
             });
         }
 
@@ -148,9 +148,10 @@ class AsyncBase<T>{
         EventLoop.enqueue(function(){
             if (_errorMap != null){
 #if PromhxExposeErrors
-                this.resolve(_errorMap(error));
+                this._resolve(_errorMap(error));
+            resolve(_errorMap(error));
 #else
-                try this.resolve(_errorMap(error))
+                try this._resolve(_errorMap(error))
                 catch (e : Dynamic) update_errors(e);
 #end
             } else {
@@ -202,7 +203,7 @@ class AsyncBase<T>{
         current._update.push({
             async : next,
             linkf : function(x){
-                next.resolve(f(x));
+                next.handleResolve(f(x));
             }
         });
         immediateLinkUpdate(current, next, f);
@@ -214,9 +215,9 @@ class AsyncBase<T>{
         if (current.isResolved() && !current.isPending()){
             // we can go ahead and resolve this.
 #if PromhxExposeErrors
-            next.resolve(f(current._val));
+            next.handleResolve(f(current._val));
 #else
-            try next.resolve(f(current._val))
+            try next.handleResolve(f(current._val))
             catch (e:Dynamic) next.handleError(e);
 #end
         }
@@ -233,7 +234,7 @@ class AsyncBase<T>{
         var cthen = function(arr:Array<AsyncBase<T>>, current:AsyncBase<T>,  v){
             if (arr.length == 0 || AsyncBase.allFulfilled(arr)){
                 var vals = [for (a in all) a == current ? v : a._val];
-                next.resolve(vals);
+                next.handleResolve(vals);
             }
             return null;
         };
@@ -245,7 +246,7 @@ class AsyncBase<T>{
         }
 
         if (AsyncBase.allFulfilled(all)) {
-            next.resolve([for (a in all) a._val]);
+            next.handleResolve([for (a in all) a._val]);
         }
     }
 
@@ -263,7 +264,7 @@ class AsyncBase<T>{
                     var pipe_ret = f(x); // it just needs to be created
                     pipe_ret._update.push({  // and to be linked to ret
                         async : ret, // errors go to ret
-                        linkf : ret.resolve // updates go directly to ret
+                        linkf : ret.handleResolve // updates go directly to ret
                     });
                     immediateLinkUpdate(pipe_ret, ret, function(x) return x );
                 }

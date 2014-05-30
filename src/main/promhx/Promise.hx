@@ -12,8 +12,8 @@ import promhx.error.PromiseError;
 @:expose
 class Promise<T> extends AsyncBase<T>{
     var _rejected   : Bool;
-    public function new(?errorf : Dynamic->Dynamic){
-        super(errorf);
+    public function new(?d:Deferred<T>){
+        super(d);
         _rejected = false;
     }
 
@@ -48,7 +48,7 @@ class Promise<T> extends AsyncBase<T>{
                 var p = Promise.whenAll(arr);
                 p._update.push({
                     async : ret,
-                    linkf : function(x) ret.resolve(f($a{epargs}))
+                    linkf : function(x) ret.handleResolve(f($a{epargs}))
                 });
                 return ret;
             };
@@ -86,7 +86,7 @@ class Promise<T> extends AsyncBase<T>{
     /**
       Resolves the given value for processing on any waiting functions.
      **/
-    override public function resolve(val : T): Void {
+    override function handleResolve(val : T): Void {
         if (_resolved) {
             var msg = "Promise has already been resolved";
             throw(AlreadyResolved(msg));
@@ -125,9 +125,9 @@ class Promise<T> extends AsyncBase<T>{
     /**
       Converts any value to a resolved Promise
      **/
-    public static function promise<T>(_val : T, ?errorf : Dynamic->Dynamic): Promise<T> {
-        var ret = new Promise<T>(errorf);
-        ret.resolve(_val);
+    public static function promise<T>(_val : T): Promise<T> {
+        var ret = new Promise<T>();
+        ret.handleResolve(_val);
         return ret;
     }
 }

@@ -1,19 +1,20 @@
 package promhx.haxe;
 import promhx.Promise;
 import promhx.Stream;
+import promhx.haxe.http.Cancel;
 
 class Http extends Promise<Null<String>>{
     var _http : haxe.Http;
-    var status(get, null) : Stream<Dynamic>;
-    var _status : Stream<Dynamic>;
+    public var status(default, null) : Stream<Dynamic>;
 
 #if sys
 	public var noShutdown : Bool;
 	public var cnxTimeout : Float;
-	public var responseHeaders : haxe.ds.StringMap<String>;
+	public var responseHeaders : Map<String>;
 #elseif js
 	public var async : Bool;
 #end
+    var _cancel : promhx.haxe.http.Cancel;
 
 	#if sys
 	public static var PROXY : { host : String, port : Int, auth : { user : String, pass : String } } = null;
@@ -22,16 +23,27 @@ class Http extends Promise<Null<String>>{
     public function new(url : String){
         super();
         _http = new haxe.Http(url);
-        _http.onData = resolve;
-        _http.onError = reject;
-    }
-    function get_status() : Stream<Dynamic> {
-        if (_status == null){
-            _status = new Stream<Dynamic>();
-            _http.onStatus = _status.update;
+        _http.onData = handleResolve;
+        _http.onError = function(e){
+            if (_cancel != null){
+                // Http instance is in a cancelled state.
+                if (_cancel.reason == null) _cancel = new Cancel(e); 
+                // if no reason is given, use the error as a reason.
+                reject(_cancel);
+            }
+            else reject(e);
+
         }
-        return _status;
+        var status_def = new Deferred<Dynamic>();
+        _http.onStatus = status_def.resolve;
+        status = status_def.stream();
     }
+
+    public function cancel<T>(?reason : Dynamic) {
+        _cancel = new Cancel(reason);
+        _http.cancel();
+    }
+
 
 	/**
 		Sets the header identified as [header] to value [value].
@@ -103,5 +115,5 @@ class Http extends Promise<Null<String>>{
 	    _http.customRequest(post, api, sock, method);
     }
 #end
-
 }
+

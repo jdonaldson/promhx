@@ -1,4 +1,5 @@
 package promhx;
+import promhx.PublicStream;
 import promhx.Stream;
 import promhx.base.EventLoop;
 import utest.Assert;
@@ -7,7 +8,7 @@ class TestStream {
     public function new(){}
 
     public function testSimpleFilter(){
-        var s1 = new Stream<Int>();
+        var s1 = new PublicStream<Int>();
         var expected = 1;
         var actual:Int = 0;
         var async = Assert.createAsync(function(){
@@ -23,8 +24,8 @@ class TestStream {
         s1.resolve(0);
     }
 
-    public function testStreamUnlink(){
-        var s = new Stream<Int>();
+    public function testPublicStreamUnlink(){
+        var s = new PublicStream<Int>();
         var expected = 1;
         var actual = 0;
         var async = Assert.createAsync(function(){
@@ -42,16 +43,16 @@ class TestStream {
         });
     }
 
-    public function testStreamIsLinked(){
-        var s = new Stream<Int>();
+    public function testPublicStreamIsLinked(){
+        var s = new PublicStream<Int>();
         var s2 = s.then(function(x){
             return x + 1;
         });
         Assert.isTrue(s.isLinked(s2));
     }
 
-    public function testDetachStream(){
-        var s = new Stream<Int>();
+    public function testDetachPublicStream(){
+        var s = new PublicStream<Int>();
         var expected = 0;
         var actual = 0;
         var async = Assert.createAsync(function(){
@@ -70,8 +71,8 @@ class TestStream {
 
     }
 
-    public function testStreamEnd(){
-        var s = new Stream<Int>();
+    public function testPublicStreamEnd(){
+        var s = new PublicStream<Int>();
         var expected = 1;
         var actual = 0;
         var async = Assert.createAsync(function(){
@@ -99,8 +100,8 @@ class TestStream {
 
 
     public function testConcat(){
-        var s1 = new Stream<Int>();
-        var s2 = new Stream<Int>();
+        var s1 = new PublicStream<Int>();
+        var s2 = new PublicStream<Int>();
         var expected = [1,2] + '';
         var arr = [];
         var async = Assert.createAsync(function(){
@@ -120,9 +121,9 @@ class TestStream {
     }
 
     public function testFrancoAlwaysFindsABug() {
-        var si = new Stream<Int>(),
-            ss = new Stream<String>(),
-            initial = "Ice-Stream",
+        var si = new PublicStream<Int>(),
+            ss = new PublicStream<String>(),
+            initial = "Ice-PublicStream",
             expected = "Ice",
             actual = "";
         var async = Assert.createAsync(function(){
@@ -140,8 +141,8 @@ class TestStream {
     public function testPipeLinkError(){
         var expected = 'a pipe link error';
         var actual = '';
-        var s1 = new Stream<Int>();
-        var s2 = new Stream<Int>();
+        var s1 = new PublicStream<Int>();
+        var s2 = new PublicStream<Int>();
 
         var async = Assert.createAsync(function(){
             Assert.equals(expected, actual);
@@ -165,7 +166,7 @@ class TestStream {
     }
 
     public function testDelayedErrorHandler(){
-        var s = new Stream<Int>();
+        var s = new PublicStream<Int>();
         var expected = 'foo';
         var actual = '';
         var async = Assert.createAsync(function(){
@@ -183,7 +184,7 @@ class TestStream {
     }
 
     public function testSimpleThen(){
-        var s1 = new Stream<Int>();
+        var s1 = new PublicStream<Int>();
         var expected = 1;
         var actual:Int = 0;
         var async = Assert.createAsync(function(){
@@ -198,26 +199,26 @@ class TestStream {
 
 
     public function testResolved(){
-        var s1 = new Stream<Int>();
+        var s1 = new PublicStream<Int>();
         s1.resolve(0);
         Assert.isTrue(s1.isResolved());
     }
 
     public function testAsynchronousResolving(){
-        var s1 = new Stream<Int>();
+        var s1 = new PublicStream<Int>();
         s1.resolve(0);
         Assert.isTrue(s1.isPending(), "s1 was not pending, should be asynchronous");
     }
 
 
 
-    public function testMultipleStream(){
+    public function testMultiplePublicStream(){
         var actual = 2;
         var cnt = 0;
         var async = Assert.createAsync(function(){
             Assert.equals(2, actual);
         });
-        var s = new Stream<Int>();
+        var s = new PublicStream<Int>();
         Stream.whenever(s).then(function(x){
            actual = x;
            cnt = x;
@@ -230,8 +231,8 @@ class TestStream {
     public function testSimpleWhenever(){
         var expected1 = 4;
         var expected2 = 5;
-        var s1        = new Stream<Int>();
-        var s2        = new Stream<Int>();
+        var s1        = new PublicStream<Int>();
+        var s2        = new PublicStream<Int>();
         var expected = expected1 + expected2;
         var actual = 0;
         var async = Assert.createAsync(function(){
@@ -246,8 +247,8 @@ class TestStream {
     }
 
     public function testSimpleWhenError(){
-        var s1    = new Stream<Int>();
-        var s2    = new Stream<Int>();
+        var s1    = new PublicStream<Int>();
+        var s2    = new PublicStream<Int>();
         var error = false;
         var async = Assert.createAsync(function(){
             Assert.isTrue(error);
@@ -265,7 +266,7 @@ class TestStream {
     public function testChainedThen(){
         var expected1 = 1;
         var expected2 = 2;
-        var s1        = new Stream<Int>();
+        var s1        = new PublicStream<Int>();
         var s2        = s1.then(function(x){
             return expected2;
         });

@@ -35,9 +35,9 @@ class EventTools {
             ?useWeakReference : Bool
 #end
             ){
-            var str = new Stream<Dynamic>();
-            el.addEventListener(event, str.update, useCapture);
-            return str;
+            var def = new Deferred<Dynamic>();
+            el.addEventListener(event, def.resolve, useCapture);
+            return def.promise();
         }
 }
 
