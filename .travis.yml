@@ -12,6 +12,7 @@ env:
     - TARGET=neko
     - TARGET=node
     - TARGET=php
+    - TARGET=error
 
 matrix:
   fast_finish: true
