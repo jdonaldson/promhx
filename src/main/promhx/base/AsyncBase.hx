@@ -149,7 +149,7 @@ class AsyncBase<T>{
             if (_errorMap != null){
 #if PromhxExposeErrors
                 this._resolve(_errorMap(error));
-            resolve(_errorMap(error));
+            _resolve(_errorMap(error));
 #else
                 try this._resolve(_errorMap(error))
                 catch (e : Dynamic) update_errors(e);
