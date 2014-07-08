@@ -12,7 +12,7 @@ class PublicStream<T> extends Stream<T> {
     inline public function update(val:T){
         this.handleResolve(val);
     }
-    inline public static function publicstream<T>(val:T){l
+    inline public static function publicstream<T>(val:T){
         var ps = new PublicStream();
         ps.resolve(val);
         return ps;
