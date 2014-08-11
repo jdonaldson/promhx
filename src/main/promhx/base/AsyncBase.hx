@@ -40,8 +40,8 @@ class AsyncBase<T>{
      **/
     public function new(?d:Deferred<T>) {
 #if debug id = id_ctr +=1; #end
-        if (d != null){ 
-            d.then(handleResolve, handleError ); 
+        if (d != null){
+            d.then(handleResolve);
         }
 
         _resolved   = false;
@@ -54,7 +54,7 @@ class AsyncBase<T>{
 
     /**
       Catch error, effectively halting the current update chain.
-      This will prevent downstream async objects from receiving 
+      This will prevent downstream async objects from receiving
       the error message.
      **/
     public function catchError(f : Dynamic->Void) : AsyncBase<T> {
