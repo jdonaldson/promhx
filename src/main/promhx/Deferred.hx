@@ -15,14 +15,14 @@ class Deferred<T> extends AsyncBase<T> {
 
 
     /**
-      Returns a promise based on the current deferred instance
+      Returns a new promise based on the current deferred instance
      **/
     public function promise(){
         return new Promise(this);
     }
 
     /**
-      Returns a stream based on the current deferred instance
+      Returns a new stream based on the current deferred instance
      **/
     public function stream(){
         return new Stream(this);

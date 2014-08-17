@@ -2,6 +2,8 @@
 package promhx;
 import promhx.Promise;
 import utest.Assert;
+import promhx.deferred.DeferredStream;
+import promhx.deferred.DeferredPromise;
 
 class TestPromise {
 
@@ -74,17 +76,25 @@ class TestPromise {
 
 
     public function testResolved(){
+        var expected = 1;
+        var actual = 0;
         var d1 = new Deferred<Int>();
         var p1 = d1.promise();
-        d1.resolve(0);
-        Assert.isTrue(p1.isResolved());
+        var async = Assert.createAsync(function(){
+            Assert.equals(expected, actual);
+        });
+        d1.then(function(x) {
+            actual = x;
+            async();
+        });
+        d1.resolve(expected);
     }
 
     public function testAsynchronousResolving(){
         var d1 = new Deferred<Int>();
         var p1 = d1.promise();
         d1.resolve(0);
-        Assert.isTrue(p1.isPending(), "p1 was not resolving, should be asynchronous");
+        Assert.isTrue(d1.isPending(), "d1 was not resolving, should be asynchronous");
     }
 
 
