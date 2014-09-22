@@ -6,4 +6,5 @@
 -cp ./lib/utest/src
 -cs bin/testcs
 -cmd echo "---------------------------------------C#---------------------------------------"
-# -cmd java -jar bin/testjava/testjava.jar
+-cmd mono ./bin/testcs/bin/TestAllQueue.exe
+
