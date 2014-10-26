@@ -52,7 +52,7 @@ class Stream<T> extends AsyncBase<T> {
                 var ret = new Stream();
                 var arr : Array<Stream<Dynamic>> = $eargs;
                 var p = Stream.wheneverAll(arr);
-                p._update.push({
+                p._updateq.push({
                     async: ret,
                     linkf: function(x) ret.handleResolve(f($a{epargs}))
                 });
@@ -86,14 +86,18 @@ class Stream<T> extends AsyncBase<T> {
         return ret;
     }
 
+
+    /**
+      Detaches the direct child [str] object from its update handlers.
+     **/
     public function detachStream(str : Stream<Dynamic>) : Bool {
         var filtered = [];
         var removed = false;
-        for (u in this._update){
+        for (u in this._updateq){
             if (u.async == str)  removed = true;
             else filtered.push(u);
         }
-        this._update = filtered;
+        this._updateq = filtered;
         return removed;
     }
 
@@ -167,8 +171,8 @@ class Stream<T> extends AsyncBase<T> {
             _end = true;
             var o = isResolved() ? Some(_val) : None;
             _end_promise.handleResolve(o);
-            _update = [];
-            _error = [];
+            _updateq = [];
+            _errorq = [];
         }
     }
 
@@ -187,7 +191,7 @@ class Stream<T> extends AsyncBase<T> {
      **/
     public function filter(f : T->Bool) : Stream<T>{
         var ret = new Stream<T>();
-        _update.push({
+        _updateq.push({
             async : ret,
             linkf : function(x) if (f(x)) ret.handleResolve(x)
         });
@@ -202,7 +206,7 @@ class Stream<T> extends AsyncBase<T> {
      **/
     public function concat(s : Stream<T>) : Stream<T> {
         var ret = new Stream<T>();
-        _update.push({
+        _updateq.push({
             async : ret,
             linkf : ret.handleResolve
         });
@@ -224,11 +228,11 @@ class Stream<T> extends AsyncBase<T> {
      **/
     public function merge(s : Stream<T>) : Stream<T> {
         var ret = new Stream<T>();
-        _update.push({
+        _updateq.push({
             async : ret,
             linkf : ret.handleResolve
         });
-        s._update.push({
+        s._updateq.push({
             async : ret,
             linkf : ret.handleResolve
         });
