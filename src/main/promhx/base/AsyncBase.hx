@@ -221,6 +221,10 @@ class AsyncBase<T>{
     static function immediateLinkUpdate<A,B>
         (current : AsyncBase<A>, next : AsyncBase<B>, f : A->B) : Void
     {
+        // propagate the errors first
+        if (current.isErrored()) next.handleError(current._error); 
+
+        // then the value
         if (current.isResolved() && !current.isPending()){
             // we can go ahead and resolve this.
 #if PromhxExposeErrors
