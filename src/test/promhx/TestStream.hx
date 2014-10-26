@@ -66,7 +66,6 @@ class TestStream {
         });
 
         Assert.isTrue(s.detachStream(s2), "detach should return true");
-        trace(untyped s._update.length);
         s.resolve(1);
 
     }
