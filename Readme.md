@@ -3,8 +3,8 @@
 [![Build Status][travis-ci]]
 [travis-ci 2]
 
-Promhx is a [promise][wikipedia] and 
-[functional reactive programming][wikipedia 2] 
+Promhx is a [promise][wikipedia] and
+[functional reactive programming][wikipedia 2]
 library for [Haxe][haxe].  The "promise" and "stream" variables contain
 values that are not immediately available. However, you can specify callback
 functions that will trigger when the values do become available.
@@ -102,8 +102,8 @@ Promise.when(p1,p2).then(function(x,y)trace(x+y));
 // arguments changes.
 var ds1 = new Deferred<Int>();
 var ds2 = new Deferred<Int>();
-var s1 = ds1.stream(); 
-var s2 = ds2.stream(); 
+var s1 = ds1.stream();
+var s2 = ds2.stream();
 Stream.whenever(s1,s2).then(function(x,y)trace(x+y));
 
 
@@ -115,7 +115,7 @@ Promise.when(p1,p2).then(function(x,y) return x+y)
     .then(function(x) trace(x+1));
 
 var dp3 = new Deferred<String>();
-var p3 = dp3.promise(); 
+var p3 = dp3.promise();
 
 // The pipe method lets you manually specify a new Promise to chain
 // to.  It can be pre-existing, or created by the method itself.  Stream
@@ -183,14 +183,22 @@ ds2.update(2);
 ```
 
 # Error management
+
 Promhx provides numerous run-time methods for managing errors, including the
 ```catchError```, which halts the error propagation, and the ```errorThen```
-function which grants the ability to transform an error back into a normal
-chainable type.  It's also possible to prevent Promhx from handling errors at 
-all by using the ```-D PromhxExposeErrors``` flag.  This will remove the
-try/catch notation from all promise resolvers, enabling the original error 
-behavior to take place.  This can be useful while debugging basic promise
-behavior.
+function which transforms the error back into a normal chainable type.
+Errors thrown in ```errorThen``` are caught by any ```catchError``` handler, but
+errors thrown in ```catchError``` will not be caught.
+
+Also note that an asynchronous value that is in an errored state will *always*
+trigger the error handlers for downstream async values, even if those
+downstream handlers are attached after the error is thrown.  Async values
+remember their errors in order to notify future listeners after the fact.
+
+It's also possible to prevent Promhx from handling errors at all by using the
+```-D PromhxExposeErrors``` flag.  This will remove the try/catch notation from
+all promise resolvers, enabling the original error behavior to take place.  This
+can be useful while debugging basic promise behavior.
 
 # Event Loop Management
 
@@ -281,17 +289,17 @@ s.detachStream(s2);
 ds.resolve(1);
 
 ```
-By saving the stream created as a result of the ```then``` function, we can 
+By saving the stream created as a result of the ```then``` function, we can
 detach it later.  Only streams that are directly updated by the parent stream
-are detachable.  
+are detachable.
 
 # Bound Deferreds
 As of v 1.08 promhx includes a "DeferredPromise" and "DeferredStream" option.
-These deferreds come already bound to a given async class, and are useful to 
-pass around as a single interface for both deferreds and their respective async 
+These deferreds come already bound to a given async class, and are useful to
+pass around as a single interface for both deferreds and their respective async
 types.
 
-#Node.js 
+#Node.js
 Promhx supports Node.js but becuase there is no node.js compile target you must pass `-D nodejs` and `-lib nodejs` to the compiler.
 
 
