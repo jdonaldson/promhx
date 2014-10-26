@@ -281,4 +281,22 @@ class TestStream {
         s1.resolve(expected1);
     }
 
+    public function testAsynchronousError(){
+       var s1 = new PublicStream<Int>();
+       var error_thrown = false;
+
+        var async = Assert.createAsync(function(){
+            Assert.isTrue(error_thrown);
+        });
+        s1.throwError(true);
+        s1.then(function(x){
+            return 1;
+        }).catchError(function(x){
+            error_thrown = true;
+            async();
+        });
+
+
+    }
+
 }
