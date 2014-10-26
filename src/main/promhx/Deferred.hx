@@ -9,10 +9,9 @@ class Deferred<T> extends AsyncBase<T> {
     /**
       The public write interface
      **/
-    public function resolve(val:T){
-        handleResolve(val);
-    }
+    public function resolve(val:T) handleResolve(val);
 
+    inline public function throwError(e:Dynamic) handleError(e);
 
     /**
       Returns a new promise based on the current deferred instance
