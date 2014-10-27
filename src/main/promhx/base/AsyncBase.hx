@@ -31,6 +31,7 @@ class AsyncBase<T>{
     var _fulfilled  : Bool;
     var _pending    : Bool;
     var _update     : Array<AsyncLink<T>>;
+    var _errored    : Bool;
     var _error      : Array<Dynamic->Void>;
     var _errorMap   : Dynamic->T;
 
@@ -49,6 +50,7 @@ class AsyncBase<T>{
         _fulfilled  = false;
         _update     = [];
         _error      = [];
+        _errored    = false;
 
     }
 
@@ -75,6 +77,12 @@ class AsyncBase<T>{
      **/
     public inline function isResolved() : Bool
         return _resolved;
+
+    /**
+      Utility function to determine if a Promise value has been resolved.
+     **/
+    public inline function isErrored() : Bool
+        return _errored;
 
 
     /**
