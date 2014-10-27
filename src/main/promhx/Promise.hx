@@ -46,7 +46,7 @@ class Promise<T> extends AsyncBase<T>{
                 var ret = new Promise();
                 var arr : Array<Promise<Dynamic>> = $eargs;
                 var p = Promise.whenAll(arr);
-                p._updateq.push({
+                p._update.push({
                     async : ret,
                     linkf : function(x) ret.handleResolve(f($a{epargs}))
                 });
@@ -110,7 +110,7 @@ class Promise<T> extends AsyncBase<T>{
                 handleError(DownstreamNotFullfilled(msg));
             }
             else{
-                _updateq =  _updateq.filter(function(x) return x.async != to);
+                _update =  _update.filter(function(x) return x.async != to);
             }
         });
     }

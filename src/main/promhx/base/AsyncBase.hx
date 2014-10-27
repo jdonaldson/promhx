@@ -30,11 +30,9 @@ class AsyncBase<T>{
     var _resolved   : Bool;
     var _fulfilled  : Bool;
     var _pending    : Bool;
-    var _errored    : Bool;
-    var _error      : Bool;
-    var _updateq    : Array<AsyncLink<T>>;
-    var _errorq     : Array<Dynamic->Void>;
-    var _errorf     : Dynamic->T;
+    var _update     : Array<AsyncLink<T>>;
+    var _error      : Array<Dynamic->Void>;
+    var _errorMap   : Dynamic->T;
 
     /**
       Constructor argument can take optional function argument, which adds
@@ -49,8 +47,8 @@ class AsyncBase<T>{
         _resolved   = false;
         _pending = false;
         _fulfilled  = false;
-        _updateq     = [];
-        _errorq      = [];
+        _update     = [];
+        _error      = [];
 
     }
 
@@ -60,7 +58,7 @@ class AsyncBase<T>{
       the error message.
      **/
     public function catchError(f : Dynamic->Void) : AsyncBase<T> {
-        _errorq.push(f);
+        _error.push(f);
         return this;
     }
 
@@ -68,31 +66,25 @@ class AsyncBase<T>{
       Map errors back to the expected type, and continue as normal.
      **/
     public function errorThen( f : Dynamic -> T){
-        _errorf = f;
+        _errorMap = f;
         return this;
     }
 
     /**
-      Utility function to determine if a Async value has been resolved.
+      Utility function to determine if a Promise value has been resolved.
      **/
     public inline function isResolved() : Bool
         return _resolved;
 
-    /**
-      Utility function to determine if Async value has been errored
-      **/
-    public inline function isErrored() : Bool
-        return _errored;
-
 
     /**
-      Utility function to determine if a Async value has been rejected.
+      Utility function to determine if a Promise value has been rejected.
      **/
     public inline function isFulfilled(): Bool
         return _fulfilled;
 
     /**
-      Utility function to determine if a Async value is pending operations
+      Utility function to determine if a Promise value is pending operations
       on the next loop.
      **/
     public inline function isPending() : Bool
@@ -123,7 +115,7 @@ class AsyncBase<T>{
             // the loop handler, which may not even be used
             EventLoop.enqueue(function(){
                 _val = val; // save the value
-                for (up in _updateq){
+                for (up in _update){
 #if PromhxExposeErrors
                     up.linkf(val);
 #else
@@ -142,10 +134,9 @@ class AsyncBase<T>{
       Handle errors
      **/
     function handleError(error : Dynamic) : Void {
-        _error = error;
         var update_errors = function(e:Dynamic){
-            if (_errorq.length > 0) for (ef in _errorq) ef(e);
-            else if (_updateq.length > 0) for (up in _updateq) up.async.handleError(e);
+            if (_error.length > 0) for (ef in _error) ef(e);
+            else if (_update.length > 0) for (up in _update) up.async.handleError(e);
             else {
 #if (js && nodejs)
                 // Node sometimes doesn't produce helpful stack information on thrown errors.
@@ -155,12 +146,12 @@ class AsyncBase<T>{
             }
         }
         EventLoop.enqueue(function(){
-            if (_errorf != null){
+            if (_errorMap != null){
 #if PromhxExposeErrors
-                this._resolve(_errorf(error));
-            _resolve(_errorf(error));
+                this._resolve(_errorMap(error));
+            _resolve(_errorMap(error));
 #else
-                try this._resolve(_errorf(error))
+                try this._resolve(_errorMap(error))
                 catch (e : Dynamic) update_errors(e);
 #end
             } else {
@@ -185,7 +176,7 @@ class AsyncBase<T>{
      **/
     public function unlink( to : AsyncBase<Dynamic>) {
         EventLoop.enqueue(function(){
-            _updateq =  _updateq.filter(function(x) return x.async != to);
+            _update =  _update.filter(function(x) return x.async != to);
         });
     }
 
@@ -194,7 +185,7 @@ class AsyncBase<T>{
      **/
     public function isLinked( to : AsyncBase<Dynamic>) : Bool {
         var updated = false;
-        for (u in _updateq) if (u.async == to) return true;
+        for (u in _update) if (u.async == to) return true;
         return updated;
     }
 
@@ -209,7 +200,7 @@ class AsyncBase<T>{
         // the function wrapper for the callback, which will resolve the return
         // if current is not resolved, or will resolve next loop, push to
         // update queues.
-        current._updateq.push({
+        current._update.push({
             async : next,
             linkf : function(x){
                 next.handleResolve(f(x));
@@ -252,7 +243,7 @@ class AsyncBase<T>{
             return null;
         };
         for (a in all){
-            a._updateq.push({
+            a._update.push({
                 async : next,
                 linkf: cthen.bind([for (a2 in all) if (a2 != a) a2], a, _)
             });
@@ -275,7 +266,7 @@ class AsyncBase<T>{
                 if (!linked){ // but only once
                     linked = true; // the piped async doesn't actually respond to updates from current
                     var pipe_ret = f(x); // it just needs to be created
-                    pipe_ret._updateq.push({  // and to be linked to ret
+                    pipe_ret._update.push({  // and to be linked to ret
                         async : ret, // errors go to ret
                         linkf : ret.handleResolve // updates go directly to ret
                     });
@@ -283,7 +274,7 @@ class AsyncBase<T>{
                 }
             }
 
-        current._updateq.push({
+        current._update.push({
             async : ret, // errors go to ret
             linkf : linkf
         });
@@ -299,7 +290,7 @@ class AsyncBase<T>{
     }
 
     /**
-      Utility function to determine if all Async values are set.
+      Utility function to determine if all Promise values are set.
      **/
     public static function allResolved
         (as : Iterable<AsyncBase<Dynamic>>) : Bool
@@ -311,7 +302,7 @@ class AsyncBase<T>{
     }
 
     /**
-      Utility function to determine if all Async values are resolved and
+      Utility function to determine if all Promise values are resolved and
       are currently fulfilled (not in the process of fulfilling).
      **/
     static function allFulfilled
