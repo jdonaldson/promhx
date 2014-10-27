@@ -139,9 +139,13 @@ class AsyncBase<T>{
     }
 
     /**
-      Handle errors
+      Handle errors, can be overridden
      **/
     function handleError(error : Dynamic) : Void {
+        _handleError(error);
+    }
+
+    function _handleError(error : Dynamic) : Void {
         var update_errors = function(e:Dynamic){
             if (_error.length > 0) for (ef in _error) ef(e);
             else if (_update.length > 0) for (up in _update) up.async.handleError(e);

@@ -115,6 +115,11 @@ class Promise<T> extends AsyncBase<T>{
         });
     }
 
+    override function handleError(error : Dynamic) : Void {
+       _rejected = true; 
+       _handleError(error);
+    }
+
     public function pipe<A>(f : T->Promise<A>) : Promise<A> {
         var ret = new Promise<A>();
         AsyncBase.pipeLink(this, ret, f);
