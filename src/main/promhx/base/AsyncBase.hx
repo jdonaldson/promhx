@@ -41,10 +41,6 @@ class AsyncBase<T>{
      **/
     public function new(?d:Deferred<T>) {
 #if debug id = id_ctr +=1; #end
-        if (d != null){
-            d.then(handleResolve);
-        }
-
         _resolved   = false;
         _pending = false;
         _fulfilled  = false;
@@ -52,6 +48,9 @@ class AsyncBase<T>{
         _error      = [];
         _errored    = false;
 
+        if (d != null){
+            d.then(handleResolve);
+        }
     }
 
     /**
