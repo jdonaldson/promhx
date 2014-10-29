@@ -1,7 +1,10 @@
 package promhx.base;
 
+private typedef Queue = #if java java.vm.AtomicList #else List #end <Void->Void>;
+
 class EventLoop {
-    static var queue : List<Void->Void> = new List();
+    static var queue : Queue = new Queue();
+
     // public static var nextLoop(default, set) : (Void->Void)-> Void;
     public static var nextLoop : (Void->Void)-> Void;
 
@@ -28,8 +31,8 @@ class EventLoop {
     /**
       Retrieve the current length of the queue.
      **/
-    public static function queueLength() {
-        return queue.length;
+    public static inline function queueEmpty() {
+        return #if java queue.peek() == null #else queue.isEmpty() #end;
     }
 
     /**
@@ -38,26 +41,27 @@ class EventLoop {
       return false.
      **/
     public static function finish(max_iterations = 1000){
-        while (queue.length > 0 && max_iterations-- > 0){
-            queue.pop()();
+        var fn = null;
+        while (max_iterations-- > 0 && (fn = queue.pop()) != null){
+            fn();
         }
-        return queue.length == 0;
+        return queueEmpty();
     }
 
     /**
       Clear the existing event loop queue.
      **/
     public static function clear(){
-        queue = new List();
+        queue = new Queue();
+    }
+
+    static function f(){
+        var fn = queue.pop();
+        if (fn != null) fn();
+        if (!queueEmpty()) continueOnNextLoop();
     }
 
     static function continueOnNextLoop(){
-        var f = function(){
-            if (queue.length > 0) {
-                queue.pop()();
-                continueOnNextLoop();
-            }
-        }
         if (nextLoop != null) nextLoop(f);
         else {
 
