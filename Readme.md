@@ -305,10 +305,13 @@ Promhx supports Node.js but becuase there is no node.js compile target you must 
 
 # Acknowledgements
 
-* [Laurent Bédubourg][github 2] for pull requests and implementation discussions.
+* [Laurent Bédubourg][labe-me] for pull requests and implementation discussions.
+* [Danny Wilson][vizanto] for a thread-safe java imlementation.
+
 
 [github]: https://github.com/sledorze/monax
-[github 2]: https://github.com/labe-me
+[labe-me]: https://github.com/labe-me
+[vizanto]: https://github.com/vizanto
 [haxe]: http://www.haxe.org
 [travis-ci]: https://travis-ci.org/jdonaldson/promhx.png
 [travis-ci 2]: https://travis-ci.org/jdonaldson/promhx
