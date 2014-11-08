@@ -32,7 +32,7 @@ class EventLoop {
       Retrieve the current length of the queue.
      **/
     public static inline function queueEmpty() {
-        return #if java queue.peek() == null #else queue.isEmpty() #end;
+        return #if java queue.peekLast() == null #else queue.isEmpty() #end;
     }
 
     /**
