@@ -185,9 +185,12 @@ ds2.update(2);
 # Error management
 
 Promhx provides numerous run-time methods for managing errors, including the
-```catchError```, which halts the error propagation, and the ```errorThen```
-function which transforms the error back into a normal chainable type.
-Errors thrown in ```errorThen``` are caught by any ```catchError``` handler, but
+```catchError```, which halts the error propagation, the ```errorThen```
+function which transforms the error back into a normal chainable type via an 
+immediate synchronous action, and the ```errorPipe``` which transforms the 
+error back into a normal chainable type via a pipe method, which allows for 
+asynchronous error handling.
+Errors thrown in error-related methods are caught by any ```catchError``` handler, but
 errors thrown in ```catchError``` will not be caught.
 
 Also note that an asynchronous value that is in an errored state will *always*
