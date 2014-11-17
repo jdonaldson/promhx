@@ -69,7 +69,7 @@ class Promise<T> extends AsyncBase<T>{
       Rejects the promise, throwing an error.
      **/
     public function reject(e : Dynamic): Void {
-        this._rejected = true;
+        _rejected = true;
         handleError(e);
     }
 

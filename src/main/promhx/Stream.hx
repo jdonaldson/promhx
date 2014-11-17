@@ -11,10 +11,10 @@ import haxe.ds.Option;
 
 @:expose
 class Stream<T> extends AsyncBase<T> {
-    var deferred : Deferred<T>;
-    var _pause : Bool;
-    var _end : Bool;
-    var _end_promise : Promise<Option<T>>;
+    var deferred      : Deferred<T>;
+    var _pause        : Bool;
+    var _end          : Bool;
+    var _end_promise  : Promise<Option<T>>;
     var _end_deferred : Deferred<Option<T>>;
 
     public function new(?d : Deferred<T>){
@@ -89,11 +89,11 @@ class Stream<T> extends AsyncBase<T> {
     public function detachStream(str : Stream<Dynamic>) : Bool {
         var filtered = [];
         var removed = false;
-        for (u in this._update){
+        for (u in _update){
             if (u.async == str)  removed = true;
             else filtered.push(u);
         }
-        this._update = filtered;
+        _update = filtered;
         return removed;
     }
 
@@ -132,7 +132,7 @@ class Stream<T> extends AsyncBase<T> {
      **/
     public inline function first() : Promise<T> {
         var s = new Promise<T>();
-        this.then(function(x) if (!s.isResolved()) s.handleResolve(x));
+        then(function(x) if (!s.isResolved()) s.handleResolve(x));
         return s;
     }
 
@@ -157,11 +157,26 @@ class Stream<T> extends AsyncBase<T> {
     }
 
     /**
+      Pipes an error back into a normal type.
+      **/
+    public function errorPipe( f: Dynamic-> Stream<T>) : Stream<T>{
+        var ret = new Stream<T>();
+        catchError(function(e){
+            var piped = f(e);
+            piped.then(ret._resolve);
+            piped._end_promise.then(ret._end_promise._resolve);
+        });
+        then(ret._resolve);
+        _end_promise.then(function(x) ret.end());
+        return ret;
+    }
+
+    /**
       I need this as a private function to call recursively.
      **/
     function handleEnd(){
         // If the async is still pending, check on the next loop.
-        if (this.isPending()) EventLoop.enqueue(handleEnd);
+        if (isPending()) EventLoop.enqueue(handleEnd);
         else if (_end_promise.isResolved()) return;
         else {
             _end = true;
