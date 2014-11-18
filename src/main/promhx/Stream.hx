@@ -145,7 +145,7 @@ class Stream<T> extends AsyncBase<T> {
       the argument.  Call it without the argument to toggle the current state.
      **/
     public function pause(?set : Bool){
-        if (set == null) set == !_pause;
+        if (set == null) set = !_pause;
         _pause = set;
     }
 

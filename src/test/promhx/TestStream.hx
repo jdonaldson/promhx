@@ -6,6 +6,22 @@ import utest.Assert;
 
 class TestStream {
     public function new(){}
+    public function testPause(){
+        var s1 = new PublicStream<Int>();
+        var expected = 1;
+        var actual = 0;
+        var async = Assert.createAsync(function(){
+            Assert.equals(expected, actual);
+        });
+        s1.then(function(x){
+            actual = x;
+            async();
+        });
+        s1.resolve(1);
+        s1.pause(true);
+        s1.resolve(4);
+
+    }
 
     public function testPipeError(){
         var s1 = new PublicStream<Int>();
