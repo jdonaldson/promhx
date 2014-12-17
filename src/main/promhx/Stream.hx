@@ -49,9 +49,9 @@ class Stream<T> extends AsyncBase<T> {
                 // up a new stream for return.
                 // this new stream resolves via a macro-defined function expression
                 // on "f" that provides arity and types for the resolved stream values.
-                var ret = new Stream();
-                var arr : Array<Stream<Dynamic>> = $eargs;
-                var p = Stream.wheneverAll(arr);
+                var ret = new promhx.Stream();
+                var arr : Array<promhx.Stream<Dynamic>> = $eargs;
+                var p = promhx.Stream.wheneverAll(arr);
                 p._update.push({
                     async: ret,
                     linkf: function(x) ret.handleResolve(f($a{epargs}))
