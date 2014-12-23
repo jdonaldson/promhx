@@ -35,10 +35,6 @@ class AsyncBase<T>{
     var _error      : Array<Dynamic->Void>;
     var _errorMap   : Dynamic->T;
 
-    /**
-      Constructor argument can take optional function argument, which adds
-      a callback to the error handler chain.
-     **/
     public function new(?d:Deferred<T>) {
 #if debug id = id_ctr +=1; #end
         _resolved   = false;
