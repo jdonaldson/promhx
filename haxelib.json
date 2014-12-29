@@ -5,8 +5,8 @@
   "classPath": "src/main",
   "tags": ["asynchronous", "async"],
   "description": "Promhx is a promise library for Haxe. Promises contain values that are not immediately available. However, you can specify callback functions that will trigger when the values do become available. ",
-  "releasenote": "Fix multiple error resolve behavior",
-  "version": "1.0.15",
+  "releasenote": "Fix missing error link on deferreds",
+  "version": "1.0.16",
   "contributors": ["jdonaldson"]
 }
 
