@@ -1,4 +1,4 @@
-# [Promhx](http://i.imgur.com/yMrFbQv.jpg)
+![Promhx](http://i.imgur.com/yMrFbQv.jpg)
 
 [![Build Status][travis-ci]]
 [travis-ci 2]
