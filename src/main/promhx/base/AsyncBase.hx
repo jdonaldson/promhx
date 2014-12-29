@@ -48,8 +48,9 @@ class AsyncBase<T>{
         _errored    = false;
 
         if (d != null){
-            d.then(handleResolve);
+            link(d,this, function(x) return x);
         }
+
     }
 
     /**
@@ -145,6 +146,7 @@ class AsyncBase<T>{
 
     function _handleError(error : Dynamic) : Void {
         var update_errors = function(e:Dynamic){
+
             if (_error.length > 0) for (ef in _error) ef(e);
             else if (_update.length > 0) for (up in _update) up.async.handleError(e);
             else {

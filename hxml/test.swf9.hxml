@@ -1,0 +1,8 @@
+
+-cp src/main
+-cp src/test
+-lib monax
+-main TestAll
+-cp ./lib/utest/src
+-cmd echo "--------------------------------------FLASH--------------------------------------"
+-swf bin/test.swf
