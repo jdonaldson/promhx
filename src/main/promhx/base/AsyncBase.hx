@@ -31,14 +31,17 @@ class AsyncBase<T>{
     var _fulfilled  : Bool;
     var _pending    : Bool;
     var _update     : Array<AsyncLink<T>>;
-    var _errored    : Bool;
     var _error      : Array<Dynamic->Void>;
+    var _errored    : Bool;
     var _errorMap   : Dynamic->T;
+    var _errorVal   : Dynamic;
+    var _errorPending : Bool;
 
     public function new(?d:Deferred<T>) {
 #if debug id = id_ctr +=1; #end
         _resolved   = false;
         _pending = false;
+        _errorPending = false;
         _fulfilled  = false;
         _update     = [];
         _error      = [];
@@ -151,20 +154,27 @@ class AsyncBase<T>{
 #end
                 throw e;
             }
+            this._errorPending = false;
         }
-        EventLoop.enqueue(function(){
-            if (_errorMap != null){
+        if (!_errorPending){
+            _errorPending = true;
+            _errored = true;
+            _errorVal = error;
+
+            EventLoop.enqueue(function(){
+                if (_errorMap != null){
 #if PromhxExposeErrors
-                this._resolve(_errorMap(error));
-            _resolve(_errorMap(error));
+                    this._resolve(_errorMap(error));
+                    _resolve(_errorMap(error));
 #else
-                try this._resolve(_errorMap(error))
-                catch (e : Dynamic) update_errors(e);
+                    try this._resolve(_errorMap(error))
+                        catch (e : Dynamic) update_errors(e);
 #end
-            } else {
-                update_errors(error);
-            }
-        });
+                } else {
+                    update_errors(error);
+                }
+            });
+        }
     }
 
     /**
@@ -220,7 +230,7 @@ class AsyncBase<T>{
         (current : AsyncBase<A>, next : AsyncBase<B>, f : A->B) : Void
     {
         // propagate the errors first
-        if (current.isErrored()) next.handleError(current._error); 
+        if (current.isErrored()) next.handleError(current._errorVal);
 
         // then the value
         if (current.isResolved() && !current.isPending()){
