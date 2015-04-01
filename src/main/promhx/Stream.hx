@@ -41,7 +41,7 @@ class Stream<T> extends AsyncBase<T> {
         var epargs = [for (a in args) { expr: EField(a, "_val"), pos: pos}];
 
         // the returned function that actually does the runtime work.
-        return macro {
+        return macro @:privateAccess {
             // a function that accepts a variable argument function
             var varargf = function(f){
                 // we wait on all of the streams with the iterable-based "whenAll"
