@@ -9,7 +9,7 @@ class StreamM {
     {
         // wrap the monad chain in a promise, to catch initialization errors.
         return macro Stream.stream(null).pipe(function(_){
-            return ${Monad._dO("promhx.StreamM", body, Context)};
+            return ${Monad._dO("promhx.mdo.StreamM", body, Context)};
         });
     }
 
