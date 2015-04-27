@@ -303,7 +303,7 @@ pass around as a single interface for both deferreds and their respective async
 types.
 
 #Node.js
-Promhx supports Node.js but becuase there is no node.js compile target you must pass `-D nodejs` and `-lib nodejs` to the compiler.
+Promhx supports Node.js but you must pass `-lib nodejs` to the compiler.
 
 
 # Acknowledgements
