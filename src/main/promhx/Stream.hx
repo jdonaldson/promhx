@@ -38,7 +38,7 @@ class Stream<T> extends AsyncBase<T> {
         var eargs = {expr:EArrayDecl(args), pos:pos};
 
         // An array of the resolved stream values
-        var epargs = [for (a in args) { expr: EField(a, "_val"), pos: pos}];
+        var epargs = [for (i in 0...args.length) macro arr[$v{i}]._val];
 
         // the returned function that actually does the runtime work.
         return macro @:privateAccess {
