@@ -16,11 +16,11 @@ class TestPromise {
         var async = Assert.createAsync(function(){
             Assert.equals(expected, actual);
         });
+
         p.then(function(a){
             return 1;
         }).catchError(function(e){
             actual += 3;
-            async();
         });
 
 
@@ -30,7 +30,9 @@ class TestPromise {
             return 1;
         }).catchError(function(e){
             actual += 4;
+            async();
         });
+
     }
 
     public function testSimplePipe(){

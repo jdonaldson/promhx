@@ -50,7 +50,7 @@ class Stream<T> extends AsyncBase<T> {
                 // this new stream resolves via a macro-defined function expression
                 // on "f" that provides arity and types for the resolved stream values.
                 var ret = new promhx.Stream();
-                var arr : Array<promhx.Stream<Dynamic>> = $eargs;
+                var arr : Array<promhx.base.AsyncBase<Dynamic>> = $eargs;
                 var p = promhx.Stream.wheneverAll(arr);
                 p._update.push({
                     async: ret,
@@ -101,7 +101,7 @@ class Stream<T> extends AsyncBase<T> {
       Transforms an iterable of streams into a single stream which resolves
       to an array of values.
      **/
-    public static function wheneverAll<T>(itb : Iterable<Stream<T>>) : Stream<Array<T>> {
+    public static function wheneverAll<T>(itb : Iterable<AsyncBase<T>>) : Stream<Array<T>> {
         var ret = new Stream<Array<T>>();
         AsyncBase.linkAll(itb, ret);
         return ret;
