@@ -19,6 +19,7 @@ matrix:
   allow_failures:
     - env: TARGET=cs
     - env: TARGET=php
+    - env: TARGET=java
 
  
 # Install Haxe and dependencies before running the test.
