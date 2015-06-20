@@ -36,14 +36,12 @@ class AsyncBase<T>{
     var _errorMap   : Dynamic->T;
     var _errorVal   : Dynamic;
     var _errorPending : Bool;
-    var _errorHandled : Bool;
 
     public function new(?d:Deferred<T>) {
 #if debug id = id_ctr +=1; #end
         _resolved   = false;
         _pending = false;
         _errorPending = false;
-        _errorHandled = false;
         _fulfilled  = false;
         _update     = [];
         _error      = [];
