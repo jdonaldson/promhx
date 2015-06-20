@@ -3,4 +3,4 @@
 	url = https://github.com/jdonaldson/utest.git
 [submodule "lib/setImmediate"]
 	path = lib/setImmediate
-	url = https://github.com/NobleJS/setImmediate.git
+	url = https://github.com/YuzuJS/setImmediate.git
