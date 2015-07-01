@@ -216,6 +216,26 @@ a consistent value.  If blocking continues to be a problem, consider using
 more promises and streams to break the update operation up across multiple
 event loops.
 
+It is also possible to manually control the EventLoop.  The way to do this 
+is to override the default ```EventLoop.nextLoop``` function with a function
+that you call manually.  This will advance the loop logic, and execute any
+promises that are waiting there.  
+
+```haxe
+var manualAdvance = function(){};
+EventLoop.nextLoop = manualAdvance;
+
+// evaluate the next loop every 250 ms.
+haxe.Timer.delay(function(){
+  manualAdvance();
+},250);
+```
+
+Furthermore, you can use the ```EventLoop.finish()``` method to immediately 
+begin resolving the pending promises.  This will also include resolving any 
+chaining that might be specified.  The method accepts an argument giving
+the number of maximum event loop operations to perform.
+
 
 # Promhx Http Class
 Promhx provides a promise-based Http class that is very similar to the
