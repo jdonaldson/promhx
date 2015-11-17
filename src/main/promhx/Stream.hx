@@ -10,7 +10,7 @@ import promhx.base.AsyncBase;
 import haxe.ds.Option;
 
 @:expose
-class Stream<T> extends AsyncBase<T> {
+class Stream<T> extends AsyncBase<Stream<Dynamic>, T> {
     var deferred      : Deferred<T>;
     var _pause        : Bool;
     var _end          : Bool;
@@ -29,7 +29,7 @@ class Stream<T> extends AsyncBase<T> {
       Note: You may call this function on as many stream arguments as you
       like.
      **/
-    macro public static function whenever<T>( args : Array<ExprOf<AsyncBase<Dynamic>>>) : Expr {
+    macro public static function whenever<T>( args : Array<ExprOf<AsyncBase<Dynamic,Dynamic>>>) : Expr {
 
         // a default position
         var pos = Context.currentPos();
@@ -45,14 +45,14 @@ class Stream<T> extends AsyncBase<T> {
             // a function that accepts a variable argument function
             var varargf = function(f){
                 // we wait on all of the streams with the iterable-based "whenAll"
-                // this will resolve an array, so we use pipe to ignore it, and set
-                // up a new stream for return.
-                // this new stream resolves via a macro-defined function expression
+                // this will resolve an array, so we set up a new stream for return.
+                // This new stream resolves via a macro-defined function expression
                 // on "f" that provides arity and types for the resolved stream values.
                 var ret = new promhx.Stream();
-                var arr : Array<promhx.base.AsyncBase<Dynamic>> = $eargs;
-                var p = promhx.Stream.wheneverAll(arr);
-                p._update.push({
+                var arr : Array<promhx.base.AsyncBase<Dynamic,Dynamic>> = $eargs;
+                var s = new Stream<Array<Dynamic>>(); 
+                promhx.base.AsyncBase.linkAll(arr, s);
+                s._update.push({
                     async: ret,
                     linkf: function(x) ret.handleResolve(f($a{epargs}))
                 });
@@ -75,13 +75,12 @@ class Stream<T> extends AsyncBase<T> {
         return s;
     }
 
-
     /**
       add a wait function directly to the Stream instance.
      **/
     override public function then<A>(f : T->A) : Stream<A> {
-        var ret  = new Stream<A>();
-        AsyncBase.link(this, ret, f);
+        var ret  = new Stream<A>(); 
+        link(ret,f);
         _end_promise.then(function(x) ret.end());
         return ret;
     }
@@ -101,7 +100,7 @@ class Stream<T> extends AsyncBase<T> {
       Transforms an iterable of streams into a single stream which resolves
       to an array of values.
      **/
-    public static function wheneverAll<T>(itb : Iterable<AsyncBase<T>>) : Stream<Array<T>> {
+    public static function wheneverAll<T>(itb : Iterable<AsyncBase<Dynamic,T>>) : Stream<Array<T>> {
         var ret = new Stream<Array<T>>();
         AsyncBase.linkAll(itb, ret);
         return ret;
@@ -193,7 +192,7 @@ class Stream<T> extends AsyncBase<T> {
     }
 
     inline public function endThen<A>(f : Option<T>->A) : Promise<A>{
-       return _end_promise.then(f);
+        return _end_promise.then(f);
     }
 
     /**

@@ -2,7 +2,7 @@ package promhx;
 import promhx.base.AsyncBase;
 
 @:expose
-class Deferred<T> extends AsyncBase<T> {
+class Deferred<T> extends AsyncBase<Deferred<Dynamic>, T> {
 
     public function new() super();
 
@@ -12,6 +12,15 @@ class Deferred<T> extends AsyncBase<T> {
     public function resolve(val:T) handleResolve(val);
 
     inline public function throwError(e:Dynamic) handleError(e);
+
+    /**
+      add a wait function directly to the Deferred instance.
+     **/
+    override public function then<A>(f : T->A) : Deferred<A> {
+        var ret  = new Deferred<A>(); 
+        link(ret,f);
+        return ret;
+    }
 
     /**
       Returns a new promise based on the current deferred instance

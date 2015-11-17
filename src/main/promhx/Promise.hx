@@ -10,7 +10,7 @@ import promhx.base.AsyncBase;
 import promhx.error.PromiseError;
 
 @:expose
-class Promise<T> extends AsyncBase<T>{
+class Promise<T> extends AsyncBase<Promise<Dynamic>, T>{
     var _rejected   : Bool;
     public function new(?d:Deferred<T>){
         super(d);
@@ -45,7 +45,8 @@ class Promise<T> extends AsyncBase<T>{
                 // on "f" that provides arity and types for the resolved promise values.
                 var ret = new promhx.Promise();
                 var arr : Array<promhx.Promise<Dynamic>> = $eargs;
-                var p = promhx.Promise.whenAll(arr);
+                var p = new Promise<Array<Dynamic>>(); 
+                promhx.base.AsyncBase.linkAll(arr, p);
                 p._update.push({
                     async : ret,
                     linkf : function(x) ret.handleResolve(f($a{epargs}))
@@ -99,11 +100,11 @@ class Promise<T> extends AsyncBase<T>{
      **/
     override public function then<A>(f : T->A): Promise<A> {
         var ret  = new Promise<A>();
-        AsyncBase.link(this, ret, f);
+        link(ret,f);
         return ret;
     }
 
-    override public function unlink( to : AsyncBase<Dynamic>) {
+    override public function unlink( to : AsyncBase<Dynamic,Dynamic>) {
         EventLoop.enqueue(function(){
             if (!isFulfilled()) {
                 var msg = "Downstream Promise is not fullfilled";

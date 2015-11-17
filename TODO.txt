@@ -1,0 +1,4 @@
+improve interuptability of "then"
+add operator overrides
+change default js behavior.... speed tests
+

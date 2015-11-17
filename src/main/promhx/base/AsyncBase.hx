@@ -14,13 +14,19 @@ import haxe.macro.Context;
 import promhx.base.EventLoop;
 import promhx.Thenable;
 
+
+// an internal typedef for passing asyncs that don't 
+// require chaining operations.
+typedef AnyAsync = AsyncBase<Dynamic, Dynamic>;
+
+// An expression of the link that exists between asyncs.
 typedef AsyncLink<T> = {
-    async : AsyncBase<Dynamic>,
+    async : AnyAsync,
     linkf : T->Void
 }
 
 
-class AsyncBase<T>{
+class AsyncBase<This:AsyncBase<This,Dynamic>, T>{
 #if debug
     // add ids to the async instances so they are easier to track
     static var id_ctr  = 0;
@@ -48,7 +54,7 @@ class AsyncBase<T>{
         _errored    = false;
 
         if (d != null){
-            link(d,this, function(x) return x);
+            d.link(this, function(x) return x);
         }
 
     }
@@ -193,17 +199,15 @@ class AsyncBase<T>{
       This function returns a new AsyncBase.  When this instance resolves,
       it will resolve the new AsyncBase with the function callback argument.
      **/
-    public function then<A>(f : T->A) : AsyncBase<A> {
-        var ret = new AsyncBase<A>();
-        link(this, ret, f);
-        return ret;
+    public function then<A>(f : T->A) : AsyncBase<This, A> {
+        throw "override me";
     }
 
     /**
       Remove an Async that is updated from this Async.  This action is
       performed on the next event loop.
      **/
-    public function unlink( to : AsyncBase<Dynamic>) {
+    public function unlink( to : AnyAsync) {
         EventLoop.enqueue(function(){
             _update =  _update.filter(function(x) return x.async != to);
         });
@@ -212,34 +216,31 @@ class AsyncBase<T>{
     /**
       Determine if an Async is updated from this Async.
      **/
-    public function isLinked( to : AsyncBase<Dynamic>) : Bool {
+    public function isLinked( to : AnyAsync) : Bool {
         var updated = false;
         for (u in _update) if (u.async == to) return true;
         return updated;
     }
 
-
     /**
-      This is the base "link" method for wiring up the "current" async to
+      This is the base "link" method for wiring up the instance async to
       the "next" one via the transform defined by the f argument.
      **/
-    inline public static function link<A,B>
-        (current : AsyncBase<A>, next: AsyncBase<B>, f : A->B) : Void
-    {
+    public function link<A>(next:AsyncBase<Dynamic, A>, f : T->A) : Void {
         // the function wrapper for the callback, which will resolve the return
         // if current is not resolved, or will resolve next loop, push to
         // update queues.
-        current._update.push({
+        _update.push({
             async : next,
             linkf : function(x){
                 next.handleResolve(f(x));
             }
         });
-        immediateLinkUpdate(current, next, f);
+        immediateLinkUpdate(this, next, f);
     }
 
     static function immediateLinkUpdate<A,B>
-        (current : AsyncBase<A>, next : AsyncBase<B>, f : A->B) : Void
+        (current : AsyncBase<Dynamic,A>, next : AsyncBase<Dynamic,B>, f : A->B) : Void
     {
         if (current.isErrored()  // is there an error?
                 && !current.isErrorPending()  // if the error is pending, we can rely on current to update this async on the next loop.
@@ -260,13 +261,13 @@ class AsyncBase<T>{
     }
 
     inline public static function linkAll<T>
-        (all : Iterable<AsyncBase<T>>, next: AsyncBase<Array<T>>) : Void
+        (all : Iterable<AsyncBase<Dynamic,T>>, next: AsyncBase<Dynamic,Array<T>>) : Void
     {
         // a helper callback function.  This will be called for each Stream in
         // the iterable argument.  The "arr" argument will be all of the Streams
         // *except* the one currently resolving.  If there's only one Stream
         // in the iterable, it will always resolve.
-        var cthen = function(arr:Array<AsyncBase<T>>, current:AsyncBase<T>,  v){
+        var cthen = function(arr:Array<AsyncBase<Dynamic,T>>, current:AsyncBase<Dynamic,T>,  v){
             if (arr.length == 0 || AsyncBase.allFulfilled(arr)){
                 var vals = [for (a in all) a == current ? v : a._val];
                 next.handleResolve(vals);
@@ -290,7 +291,7 @@ class AsyncBase<T>{
       AsyncBase instance.
      **/
     inline static public function pipeLink<A,B>
-        ( current : AsyncBase<A>, ret : AsyncBase<B>, f : A->AsyncBase<B> ) : Void
+        ( current : AsyncBase<Dynamic,A>, ret : AsyncBase<Dynamic,B>, f : A->AsyncBase<Dynamic,B> ) : Void
     {
         var linked = false;
         var linkf = function(x){ // updates go to pipe function.
@@ -324,7 +325,7 @@ class AsyncBase<T>{
       Utility function to determine if all Promise values are set.
      **/
     public static function allResolved
-        (as : Iterable<AsyncBase<Dynamic>>) : Bool
+        (as : Iterable<AnyAsync>) : Bool
     {
         for (a in as) {
             if (!a.isResolved()) return false;
@@ -337,7 +338,7 @@ class AsyncBase<T>{
       are currently fulfilled (not in the process of fulfilling).
      **/
     static function allFulfilled
-        (as : Iterable<AsyncBase<Dynamic>>) : Bool
+        (as : Iterable<AnyAsync>) : Bool
     {
         for (a in as) {
             if (!a.isFulfilled()) return false;
