@@ -13,7 +13,7 @@ class Demo {
         var j = new JQuery("#status").eventStream('focus');
         var h = new promhx.haxe.Http("test.txt");
         h.then(function(x){
-            js.Lib.alert(x);
+            js.Browser.alert(x);
         });
         h.request();
         h.cancel();

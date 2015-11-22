@@ -8,24 +8,28 @@ class EventLoop {
     // public static var nextLoop(default, set) : (Void->Void)-> Void;
     public static var nextLoop : (Void->Void)-> Void;
 
-#if (js && !nodejs && !noEmbedJs && !noEmbedSetImmediate)
     static function __init__() untyped {
-#if !nodejs
-        // we need to use global as an alternate since setImmediate expects this == window
-        var global = window;
+#if js
+#if (!nodejs && !noEmbedJs && embedSetImmediate)
+        if (__js__("typeof window != 'undefined'")){
+            haxe.macro.Compiler.includeFile("lib/setImmediate/setImmediate.js");
+        }
 #end
-        haxe.macro.Compiler.includeFile("lib/setImmediate/setImmediate.js");
+        nextLoop = __js__("typeof(setImmediate) === 'function' ? function(x){setImmediate(x)}: function(x){setTimeout(x,0)}");
+#elseif flash
+        nextLoop = function(x)  haxe.Timer.delay(x,0);
+#else
+        nextLoop = function(x) x();
+#end
     }
-#end
 
     public static inline function enqueue(eqf:Void->Void)  {
         queue.add(eqf);
-        continueOnNextLoop();
+        nextLoop(f);
     }
-    static function set_nextLoop(f : (Void->Void)->Void) : (Void->Void)->Void{
-        if (nextLoop != null) throw "nextLoop has already been set";
-        else nextLoop = f;
-        return nextLoop;
+
+    static function set_nextLoop(f : (Void->Void)->Void) : Void{
+        nextLoop = f;
     }
 
     /**
@@ -58,24 +62,7 @@ class EventLoop {
     static function f(){
         var fn = queue.pop();
         if (fn != null) fn();
-        if (!queueEmpty()) continueOnNextLoop();
+        if (!queueEmpty()) nextLoop(f);
     }
 
-    static function continueOnNextLoop(){
-        if (nextLoop != null) nextLoop(f);
-        else {
-
-#if flash
-            haxe.Timer.delay(f,0);
-#elseif (js && (noEmbedJs || noEmbedSetImmediate) && !nodejs)
-            // fallback to setTimeout
-            untyped __js__("(typeof setImmediate === 'function' ? setImmediate : setTimeout)")(f);
-#elseif js
-            // use polyfill or native node
-            untyped __js__("setImmediate")(f);
-#else
-            f();
-#end
-        }
-    }
 }
