@@ -14,13 +14,13 @@ class EventLoop {
 #if nodejs
         // gives a ~ 20% speedup
         haxe.macro.Compiler.includeFile("lib/asap/raw.js");
-        nextLoop = rawAsap; 
-#else 
+        nextLoop = rawAsap;
+#else
         if (js.Browser.supported){
             // gives a ~ 60% speedup
             var global = window;
             haxe.macro.Compiler.includeFile("lib/asap/browser-raw.js");
-            nextLoop = rawAsap; 
+            nextLoop = rawAsap;
         } else {
             nextLoop = function(x) haxe.Timer.delay(x,0);
         }
@@ -72,7 +72,6 @@ class EventLoop {
     static function f() : Void {
         var fn = queue.pop();
         if (fn != null) fn();
-        // if (!queueEmpty()) nextLoop(f);
     }
 
 }

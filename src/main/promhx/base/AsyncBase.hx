@@ -15,7 +15,7 @@ import promhx.base.EventLoop;
 import promhx.Thenable;
 
 
-// an internal typedef for passing asyncs that don't 
+// an internal typedef for passing asyncs that don't
 // require chaining operations.
 typedef AnyAsync = AsyncBase<Dynamic, Dynamic>;
 
