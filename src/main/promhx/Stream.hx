@@ -80,16 +80,25 @@ class Stream<T> extends AsyncBase<Stream<Dynamic>, T> {
      **/
     override public function then<A>(f : T->A) : Stream<A> {
         var ret  = new Stream<A>(); 
-        link(ret,f);
-        _end_promise.then(function(x) ret.end());
+        link(f, ret);
+        _end_promise._update.push({
+            async : ret._end_promise,
+            linkf : function(x) ret.end()
+        });
         return ret;
     }
 
-    public function detachStream(str : Stream<Dynamic>) : Bool {
+    public function detachStream(stream : Stream<Dynamic>) : Bool {
         var filtered = [];
         var removed = false;
         for (u in _update){
-            if (u.async == str)  removed = true;
+            if (u.async == stream) {
+                // also remove the "end" promise update from downstream
+                _end_promise._update = _end_promise._update.filter(function(x){
+                   return x.async != stream._end_promise;
+                });
+                removed = true;
+            }
             else filtered.push(u);
         }
         _update = filtered;
