@@ -54,7 +54,7 @@ class AsyncBase<This:AsyncBase<This,Dynamic>, T>{
         _errored    = false;
 
         if (d != null){
-            d.link(this, function(x) return x);
+            d.link(function(x) return x, this);
         }
 
     }
@@ -226,7 +226,7 @@ class AsyncBase<This:AsyncBase<This,Dynamic>, T>{
       This is the base "link" method for wiring up the instance async to
       the "next" one via the transform defined by the f argument.
      **/
-    public function link<A>(next:AsyncBase<Dynamic, A>, f : T->A) : Void {
+    public function link<A>(f : T->A, next:AsyncBase<Dynamic, A>) : Void {
         // the function wrapper for the callback, which will resolve the return
         // if current is not resolved, or will resolve next loop, push to
         // update queues.
@@ -290,8 +290,8 @@ class AsyncBase<This:AsyncBase<This,Dynamic>, T>{
       Similar to the link function, except the [f] function must return an
       AsyncBase instance.
      **/
-    inline static public function pipeLink<A,B>
-        ( current : AsyncBase<Dynamic,A>, ret : AsyncBase<Dynamic,B>, f : A->AsyncBase<Dynamic,B> ) : Void
+    inline public function pipeLink<A>
+        ( f : T->AsyncBase<Dynamic,A>, ret : AsyncBase<Dynamic,A>) : Void
     {
         var linked = false;
         var linkf = function(x){ // updates go to pipe function.
@@ -306,16 +306,16 @@ class AsyncBase<This:AsyncBase<This,Dynamic>, T>{
                 }
             }
 
-        current._update.push({
+       _update.push({
             async : ret, // errors go to ret
             linkf : linkf
         });
 
-        if (current.isResolved() && !current.isPending()){
+        if (isResolved() && !isPending()){
 #if PromhxExposeErrors
-            linkf(current._val);
+            linkf(_val);
 #else
-            try linkf(current._val)
+            try linkf(_val)
             catch (e:Dynamic) ret.handleError(e);
 #end
         }

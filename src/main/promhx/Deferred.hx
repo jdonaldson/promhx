@@ -18,7 +18,7 @@ class Deferred<T> extends AsyncBase<Deferred<Dynamic>, T> {
      **/
     override public function then<A>(f : T->A) : Deferred<A> {
         var ret  = new Deferred<A>(); 
-        link(ret,f);
+        link(f, ret);
         return ret;
     }
 

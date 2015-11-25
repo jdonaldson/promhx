@@ -150,8 +150,11 @@ class Stream<T> extends AsyncBase<Stream<Dynamic>, T> {
 
     public function pipe<A>(f : T->Stream<A>) : Stream<A> {
         var ret = new Stream<A>();
-        AsyncBase.pipeLink(this, ret, f);
-        _end_promise.then(function(x) ret.end());
+        pipeLink(f, ret);
+        _end_promise._update.push({
+            async : ret._end_promise,
+            linkf : function(x) ret.end()
+        });
         return ret;
     }
 

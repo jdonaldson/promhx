@@ -100,7 +100,7 @@ class Promise<T> extends AsyncBase<Promise<Dynamic>, T>{
      **/
     override public function then<A>(f : T->A): Promise<A> {
         var ret  = new Promise<A>();
-        link(ret,f);
+        link(f, ret);
         return ret;
     }
 
@@ -123,7 +123,7 @@ class Promise<T> extends AsyncBase<Promise<Dynamic>, T>{
 
     public function pipe<A>(f : T->Promise<A>) : Promise<A> {
         var ret = new Promise<A>();
-        AsyncBase.pipeLink(this, ret, f);
+        pipeLink(f, ret);
         return ret;
     }
 

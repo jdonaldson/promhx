@@ -9,33 +9,43 @@ class EventLoop {
     public static var nextLoop : (Void->Void)-> Void;
 
     static function __init__() untyped {
-#if js
-#if (!nodejs && !noEmbedJs && embedSetImmediate)
-        if (__js__("typeof window != 'undefined'")){
-            haxe.macro.Compiler.includeFile("lib/setImmediate/setImmediate.js");
+#if (js && !noEmbedJs && !noEmbedAsap)
+        __js__("var module = {}");
+#if nodejs
+        // gives a ~ 20% speedup
+        haxe.macro.Compiler.includeFile("lib/asap/raw.js");
+        nextLoop = rawAsap; 
+#else 
+        if (js.Browser.supported){
+            // gives a ~ 60% speedup
+            var global = window;
+            haxe.macro.Compiler.includeFile("lib/asap/browser-raw.js");
+            nextLoop = rawAsap; 
+        } else {
+            nextLoop = function(x) haxe.Timer.delay(x,0);
         }
 #end
-        nextLoop = __js__("typeof(setImmediate) === 'function' ? function(x){setImmediate(x)}: function(x){setTimeout(x,0)}");
-#elseif flash
+#elseif (flash || java || python || js)
         nextLoop = function(x)  haxe.Timer.delay(x,0);
 #else
         nextLoop = function(x) x();
 #end
     }
 
-    public static inline function enqueue(eqf:Void->Void)  {
-        queue.add(eqf);
-        nextLoop(f);
-    }
-
-    static function set_nextLoop(f : (Void->Void)->Void) : Void{
-        nextLoop = f;
+    public static inline function enqueue(eqf:Void->Void) : Void {
+        if (queueEmpty()){
+            queue.add(eqf);
+            nextLoop(f);
+        } else {
+            queue.add(eqf);
+            nextLoop(f);
+        }
     }
 
     /**
-      Retrieve the current length of the queue.
+      Returns true if the queue is empty
      **/
-    public static inline function queueEmpty() {
+    public static inline function queueEmpty() : Bool {
         return #if java queue.peekLast() == null #else queue.isEmpty() #end;
     }
 
@@ -44,7 +54,7 @@ class EventLoop {
       if all loops are finished.  If [max_iterations] pass, then exit and
       return false.
      **/
-    public static function finish(max_iterations = 1000){
+    public static function finish(max_iterations = 1000) : Bool {
         var fn = null;
         while (max_iterations-- > 0 && (fn = queue.pop()) != null){
             fn();
@@ -55,14 +65,14 @@ class EventLoop {
     /**
       Clear the existing event loop queue.
      **/
-    public static function clear(){
+    public static function clear() : Void {
         queue = new Queue();
     }
 
-    static function f(){
+    static function f() : Void {
         var fn = queue.pop();
         if (fn != null) fn();
-        if (!queueEmpty()) nextLoop(f);
+        // if (!queueEmpty()) nextLoop(f);
     }
 
 }
