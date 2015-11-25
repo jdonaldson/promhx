@@ -1,11 +1,7 @@
--cp ./src/demo
--cp ./src/main
--D debug
--main Demo
-# -swf ./demo/demo.swf
--js ./demo/demo.js
-# -x ./demo/demo
+-main Demo.hx
+-cp ./src/demo/
+-cp ./src/main/
+-cp ./src/test/
 -lib monax
-# -cmd echo "--------------------------------------JS--------------------------------------"
-# -cmd node ./demo/demo.js
-# -cmd open ./demo/index.html
+-js ./demo/demo.js
+-cmd node bin/out.js

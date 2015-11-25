@@ -4,3 +4,6 @@
 [submodule "lib/setImmediate"]
 	path = lib/setImmediate
 	url = https://github.com/YuzuJS/setImmediate.git
+[submodule "lib/asap"]
+	path = lib/asap
+	url = https://github.com/kriskowal/asap.git

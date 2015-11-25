@@ -23,8 +23,7 @@ hxml/test.cpp.hxml
 hxml/test.java.hxml
 
 --next
-# TODO - figure out what is happening with php
-# hxml/test.php.hxml
+hxml/test.php.hxml
 
 --next
 hxml/test.cs.hxml
