@@ -15,12 +15,10 @@ class Stream<T> extends AsyncBase<Stream<Dynamic>, T> {
     var _pause        : Bool;
     var _end          : Bool;
     var _end_promise  : Promise<Option<T>>;
-    var _end_deferred : Deferred<Option<T>>;
 
     public function new(?d : Deferred<T>){
         super(d);
-        _end_deferred = new Deferred<Option<T>>();
-        _end_promise = _end_deferred.promise();
+        _end_promise = new Promise<Option<T>>();
     }
 
     /**
@@ -50,7 +48,7 @@ class Stream<T> extends AsyncBase<Stream<Dynamic>, T> {
                 // on "f" that provides arity and types for the resolved stream values.
                 var ret = new promhx.Stream();
                 var arr : Array<promhx.base.AsyncBase<Dynamic,Dynamic>> = $eargs;
-                var s = new Stream<Array<Dynamic>>(); 
+                var s = new Stream<Array<Dynamic>>();
                 promhx.base.AsyncBase.linkAll(arr, s);
                 s._update.push({
                     async: ret,
@@ -79,7 +77,7 @@ class Stream<T> extends AsyncBase<Stream<Dynamic>, T> {
       add a wait function directly to the Stream instance.
      **/
     override public function then<A>(f : T->A) : Stream<A> {
-        var ret  = new Stream<A>(); 
+        var ret  = new Stream<A>();
         link(f, ret);
         _end_promise._update.push({
             async : ret._end_promise,
