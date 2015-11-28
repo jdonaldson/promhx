@@ -88,8 +88,8 @@ class Promise<T> extends AsyncBase<Promise<Dynamic>, T>{
       Resolves the given value for processing on any waiting functions.
      **/
     override function handleResolve(val : T): Void {
-        if (_resolved) {
-            var msg = "Promise has already been resolved";
+        if (_resolved || _pending) {
+            var msg = "Promise has already been resolved or is pending";
             throw(AlreadyResolved(msg));
         }
         _resolve(val);
