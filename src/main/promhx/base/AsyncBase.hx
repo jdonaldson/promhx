@@ -129,15 +129,15 @@ class AsyncBase<This:AsyncBase<This,Dynamic>, T>{
             EventLoop.enqueue(_resolve.bind(val));
         } else {
 
-            // point of no return, this async has now been resolved at least once.
-            _resolved = true;
-
             // we are now in the act of fulfilling the async... which
             // involves waiting for the next enqueued loop
             _pending = true;
 
             // the loop handler, which may not even be used
             EventLoop.enqueue(function(){
+                // point of no return, this async has now been resolved at least once.
+                _resolved = true;
+
                 _val = val; // save the value
                 for (up in _update){
 #if PromhxExposeErrors

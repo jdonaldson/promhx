@@ -186,10 +186,13 @@ class Stream<T> extends AsyncBase<Stream<Dynamic>, T> {
       I need this as a private function to call recursively.
      **/
     function handleEnd(){
+        // if the end promise is already resolved, throw an error.
+        if (_end_promise._resolved) throw(AlreadyResolved("Promse has already been resolved"));
         // If the async is still pending, check on the next loop.
-        if (isPending()) EventLoop.enqueue(handleEnd);
-        else if (_end_promise.isResolved()) return;
-        else {
+        else if (isPending()) EventLoop.enqueue(handleEnd);
+        // if the end promise is pending, we can ignore it.  (multiple "end" calls at once may happen due to chaining)
+        else if (_end_promise._pending) return;
+        else { // otherwise, clear the promise.
             _end = true;
             var o = isResolved() ? Some(_val) : None;
             _end_promise.handleResolve(o);

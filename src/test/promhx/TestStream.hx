@@ -234,10 +234,10 @@ class TestStream {
     }
 
 
-    public function testResolved(){
+    public function testPending(){
         var s1 = new PublicStream<Int>();
         s1.resolve(0);
-        Assert.isTrue(s1.isResolved());
+        Assert.isTrue(s1.isPending());
     }
 
     public function testAsynchronousResolving(){
