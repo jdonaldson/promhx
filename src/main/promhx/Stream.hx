@@ -8,6 +8,7 @@ import haxe.macro.Context;
 import promhx.base.EventLoop;
 import promhx.base.AsyncBase;
 import haxe.ds.Option;
+import promhx.error.PromiseError;
 
 @:expose
 class Stream<T> extends AsyncBase<Stream<Dynamic>, T> {
@@ -77,6 +78,7 @@ class Stream<T> extends AsyncBase<Stream<Dynamic>, T> {
       add a wait function directly to the Stream instance.
      **/
     override public function then<A>(f : T->A) : Stream<A> {
+        if (_end) throw(AlreadyEnded("Stream has ended"));
         var ret  = new Stream<A>();
         link(f, ret);
         _end_promise._update.push({
