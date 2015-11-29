@@ -1,9 +1,9 @@
 
 package promhx;
-import promhx.mdo.PromiseM;
+import promhx.mdo.MacroPromise;
 import utest.Assert;
 
-class TestPromiseM {
+class TestMacroPromise {
     public function new(){}
     public function testSimpleDo(){
         var expected1 = 10;
@@ -15,7 +15,7 @@ class TestPromiseM {
         var p1 = d1.promise(); 
         var p2 = d2.promise(); 
         var val2 = null;
-        var p3 = PromiseM.dO({
+        var p3 = MacroPromise.dO({
             val1 <= p1;
             val2 <= p2;
             ret({val1:val1, val2:val2});
@@ -39,7 +39,7 @@ class TestPromiseM {
         var async = Assert.createAsync(function(){
             Assert.equals(actual, expected);
         });
-        PromiseM.dO({
+        MacroPromise.dO({
             throw expected;
         }).catchError(function(err){
             actual = err;

@@ -1,0 +1,7 @@
+-cp ./benchmark
+-cp ./src/main
+-main ErrorOrder 
+# -lib nodejs
+-js benchmark/promhx.js
+-cmd node benchmark/promhx.js
+

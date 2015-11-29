@@ -3,13 +3,13 @@ import haxe.macro.Expr;
 import haxe.macro.Context;
 import com.mindrocks.monads.Monad;
 
-class PromiseM {
+class MacroPromise {
 
     macro public static function dO(body : Expr)  // the function to trigger the Monad macro.
     {
         // wrap the monad chain in a promise, to catch initialization errors.
         return macro promhx.Promise.promise(null).pipe(function(_){
-            return ${Monad._dO("promhx.mdo.PromiseM", body, Context)};
+            return ${Monad._dO("promhx.mdo.MacroPromise", body, Context)};
         });
     }
 

@@ -3,7 +3,7 @@ import utest.ui.Report;
 
 import promhx.TestPromise;
 import promhx.TestStream;
-import promhx.TestPromiseM;
+import promhx.TestMacroPromise;
 
 import promhx.Stream;
 
@@ -14,7 +14,7 @@ class TestAll {
         var r = new Runner();
 		r.addCase(new TestPromise());
 		r.addCase(new TestStream());
-		r.addCase(new TestPromiseM());
+		r.addCase(new TestMacroPromise());
 		Report.create(r);
 		if (precheck != null) r.onPrecheck.add(function(x) precheck());
 		r.run();

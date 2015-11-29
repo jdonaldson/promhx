@@ -281,11 +281,11 @@ promhx "mdo" module, and the [monax][github] library.  These macro functions can
 be used as follows:
 
 ```haxe
-   import promhx.mdo.StreamM;
+   import promhx.mdo.MacroStream;
    // ...
    var s1 = new Stream<Int>();
    var s2 = new Stream<Int>();
-   var s3 = StreamM.dO({
+   var s3 = MacroStream.dO({
          val1 <= s1;
          val2 <= s2;
          ret({val1: val1, val2: val2});

@@ -1,0 +1,6 @@
+-main Abstract
+-cp benchmark
+-cp src/main
+# -x out
+-js bin/out.js
+-cmd node bin/out.js
