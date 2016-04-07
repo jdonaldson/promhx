@@ -17,8 +17,8 @@ class Stream<T> extends AsyncBase<T> {
     var _end_promise  : Promise<Option<T>>;
     var _end_deferred : Deferred<Option<T>>;
 
-    public function new(?d : Deferred<T>){
-        super(d);
+    public function new(?d : Deferred<T> #if debug ,?pos:haxe.PosInfos #end){
+        super(d #if debug, pos #end);
         _end_deferred = new Deferred<Option<T>>();
         _end_promise = _end_deferred.promise();
     }
@@ -49,9 +49,9 @@ class Stream<T> extends AsyncBase<T> {
                 // up a new stream for return.
                 // this new stream resolves via a macro-defined function expression
                 // on "f" that provides arity and types for the resolved stream values.
-                var ret = new promhx.Stream();
+                var ret = new promhx.Stream(null #if debug ,null #end);
                 var arr : Array<promhx.base.AsyncBase<Dynamic>> = $eargs;
-                var p = promhx.Stream.wheneverAll(arr);
+                var p = promhx.Stream.wheneverAll(arr #if debug ,null #end);
                 p._update.push({
                     async: ret,
                     linkf: function(x) ret.handleResolve(f($a{epargs}))
@@ -68,8 +68,8 @@ class Stream<T> extends AsyncBase<T> {
       Creates a stream from the iterable [itb] that will immediately update
       for each value, and then end.
      **/
-    public static function foreach<T>(itb : Iterable<T>) : Stream<T> {
-        var s = new Stream<T>();
+    public static function foreach<T>(itb : Iterable<T> #if debug ,?pos:haxe.PosInfos #end) : Stream<T> {
+        var s = new Stream<T>(null #if debug ,pos #end);
         for (i in itb) s.handleResolve(i);
         s.end();
         return s;
@@ -79,8 +79,8 @@ class Stream<T> extends AsyncBase<T> {
     /**
       add a wait function directly to the Stream instance.
      **/
-    override public function then<A>(f : T->A) : Stream<A> {
-        var ret  = new Stream<A>();
+    override public function then<A>(f : T->A #if debug ,?pos:haxe.PosInfos #end) : Stream<A> {
+        var ret  = new Stream<A>(null #if debug ,pos #end);
         AsyncBase.link(this, ret, f);
         _end_promise.then(function(x) ret.end());
         return ret;
@@ -101,8 +101,8 @@ class Stream<T> extends AsyncBase<T> {
       Transforms an iterable of streams into a single stream which resolves
       to an array of values.
      **/
-    public static function wheneverAll<T>(itb : Iterable<AsyncBase<T>>) : Stream<Array<T>> {
-        var ret = new Stream<Array<T>>();
+    public static function wheneverAll<T>(itb : Iterable<AsyncBase<T>> #if debug ,?pos:haxe.PosInfos #end) : Stream<Array<T>> {
+        var ret = new Stream<Array<T>>(null #if debug ,pos #end);
         AsyncBase.linkAll(itb, ret);
         return ret;
     }
@@ -111,8 +111,8 @@ class Stream<T> extends AsyncBase<T> {
       Concatenates all the streams in the iterable argument to a single stream.  See
       the [concat] instance method.
      **/
-    public static function concatAll<T>(itb : Iterable<Stream<T>>) : Stream<T> {
-        var ret = new Stream<T>();
+    public static function concatAll<T>(itb : Iterable<Stream<T>> #if debug ,?pos:haxe.PosInfos #end) : Stream<T> {
+        var ret = new Stream<T>(null #if debug ,pos #end);
         for (i in itb) ret.concat(i);
         return ret;
     }
@@ -121,8 +121,8 @@ class Stream<T> extends AsyncBase<T> {
       Merges all the streams in the iterable argument to a single stream.  See
       the [merge] instance method.
      **/
-    public static function mergeAll<T>(itb : Iterable<Stream<T>>) : Stream<T> {
-        var ret = new Stream<T>();
+    public static function mergeAll<T>(itb : Iterable<Stream<T>> #if debug ,?pos:haxe.PosInfos #end) : Stream<T> {
+        var ret = new Stream<T>(null #if debug ,pos #end);
         for (i in itb) ret.merge(i);
         return ret;
     }
@@ -130,8 +130,8 @@ class Stream<T> extends AsyncBase<T> {
     /**
       Returns a Promise that will resolve only for the first stream update.
      **/
-    public inline function first() : Promise<T> {
-        var s = new Promise<T>();
+    public inline function first(#if debug ?pos:haxe.PosInfos #end) : Promise<T> {
+        var s = new Promise<T>(null #if debug ,pos #end);
         then(function(x) if (!s.isResolved()) s.handleResolve(x));
         return s;
     }
@@ -149,8 +149,8 @@ class Stream<T> extends AsyncBase<T> {
         _pause = set;
     }
 
-    public function pipe<A>(f : T->Stream<A>) : Stream<A> {
-        var ret = new Stream<A>();
+    public function pipe<A>(f : T->Stream<A> #if debug ,?pos:haxe.PosInfos #end) : Stream<A> {
+        var ret = new Stream<A>(null #if debug ,pos #end);
         AsyncBase.pipeLink(this, ret, f);
         _end_promise.then(function(x) ret.end());
         return ret;
@@ -159,8 +159,8 @@ class Stream<T> extends AsyncBase<T> {
     /**
       Pipes an error back into a normal type.
       **/
-    public function errorPipe( f: Dynamic-> Stream<T>) : Stream<T>{
-        var ret = new Stream<T>();
+    public function errorPipe( f: Dynamic-> Stream<T> #if debug ,?pos:haxe.PosInfos #end) : Stream<T>{
+        var ret = new Stream<T>(null #if debug ,pos #end);
         catchError(function(e){
             var piped = f(e);
             piped.then(ret._resolve);
@@ -200,8 +200,8 @@ class Stream<T> extends AsyncBase<T> {
       Creates a new stream linked to the current instance that only updates
       if the [f] argument is true.
      **/
-    public function filter(f : T->Bool) : Stream<T>{
-        var ret = new Stream<T>();
+    public function filter(f : T->Bool #if debug ,?pos:haxe.PosInfos #end) : Stream<T>{
+        var ret = new Stream<T>(null #if debug ,pos #end);
         _update.push({
             async : ret,
             linkf : function(x) if (f(x)) ret.handleResolve(x)
@@ -215,8 +215,8 @@ class Stream<T> extends AsyncBase<T> {
       stream until the stream ends, and then takes values from the next stream
       [s] until that stream ends.
      **/
-    public function concat(s : Stream<T>) : Stream<T> {
-        var ret = new Stream<T>();
+    public function concat(s : Stream<T> #if debug ,?pos:haxe.PosInfos #end) : Stream<T> {
+        var ret = new Stream<T>(null #if debug ,pos #end);
         _update.push({
             async : ret,
             linkf : ret.handleResolve
@@ -237,8 +237,8 @@ class Stream<T> extends AsyncBase<T> {
     /**
       Merges another stream into the current one.
      **/
-    public function merge(s : Stream<T>) : Stream<T> {
-        var ret = new Stream<T>();
+    public function merge(s : Stream<T> #if debug ,?pos:haxe.PosInfos #end) : Stream<T> {
+        var ret = new Stream<T>(null #if debug ,pos #end);
         _update.push({
             async : ret,
             linkf : ret.handleResolve
@@ -255,8 +255,8 @@ class Stream<T> extends AsyncBase<T> {
     /**
       Converts any value to a resolved Stream
      **/
-    public static function stream<A>(_val : A): Stream<A> {
-        var ret = new Stream<A>();
+    public static function stream<A>(_val : A #if debug ,?pos:haxe.PosInfos #end): Stream<A> {
+        var ret = new Stream<A>(null #if debug ,pos #end);
         ret.handleResolve(_val);
         return ret;
     }

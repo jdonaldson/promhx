@@ -5,6 +5,8 @@ import utest.Assert;
 import promhx.deferred.DeferredStream;
 import promhx.deferred.DeferredPromise;
 
+using Lambda;
+
 class TestPromise {
 
     public function new(){}
@@ -50,7 +52,7 @@ class TestPromise {
             return p2;
         });
         p2.then(function(x){
-            actual = x;
+            actual = cast x;
             async();
         });
         d1.resolve(0);
@@ -94,7 +96,7 @@ class TestPromise {
             Assert.equals(expected, actual);
         });
         p1.then(function(x) {
-            actual = x;
+            actual = cast x;
             async();
         });
         d1.resolve(expected);
@@ -223,5 +225,29 @@ class TestPromise {
         d1.resolve(resolved1);
     }
 
+    public function testPromiseConstuctorStack(){
+
+        var p = Promise.promise('foo');
+        var endPromise = p.then(function(_) {
+            return true;
+        }).then(function(_) {
+            return true;
+        }).then(function(_) {
+            return 'end';
+        });
+
+        var async = Assert.createAsync(function(){
+            Assert.isTrue(endPromise.parentConstructorPos.exists(function(e) {
+                return e.fileName == 'TestPromise.hx' && e.lineNumber == 230;
+            }));
+            Assert.isTrue(endPromise.parentConstructorPos.exists(function(e) {
+                return e.fileName == 'TestPromise.hx' && e.lineNumber == 231;
+            }));
+        });
+        endPromise.then(function(x){
+            var actual = x;
+            async();
+        });
+    }
 
 }

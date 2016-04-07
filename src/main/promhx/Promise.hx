@@ -12,10 +12,13 @@ import promhx.error.PromiseError;
 @:expose
 class Promise<T> extends AsyncBase<T>{
     var _rejected   : Bool;
-    public function new(?d:Deferred<T>){
-        super(d);
+
+    public function new(?d:Deferred<T> #if debug, ?pos:haxe.PosInfos #end){
+        super(d #if debug, pos #end);
         _rejected = false;
     }
+
+
 
     /**
       Macro method that binds the promise arguments to a single function
@@ -77,8 +80,8 @@ class Promise<T> extends AsyncBase<T>{
       Transforms an iterable of promises into a single promise which resolves
       to an array of values.
      **/
-    public static function whenAll<T>(itb : Iterable<Promise<T>>) : Promise<Array<T>> {
-        var ret : Promise<Array<T>> = new Promise();
+    public static function whenAll<T>(itb : Iterable<Promise<T>> #if debug ,?pos:haxe.PosInfos #end) : Promise<Array<T>> {
+        var ret : Promise<Array<T>> = new Promise(null #if debug ,pos #end);
         AsyncBase.linkAll(itb, ret);
         return ret;
     }
@@ -97,8 +100,8 @@ class Promise<T> extends AsyncBase<T>{
     /**
       add a wait function directly to the Promise instance.
      **/
-    override public function then<A>(f : T->A): Promise<A> {
-        var ret  = new Promise<A>();
+    override public function then<A>(f : T->A #if debug ,?pos:haxe.PosInfos #end): Promise<A> {
+        var ret  = new Promise<A>(null #if debug ,pos #end);
         AsyncBase.link(this, ret, f);
         return ret;
     }
@@ -116,12 +119,12 @@ class Promise<T> extends AsyncBase<T>{
     }
 
     override function handleError(error : Dynamic) : Void {
-       _rejected = true; 
+       _rejected = true;
        _handleError(error);
     }
 
-    public function pipe<A>(f : T->Promise<A>) : Promise<A> {
-        var ret = new Promise<A>();
+    public function pipe<A>(f : T->Promise<A> #if debug ,?pos:haxe.PosInfos #end) : Promise<A> {
+        var ret = new Promise<A>(null #if debug ,pos #end);
         AsyncBase.pipeLink(this, ret, f);
         return ret;
     }
@@ -142,8 +145,8 @@ class Promise<T> extends AsyncBase<T>{
     /**
       Converts any value to a resolved Promise
      **/
-    public static function promise<T>(_val : T): Promise<T> {
-        var ret = new Promise<T>();
+    public static function promise<T>(_val : T #if debug ,?pos:haxe.PosInfos #end): Promise<T> {
+        var ret = new Promise<T>(#if debug null,pos #end);
         ret.handleResolve(_val);
         return ret;
     }

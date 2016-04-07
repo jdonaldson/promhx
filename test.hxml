@@ -8,7 +8,8 @@
 # -cmd echo "------------------------------------BROWSERJS-------------------------------------"
 
 -cp src/main
--D debug
+# -D debug
+-debug
 -cp src/test
 -lib monax
 -lib nodejs

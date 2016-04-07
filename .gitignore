@@ -5,4 +5,5 @@ package/
 demo/*
 promhx.zip
 haxelib
-
+.haxelib
+build.hxml
