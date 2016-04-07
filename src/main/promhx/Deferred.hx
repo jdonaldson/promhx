@@ -17,7 +17,7 @@ class Deferred<T> extends AsyncBase<T> {
       Returns a new promise based on the current deferred instance
      **/
     public function promise(){
-        return new Promise(cast this);
+        return new Promise(this);
     }
 
     /**

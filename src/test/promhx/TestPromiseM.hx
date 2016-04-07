@@ -25,8 +25,8 @@ class TestPromiseM {
             Assert.equals(expected2, actual2);
         });
         p3.then(function(y) {
-            actual1 = cast y.val1;
-            actual2 = cast y.val2;
+            actual1 = y.val1;
+            actual2 = y.val2;
             async();
         });
         d1.resolve(10);

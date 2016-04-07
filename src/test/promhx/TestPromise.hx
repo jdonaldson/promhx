@@ -52,7 +52,7 @@ class TestPromise {
             return p2;
         });
         p2.then(function(x){
-            actual = cast x;
+            actual = x;
             async();
         });
         d1.resolve(0);
@@ -96,7 +96,7 @@ class TestPromise {
             Assert.equals(expected, actual);
         });
         p1.then(function(x) {
-            actual = cast x;
+            actual = x;
             async();
         });
         d1.resolve(expected);
@@ -225,6 +225,7 @@ class TestPromise {
         d1.resolve(resolved1);
     }
 
+#if debug
     public function testPromiseConstuctorStack(){
 
         var p = Promise.promise('foo');
@@ -238,10 +239,10 @@ class TestPromise {
 
         var async = Assert.createAsync(function(){
             Assert.isTrue(endPromise.parentConstructorPos.exists(function(e) {
-                return e.fileName == 'TestPromise.hx' && e.lineNumber == 230;
+                return e.fileName == 'TestPromise.hx' && e.lineNumber == 231;
             }));
             Assert.isTrue(endPromise.parentConstructorPos.exists(function(e) {
-                return e.fileName == 'TestPromise.hx' && e.lineNumber == 231;
+                return e.fileName == 'TestPromise.hx' && e.lineNumber == 232;
             }));
         });
         endPromise.then(function(x){
@@ -249,5 +250,6 @@ class TestPromise {
             async();
         });
     }
+#end
 
 }
