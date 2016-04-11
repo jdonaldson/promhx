@@ -5,6 +5,8 @@ import utest.Assert;
 import promhx.deferred.DeferredStream;
 import promhx.deferred.DeferredPromise;
 
+using Lambda;
+
 class TestPromise {
 
     public function new(){}
@@ -223,5 +225,31 @@ class TestPromise {
         d1.resolve(resolved1);
     }
 
+#if debug
+    public function testPromiseConstuctorStack(){
+
+        var p = Promise.promise('foo');
+        var endPromise = p.then(function(_) {
+            return true;
+        }).then(function(_) {
+            return true;
+        }).then(function(_) {
+            return 'end';
+        });
+
+        var async = Assert.createAsync(function(){
+            Assert.isTrue(endPromise.parentConstructorPos.exists(function(e) {
+                return e.fileName == 'TestPromise.hx' && e.lineNumber == 231;
+            }));
+            Assert.isTrue(endPromise.parentConstructorPos.exists(function(e) {
+                return e.fileName == 'TestPromise.hx' && e.lineNumber == 232;
+            }));
+        });
+        endPromise.then(function(x){
+            var actual = x;
+            async();
+        });
+    }
+#end
 
 }

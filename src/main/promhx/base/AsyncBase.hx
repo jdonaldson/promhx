@@ -25,6 +25,9 @@ class AsyncBase<T>{
     // add ids to the async instances so they are easier to track
     static var id_ctr  = 0;
     var id          : Int;
+    public var constructorPos :haxe.PosInfos;
+    public var parentConstructorPos :Array<haxe.PosInfos> = [];
+    // var constructorPos :haxe.PosInfos;
 #end
     var _val        : T;
     var _resolved   : Bool;
@@ -37,8 +40,11 @@ class AsyncBase<T>{
     var _errorVal   : Dynamic;
     var _errorPending : Bool;
 
-    public function new(?d:Deferred<T>) {
-#if debug id = id_ctr +=1; #end
+    public function new(?d:Deferred<T> #if debug ,?pos:haxe.PosInfos #end) {
+#if debug
+        id = id_ctr +=1;
+        constructorPos = pos;
+#end
         _resolved   = false;
         _pending = false;
         _errorPending = false;
@@ -160,6 +166,27 @@ class AsyncBase<T>{
             if (_error.length > 0) for (ef in _error) ef(e);
             else if (_update.length > 0) for (up in _update) up.async.handleError(e);
             else {
+#if debug
+                var stacks = parentConstructorPos.concat([]);
+                stacks.push(constructorPos);
+                //Deduplicate
+                var set = new Map<String, Bool>();
+                var i = 0;
+                while (i < stacks.length) {
+                    var key = stacks[i].className + stacks[i].methodName + stacks[i].lineNumber;
+                    if (set.exists(key)) {
+                        stacks.splice(i, 1);
+                    } else {
+                        set.set(key, true);
+                        i++;
+                    }
+                }
+                var stackString = 'Promise Call Stack:\n\t' + stacks.map(function(s) {
+                    return '${s.fileName}:${s.lineNumber} ${s.className}.${s.methodName}()';
+                }).join('\n\t');
+                // haxe.Json.stringify(stacks, null, '\t');
+                trace(stackString);
+#end
 #if (js && nodejs)
                 // Node sometimes doesn't produce helpful stack information on thrown errors.
                 trace('Call Stack: ' + haxe.CallStack.toString(haxe.CallStack.callStack()));
@@ -193,8 +220,8 @@ class AsyncBase<T>{
       This function returns a new AsyncBase.  When this instance resolves,
       it will resolve the new AsyncBase with the function callback argument.
      **/
-    public function then<A>(f : T->A) : AsyncBase<A> {
-        var ret = new AsyncBase<A>();
+    public function then<A>(f : T->A #if debug ,?pos:haxe.PosInfos #end) : AsyncBase<A> {
+        var ret = new AsyncBase<A>(null #if debug ,pos #end);
         link(this, ret, f);
         return ret;
     }
@@ -226,6 +253,10 @@ class AsyncBase<T>{
     inline public static function link<A,B>
         (current : AsyncBase<A>, next: AsyncBase<B>, f : A->B) : Void
     {
+#if debug
+        next.parentConstructorPos = current.parentConstructorPos.concat([]);
+        next.parentConstructorPos.push(current.constructorPos);
+#end
         // the function wrapper for the callback, which will resolve the return
         // if current is not resolved, or will resolve next loop, push to
         // update queues.

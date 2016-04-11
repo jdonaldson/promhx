@@ -1,4 +1,4 @@
-
+-debug
 -cp src/main
 -cp src/test
 -lib monax
