@@ -15,12 +15,10 @@ class Stream<T> extends AsyncBase<T> {
     var _pause        : Bool;
     var _end          : Bool;
     var _end_promise  : Promise<Option<T>>;
-    var _end_deferred : Deferred<Option<T>>;
 
     public function new(?d : Deferred<T> #if debug ,?pos:haxe.PosInfos #end){
         super(d #if debug, pos #end);
-        _end_deferred = new Deferred<Option<T>>();
-        _end_promise = _end_deferred.promise();
+        _end_promise = new Promise<Option<T>>();
     }
 
     /**
