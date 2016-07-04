@@ -6,6 +6,7 @@
 -js ./demo/demo.js
 # -x ./demo/demo
 -lib monax
+-lib utest
 # -cmd echo "--------------------------------------JS--------------------------------------"
 # -cmd node ./demo/demo.js
 # -cmd open ./demo/index.html

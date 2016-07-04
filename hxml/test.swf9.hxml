@@ -1,8 +1,4 @@
-
--cp src/main
--cp src/test
--lib monax
+hxml/test.defaults.hxml
 -main TestAll
--cp ./lib/utest/src
 -cmd echo "--------------------------------------FLASH--------------------------------------"
 -swf bin/test.swf

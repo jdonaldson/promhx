@@ -1,12 +1,9 @@
+hxml/test.defaults.hxml
 -debug
--cp src/main
--cp src/test
--lib monax
 -lib nodejs
--main TestAll
--cp ./lib/utest/src
 -D nodejs
--js bin/test_node.js
+-main TestAll
 -cmd echo "--------------------------------------NODE--------------------------------------"
+-js bin/test_node.js
 -cmd node bin/test_node.js
 

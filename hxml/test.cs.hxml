@@ -1,10 +1,7 @@
 
--cp src/main
--cp src/test
--lib monax
+hxml/test.defaults.hxml
 -main TestAllQueue
--cp ./lib/utest/src
--cs bin/testcs
 -cmd echo "---------------------------------------C#---------------------------------------"
+-cs bin/testcs
 -cmd mono ./bin/testcs/bin/TestAllQueue.exe
 

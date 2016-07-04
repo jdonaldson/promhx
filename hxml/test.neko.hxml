@@ -1,9 +1,4 @@
-
-# display completions
--cp src/main
--cp src/test
--lib monax
+hxml/test.defaults.hxml
 -main TestAllQueue
--cp ./lib/utest/src
 -cmd echo "--------------------------------------NEKO--------------------------------------"
 -x bin/test

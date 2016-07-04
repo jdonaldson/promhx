@@ -1,9 +1,5 @@
-
--cp src/main
--cp src/test
--lib monax
+hxml/test.defaults.hxml
 -main TestAllQueue
--cp ./lib/utest/src
--php bin/testphp
 -cmd echo "--------------------------------------PHP---------------------------------------"
+-php bin/testphp
 -cmd php bin/testphp/index.php

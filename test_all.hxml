@@ -3,8 +3,8 @@
 -cp src/main
 -cp src/test
 -lib monax
+-lib utest
 -main TestAll
--cp ./lib/utest/src
 -js bin/test.js
 
 --next

@@ -1,9 +1,5 @@
-
--cp src/main
--cp src/test
--lib monax
+hxml/test.defaults.hxml
 -main TestAllQueue
--cp ./lib/utest/src
--cpp bin/testcpp
 -cmd echo "--------------------------------------CPP---------------------------------------"
+-cpp bin/testcpp
 -cmd ./bin/testcpp/TestAllQueue

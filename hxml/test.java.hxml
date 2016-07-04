@@ -1,9 +1,5 @@
-
--cp src/main
--cp src/test
--lib monax
+hxml/test.defaults.hxml
 -main TestAllQueue
--cp ./lib/utest/src
--java bin/testjava
 -cmd echo "--------------------------------------JAVA--------------------------------------"
+-java bin/testjava
 -cmd java -jar bin/testjava/TestAllQueue.jar
