@@ -31,6 +31,7 @@ before_script:
   - mkdir ~/haxelib                                    # create a folder for installing haxelib
   - haxelib setup ~/haxelib
   - haxelib install monax                              # dependency
+  - haxelib install utest                              # dependency
   - sh -c "if [ '$TARGET' = 'cpp' ]; then sudo apt-get install gcc-multilib g++-multilib -y; fi"
   - sh -c "if [ '$TARGET' = 'cpp' ]; then haxelib install hxcpp; fi"
   - sh -c "if [ '$TARGET' = 'cs' ]; then haxelib install hxcs; fi"
