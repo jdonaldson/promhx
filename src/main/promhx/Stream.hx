@@ -81,7 +81,10 @@ class Stream<T> extends AsyncBase<T> {
     override public function then<A>(f : T->A #if debug ,?pos:haxe.PosInfos #end) : Stream<A> {
         var ret  = new Stream<A>(null #if debug ,pos #end);
         AsyncBase.link(this, ret, f);
-        _end_promise.then(function(x) ret.end());
+        _end_promise._update.push({
+            async : ret._end_promise,
+            linkf : function(x) ret.end()
+        });
         return ret;
     }
 
@@ -89,7 +92,13 @@ class Stream<T> extends AsyncBase<T> {
         var filtered = [];
         var removed = false;
         for (u in _update){
-            if (u.async == str)  removed = true;
+            if (u.async == str) {
+                // also remove the "end" promise update from downstream
+                _end_promise._update = _end_promise._update.filter(function(x){
+                    return x.async != str._end_promise;
+                });
+                removed = true;
+            }
             else filtered.push(u);
         }
         _update = filtered;
