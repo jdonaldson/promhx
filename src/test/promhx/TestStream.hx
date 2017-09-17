@@ -57,6 +57,7 @@ class TestStream {
             .then(function(x){
                 actual = x;
                 async();
+                return null;
             });
         s1.resolve(0);
     }
@@ -169,6 +170,7 @@ class TestStream {
             .then(function(i : Int, s : String){
                 actual = s.substring(0,i);
                 async();
+                return null;
             });
         si.resolve(3);
         ss.resolve(initial);
@@ -259,6 +261,7 @@ class TestStream {
            actual = x;
            cnt = x;
            if (cnt == 2) async();
+           return null;
         });
         s.update(1);
         s.update(2);
@@ -277,6 +280,7 @@ class TestStream {
         var s3 = Stream.whenever(s1,s2).then(function(x,y){
             actual = x + y;
             async();
+            return null;
         });
         s1.resolve(expected1);
         s2.resolve(expected2);
@@ -291,6 +295,7 @@ class TestStream {
         });
         Stream.whenever(s1,s2).then(function(x,y){
             throw "an error";
+            return null;
         }).catchError(function(e){
             error = true;
             async();

@@ -1,7 +1,6 @@
 hxml/test.defaults.hxml
 -debug
--lib nodejs
--D nodejs
+-lib hxnodejs
 -main TestAll
 -cmd echo "--------------------------------------NODE--------------------------------------"
 -js bin/test_node.js

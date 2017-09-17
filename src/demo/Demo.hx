@@ -2,7 +2,7 @@
 // import js.JQuery;
 import promhx.Stream;
 using js.promhx.JQueryTools;
-import js.JQuery;
+import js.jquery.JQuery;
 import promhx.mdo.StreamM;
 import promhx.mdo.PromiseM;
 using promhx.haxe.EventTools;

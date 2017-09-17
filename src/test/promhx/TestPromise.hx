@@ -84,6 +84,7 @@ class TestPromise {
         Promise.whenAll([]).then(function(x){
             actual = x.length;
             async();
+            return null;
         });
     }
 
@@ -141,6 +142,7 @@ class TestPromise {
         var p3 = Promise.when(p1,p2).then(function(x,y){
             actual = x + y;
             async();
+            return null;
         });
         d1.resolve(expected1);
         d2.resolve(expected2);
@@ -157,6 +159,7 @@ class TestPromise {
         });
         Promise.when(p1, p2).then(function(x, y){
             throw "an error";
+            return null;
         }).catchError(function(e){
             error = true;
             async();
@@ -197,6 +200,7 @@ class TestPromise {
         });
         Promise.when(p1,p2).then(function(x,y){
             Assert.isTrue(false, "The 'then' method should not trigger"); //or whatever make the test fail
+            return null;
         }).catchError(function(e){
             error = true;
             async();
@@ -239,10 +243,10 @@ class TestPromise {
 
         var async = Assert.createAsync(function(){
             Assert.isTrue(endPromise.parentConstructorPos.exists(function(e) {
-                return e.fileName == 'TestPromise.hx' && e.lineNumber == 231;
+                return e.fileName == 'TestPromise.hx' && e.lineNumber == 235;
             }));
             Assert.isTrue(endPromise.parentConstructorPos.exists(function(e) {
-                return e.fileName == 'TestPromise.hx' && e.lineNumber == 232;
+                return e.fileName == 'TestPromise.hx' && e.lineNumber == 236;
             }));
         });
         endPromise.then(function(x){

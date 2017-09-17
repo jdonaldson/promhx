@@ -17,10 +17,12 @@ promise.then(function(p1) trace("do something with promise's value"));
 ```
 
 Alternatively, you can specify a callback on multiple promise instances using
-the static method "when":
-
+the static method "when" (Note that you must return a value):
 ```haxe
-Promise.when(promise1, promise2).then(function(p1,p2) trace("do something with the promise values"));
+Promise.when(promise1, promise2).then(function(p1,p2){
+  trace("do something with the promise values");
+  return null;
+});
 ```
 
 Streams work more or less the same:
@@ -30,7 +32,10 @@ stream.then(function(s1) trace("do something with the stream's value"));
 ```
 
 ```haxe
-Stream.whenever(stream1, stream2).then(function(s1,s2) trace("do something with the stream values"));
+Stream.whenever(stream1, stream2).then(function(s1,s2){
+  trace("do something with the stream values")
+  return null;
+});
 ```
 
 The major difference between Promises and Streams is that Promises may only
@@ -92,9 +97,13 @@ p1.then(function(x) trace("delivered " + x));
 // Deliver multiple promises when they are all available.
 // the "then" function must match the types and arity of the contained values
 // from the arguments to "when".
+// Also note, 
 var dp2 = new Deferred<Int>();
 var p2 = dp2.promise();
-Promise.when(p1,p2).then(function(x,y)trace(x+y));
+Promise.when(p1,p2).then(function(x,y){
+  trace(x+y);
+  return null;
+});
 
 
 // Stream has its own "when" based method, called "whenever".  Note that
@@ -104,7 +113,10 @@ var ds1 = new Deferred<Int>();
 var ds2 = new Deferred<Int>();
 var s1 = ds1.stream();
 var s2 = ds2.stream();
-Stream.whenever(s1,s2).then(function(x,y)trace(x+y));
+Stream.whenever(s1,s2).then(function(x,y){
+  trace(x+y);
+  return null;
+});
 
 
 // Stream.whenever can mix and match stream and promise arguments:
@@ -122,7 +134,10 @@ var p3 = dp3.promise();
 // works in a similar fashion.
 Promise.when(p1,p2).then(function(x,y) return x+y)
     .pipe(function(x) return p3)
-    .then(function(x) trace(x));
+    .then(function(x) {
+        trace(x);
+        return null;
+    });
 
 
 // You can easily catch errors by specifying a callback.
@@ -146,7 +161,10 @@ Promise.when(p1,p2).then(function(x,y) {throw('an error'); return 'hi';})
 
 // If no error callback is specified, the error is thrown.
 // Uncomment this next line to cause an error!
-//Promise.when(p1,p2).then(function(x,y) throw('an error'));
+//Promise.when(p1,p2).then(function(x,y){
+  throw('an error');
+  return null;
+);
 
 // Promises can go through various stages before finally resolving.  The
 // following methods check the status.

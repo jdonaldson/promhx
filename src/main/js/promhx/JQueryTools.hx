@@ -3,8 +3,8 @@ package js.promhx;
 import promhx.Stream;
 import promhx.Promise;
 import promhx.Deferred;
-import js.JQuery;
-import js.JQuery.JqEvent;
+import js.jquery.JQuery;
+import js.jquery.Event;
 import js.html.MouseEvent;
 import js.html.WheelEvent;
 
@@ -20,12 +20,12 @@ typedef LoadResponse = {
 class JQueryTools {
     /**
       Wraps functions that accept callbacks, and enables them to
-      return Stream<JqEvent> instead.
+      return Stream<Event> instead.
      **/
     public static function bindStream
-        (f:(JqEvent->Void)->JQuery) : Stream<JqEvent>
+        (f:(Event->Void)->JQuery) : Stream<Event>
         {
-            var def = new Deferred<JqEvent>();
+            var def = new Deferred<Event>();
             var str = new Stream(def);
             f(def.resolve);
             return str;
@@ -36,9 +36,9 @@ class JQueryTools {
       to listen for, and a Stream will be created for them.
      **/
     public static function eventStream
-        ( jq : JQuery, events : String) : Stream<JqEvent>
+        ( jq : JQuery, events : String) : Stream<Event>
         {
-            var def = new Deferred<JqEvent>();
+            var def = new Deferred<Event>();
             var str = new Stream(def);
             jq.on(events, def.resolve);
             return str;
@@ -54,7 +54,7 @@ class JQueryTools {
         {
             var def = new Deferred<LoadResponse>();
             var pro = new Promise(def);
-            jq.load(url, data, function(responseText, textStatus){
+            jq.load(url, data, function(responseText, textStatus, jqxhr){
                 def.resolve({
                     responseText  : responseText,
                     textStatus    : textStatus
