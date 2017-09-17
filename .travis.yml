@@ -35,7 +35,7 @@ before_script:
   - sh -c "if [ '$TARGET' = 'cs' ]; then sudo apt-get install mono-complete; fi"
   - sh -c "if [ '$TARGET' = 'cs' ]; then haxelib install hxcs; fi"
   - sh -c "if [ '$TARGET' = 'java' ]; then haxelib install hxjava; fi"
-  - sh -c "if [ '$TARGET' = 'node' ]; then haxelib install nodejs; fi"
+  - sh -c "if [ '$TARGET' = 'node' ]; then haxelib install hxnodejs; fi"
  
 # Run the test!
 script:
