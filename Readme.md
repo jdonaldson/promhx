@@ -1,7 +1,6 @@
 ![Promhx](http://i.imgur.com/yMrFbQv.jpg)
 
-[![Build Status][travis-ci]]
-[travis-ci 2]
+![Build Status][travis-ci]
 
 Promhx is a [promise][wikipedia] and
 [functional reactive programming][wikipedia 2]
